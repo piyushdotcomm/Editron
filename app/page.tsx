@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import {db} from "@/lib/db";
+import UserButton from "@/modules/auth/components/user-button";
 
 export default function Home() {
   return (
@@ -7,6 +9,8 @@ export default function Home() {
       <Button>
         Getting Started
       </Button>
+      <UserButton>
+      </UserButton>
     </div>
   );
 }
