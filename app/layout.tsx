@@ -32,26 +32,26 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-         <ThemeProvider
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
             <div className="flex flex-col min-h-screen">
-              <Toaster/>
-    <div className="flex-1">
-{children}
-    </div>
+              <Toaster />
+              <div className="flex-1">
+                {children}
+              </div>
             </div>
-        
-        </ThemeProvider>
-      </body>
-    </html>
+
+          </ThemeProvider>
+        </body>
+      </html>
     </SessionProvider>
   );
 }
