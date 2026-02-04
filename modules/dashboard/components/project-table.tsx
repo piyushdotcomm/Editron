@@ -1,4 +1,3 @@
-
 "use client"
 
 import Image from "next/image"
@@ -158,7 +157,7 @@ export default function ProjectTable({
               <TableRow key={project.id}>
                 <TableCell className="font-medium">
                   <div className="flex flex-col">
-                    <Link href={'/playground/${project.id}'} className="hover:underline">
+                    <Link href={`/playground/${project.id}`} className="hover:underline">
                       <span className="font-semibold">{project.title}</span>
                     </Link>
                     <span className="text-sm text-gray-500 line-clamp-1">{project.description}</span>
@@ -191,23 +190,23 @@ export default function ProjectTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon">
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent side="bottom">
                       <DropdownMenuItem asChild>
                         <MarkedToggleButton markedForRevision={project.Starmark[0]?.isMarked} id={project.id} />
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={'/playground/${project.id}'} className="flex items-center">
+                        <Link href={`/playground/${project.id}`} className="flex items-center">
                           <Eye className="h-4 w-4 mr-2" />
                           Open Project
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={'/playground/${project.id}'} target="_blank" className="flex items-center">
+                        <Link href={`/playground/${project.id}`} target="_blank" className="flex items-center">
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open in New Tab
                         </Link>
