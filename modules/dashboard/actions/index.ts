@@ -125,30 +125,60 @@ export const editProjectById = async (
   }
 };
 
+// export const duplicateProjectById = async (id: string) => {
+//   try {
+//     const originalPlayground = await db.playground.findUnique({
+//       where: { id },
+//       // todo: add tempalte files
+//     });
+//     if (!originalPlayground) {
+//       throw new Error("Original playground not found");
+//     }
+
+//     const duplicatedPlayground = await db.playground.create({
+//       data: {
+//         title: `${originalPlayground.title} (Copy)`,
+//         description: originalPlayground.description,
+//         template: originalPlayground.template,
+//         userId: originalPlayground.userId,
+
+//         // todo: add template files
+//       },
+//     });
+
+//     revalidatePath("/dashboard");
+//     return duplicatedPlayground;
+//   } catch (error) {
+//     console.error("Error duplicating project:", error);
+//   }
+// };
 export const duplicateProjectById = async (id: string) => {
   try {
     const originalPlayground = await db.playground.findUnique({
       where: { id },
-      // todo: add tempalte files
     });
+
     if (!originalPlayground) {
       throw new Error("Original playground not found");
     }
+
+    console.log("🎯 Using original user:", originalPlayground.userId);
 
     const duplicatedPlayground = await db.playground.create({
       data: {
         title: `${originalPlayground.title} (Copy)`,
         description: originalPlayground.description,
         template: originalPlayground.template,
-        userId: originalPlayground.userId,
-
-        // todo: add template files
+        userId: originalPlayground.userId, // 👈 FIX HERE
       },
     });
+
+    console.log("✨ Duplicate created:", duplicatedPlayground);
 
     revalidatePath("/dashboard");
     return duplicatedPlayground;
   } catch (error) {
-    console.error("Error duplicating project:", error);
+    console.error("❌ Error duplicating project:", error);
   }
 };
+

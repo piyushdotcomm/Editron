@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat, Open_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SessionProvider } from "next-auth/react";
@@ -7,8 +7,13 @@ import { auth } from "@/auth";
 import { ThemeProvider } from "@/components/providers/theme-providers";
 import { Toaster } from "@/components/ui/sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+});
+
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
 });
 
@@ -34,7 +39,7 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${montserrat.variable} ${openSans.variable} ${geistMono.variable} antialiased`}
         >
           <ThemeProvider
             attribute="class"
