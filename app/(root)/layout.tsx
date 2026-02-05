@@ -2,7 +2,6 @@ import {Footer} from "@/modules/home/footer";
 import { cn } from "@/lib/utils";
 import {Header} from "@/modules/home/header";
 import {Metadata} from "next";
-import { Main } from "next/document";
 export const metadata:Metadata = {
     title:{
         template:"Editron",
