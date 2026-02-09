@@ -34,7 +34,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
               <Button size="lg" className="rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-red-500/20 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white border-0 w-full sm:w-auto transition-transform hover:scale-105">
-                Start Coding Free
+                Start Coding
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

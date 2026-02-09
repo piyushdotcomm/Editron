@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/toggle-theme";
 import UserButton from "../auth/components/user-button";
 import { cn } from "@/lib/utils";
-import { Code2, Github, Twitter } from "lucide-react";
+import { Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "../auth/hooks/use-current-user";
 
@@ -36,20 +36,13 @@ export function Header() {
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3">
-                    <div className="hidden sm:flex items-center gap-3 mr-4 border-r border-border/50 pr-4">
-                        <Link href="https://github.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Github className="w-4 h-4" />
-                        </Link>
-                        <Link href="https://twitter.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Twitter className="w-4 h-4" />
-                        </Link>
-                    </div>
+                    {/* Social links removed */}
 
                     <div className="flex items-center gap-2">
                         <ThemeToggle />
                         {!user ? (
                             <>
-                                <Link href="/login">
+                                <Link href="/auth/sign-in">
                                     <Button variant="ghost" size="sm" className="hidden sm:flex text-muted-foreground hover:text-foreground hover:bg-red-500/5">
                                         Sign In
                                     </Button>
