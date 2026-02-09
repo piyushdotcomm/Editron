@@ -1,39 +1,35 @@
 import Link from "next/link";
-import { Github as LucideGithub } from "lucide-react";
-
-
-
+import { Github, Twitter, Linkedin, Instagram, Briefcase } from "lucide-react";
 
 export function Footer() {
   const socialLinks = [
-    {
-      href: "https://github.com/piyushdotcomm",
-      icon: (
-        <LucideGithub className="w-5 h-5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" />
-      ),
-    },
+    { icon: Github, href: "https://github.com/piyushdotcomm", label: "GitHub" },
+    { icon: Twitter, href: "https://x.com/Piyushhere_", label: "Twitter" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/piyushdotcom/", label: "LinkedIn" },
+    { icon: Instagram, href: "https://www.instagram.com/piyush.here_/", label: "Instagram" },
+    { icon: Briefcase, href: "https://portfolio-six-pearl-1xxunv669i.vercel.app/", label: "Portfolio" },
   ];
 
   return (
-    <footer className="border-t border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 flex flex-col items-center space-y-6 text-center">
-        {/* Social Links */}
-        <div className="flex gap-4">
-          {socialLinks.map((link, index) => (
+    <footer className="relative border-t border-border/50 bg-background/50 backdrop-blur-xl py-8">
+      <div className="mx-auto max-w-7xl px-6 flex flex-col items-center justify-center gap-6">
+        <div className="flex space-x-6">
+          {socialLinks.map((item) => (
             <Link
-              key={index}
-              href={link.href || "#"}
+              key={item.label}
+              href={item.href}
+              className="group p-2 rounded-full hover:bg-muted transition-all duration-200"
               target="_blank"
               rel="noopener noreferrer"
             >
-              {link.icon}
+              <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span className="sr-only">{item.label}</span>
             </Link>
           ))}
         </div>
 
-        {/* Copyright Notice */}
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          &copy; {new Date().getFullYear()} Editron. All rights reserved.
+        <p className="text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} Editron Inc. All rights reserved.
         </p>
       </div>
     </footer>

@@ -1,107 +1,89 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
 import { ThemeToggle } from "@/components/ui/toggle-theme";
 import UserButton from "../auth/components/user-button";
+import { cn } from "@/lib/utils";
+import { Code2, Github, Twitter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCurrentUser } from "../auth/hooks/use-current-user";
 
 export function Header() {
+    const user = useCurrentUser();
+
     return (
-        <>
-            <div className="sticky top-0 left-0 right-0 z-50">
-                <div className="bg-white dark:bg-black/5 w-full">
-                    {/* Rest of the header content */}
-                    <div className="flex items-center justify-center w-full flex-col">
-                        <div
-                            className={`
-                            flex items-center justify-between
-                            bg-linear-to-b from-white/90 via-gray-50/90 to-white/90
-                            dark:from-zinc-900/90 dark:via-zinc-800/90 dark:to-zinc-900/90
-                            shadow-[0_2px_20px_-2px_rgba(0,0,0,0.1)]
-                            backdrop-blur-md
-                            border-x border-b 
-                            border-[rgba(230,230,230,0.7)] dark:border-[rgba(70,70,70,0.7)]
-                            w-full sm:min-w-[800px] sm:max-w-[1200px]
-                            rounded-b-[28px]
-                            px-4 py-2.5
-                            relative
-                            transition-all duration-300 ease-in-out
-                        `}
-                        >
-                            <div className="relative z-10 flex items-center justify-between w-full gap-2">
-                                {/* Logo Section with Navigation Links */}
-                                <div className="flex items-center gap-6 justify-center">
-                                    <Link
-                                        href="/"
-                                        className="flex items-center gap-2 justify-center"
-                                    >
-                                        <Image
-                                            src={"/logo.svg"}
-                                            alt="Logo"
-                                            height={60}
-                                            width={60}
-                                        />
+        <header className="fixed top-0 inset-x-0 z-50 h-16 border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+            <div className="container h-full mx-auto px-4 md:px-6 flex items-center justify-between">
 
-                                        <span className="hidden sm:block font-extrabold text-lg">
-                                            Editron
-                                        </span>
-                                    </Link>
-                                    <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                                    {/* Desktop Navigation Links */}
-                                    <div className="hidden sm:flex items-center gap-4">
-                                        <Link
-                                            href="/docs/components/background-paths"
-                                            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                                        >
-                                            Docs
-                                        </Link>
-                                        {/* <Link
-                                            href="/pricing"
-                                            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                                        >
-                                            Pricing
-                                        </Link> */}
-                                        <Link
-                                            href="https://codesnippetui.pro/templates?utm_source=codesnippetui.com&utm_medium=header"
-                                            target="_blank"
-                                            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
-                                        >
-                                            API
-                                            <span className="text-green-500 dark:text-green-400 border border-green-500 dark:border-green-400 rounded-lg px-1 py-0.5 text-xs">
-                                                New
-                                            </span>
-                                        </Link>
-                                    </div>
-                                </div>
-
-                                {/* Right side items */}
-                                <div className="hidden sm:flex items-center gap-3">
-                                    <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                                    {/* <HeaderPro /> */}
-                                    <ThemeToggle />
-                                    <UserButton />
-                                </div>
-
-                                {/* Mobile Navigation remains unchanged */}
-                                <div className="flex sm:hidden items-center gap-4">
-                                    <Link
-                                        href="/docs/components/action-search-bar"
-                                        className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                                    >
-                                        Docs
-                                    </Link>
-                                    <Link
-                                        href="/pricing"
-                                        className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                                    >
-                                        API
-                                    </Link>
-                                    <ThemeToggle />
-                                    <UserButton />
-                                </div>
-                            </div>
+                {/* Logo Area */}
+                <div className="flex items-center gap-6">
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative flex items-center justify-center p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 group-hover:bg-red-500/20 transition-colors">
+                            <Code2 className="w-5 h-5 text-red-500" />
                         </div>
+                        <span className="font-heading font-bold text-lg tracking-tight text-foreground group-hover:text-red-500 transition-colors">
+                            Editron
+                        </span>
+                    </Link>
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-1">
+                        <NavLink href="/docs">Documentation</NavLink>
+                        <NavLink href="/#features">Features</NavLink>
+                        <NavLink href="/templates">Templates</NavLink>
+                    </nav>
+                </div>
+
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-3 mr-4 border-r border-border/50 pr-4">
+                        <Link href="https://github.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <Github className="w-4 h-4" />
+                        </Link>
+                        <Link href="https://twitter.com" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <Twitter className="w-4 h-4" />
+                        </Link>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        {!user ? (
+                            <>
+                                <Link href="/login">
+                                    <Button variant="ghost" size="sm" className="hidden sm:flex text-muted-foreground hover:text-foreground hover:bg-red-500/5">
+                                        Sign In
+                                    </Button>
+                                </Link>
+                                <Link href="/dashboard">
+                                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 text-xs font-semibold px-4 rounded-full">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Link href="/dashboard">
+                                    <Button size="sm" variant="outline" className="hidden sm:flex text-xs font-semibold px-3 h-8 border-red-500/20 text-red-600 hover:bg-red-500/5 mr-1">
+                                        Dashboard
+                                    </Button>
+                                </Link>
+                                <UserButton />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-        </>
+        </header>
+    );
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+    return (
+        <Link
+            href={href}
+            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-all duration-200"
+        >
+            {children}
+        </Link>
     );
 }
