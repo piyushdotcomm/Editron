@@ -67,101 +67,24 @@ export function HeroCodeDemo() {
                 <div className="p-6 overflow-x-auto">
                     <pre className="font-mono text-sm md:text-base leading-relaxed">
                         <code className="block">
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">1</span>
-                                <span className="table-cell">
-                                    <span className="text-red-500 dark:text-red-400 font-semibold">import</span> {"{ "}
-                                    <span className="text-rose-600 dark:text-rose-400">Editron</span> {" }"}
-                                    <span className="text-red-500 dark:text-red-400 font-semibold"> from</span>
-                                    <span className="text-amber-600 dark:text-amber-400"> '@editron/core'</span>;
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">2</span>
-                                <span className="table-cell"></span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">3</span>
-                                <span className="table-cell">
-                                    <span className="text-slate-500 italic">// Initialize the intelligent environment</span>
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">4</span>
-                                <span className="table-cell">
-                                    <span className="text-red-500 dark:text-red-400 font-semibold">const</span> editor = <span className="text-red-500 dark:text-red-400 font-semibold">new</span> <span className="text-rose-600 dark:text-rose-400">Editron</span>({"{ "}
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">5</span>
-                                <span className="table-cell pl-4">
-                                    mode: <span className="text-amber-600 dark:text-amber-400">'pro'</span>,
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">6</span>
-                                <span className="table-cell pl-4">
-                                    ai: {"{ "}
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">7</span>
-                                <span className="table-cell pl-8">
-                                    enabled: <span className="text-red-500 dark:text-red-400 font-semibold">true</span>,
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">8</span>
-                                <span className="table-cell pl-8">
-                                    model: <span className="text-amber-600 dark:text-amber-400">'claude-3-opus'</span>
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">9</span>
-                                <span className="table-cell pl-4">
-                                    {" }"},
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">10</span>
-                                <span className="table-cell pl-4">
-                                    theme: <span className="text-amber-600 dark:text-amber-400">'midnight-monochrome'</span>
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">11</span>
-                                <span className="table-cell">
-                                    {" });"}
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">12</span>
-                                <span className="table-cell"></span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">13</span>
-                                <span className="table-cell">
-                                    <span className="text-red-500 dark:text-red-400 font-semibold">export default function</span> <span className="text-rose-600 dark:text-rose-400">startCoding</span>() {"{ "}
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">14</span>
-                                <span className="table-cell pl-4">
-                                    <span className="text-rose-600 dark:text-rose-400">console</span>.log(<span className="text-amber-600 dark:text-amber-400">"Ready to build something amazing."</span>);
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">15</span>
-                                <span className="table-cell pl-4">
-                                    <span className="text-red-500 dark:text-red-400 font-semibold">return</span> editor.launch();
-                                </span>
-                            </div>
-                            <div className="table-row">
-                                <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">16</span>
-                                <span className="table-cell">
-                                    {" }"}
-                                </span>
-                            </div>
+                            {codeSnippet.split('\n').map((line, i) => (
+                                <div key={i} className="table-row">
+                                    <span className="table-cell select-none text-right pr-4 text-muted-foreground/30 text-xs w-8">
+                                        {i + 1}
+                                    </span>
+                                    <span className="table-cell">
+                                        {/* Basic syntax highlighting simulation */}
+                                        <span dangerouslySetInnerHTML={{
+                                            __html: line
+                                                .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
+                                                .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
+                                                .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
+                                                .replace(/\/\/.*/g, '<span class="text-slate-500 italic">$&</span>')
+                                                .replace(/Editron|console|editor/g, '<span class="text-rose-600 dark:text-rose-400">$&</span>')
+                                        }} />
+                                    </span>
+                                </div>
+                            ))}
                         </code>
                     </pre>
                 </div>

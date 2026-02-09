@@ -1,7 +1,8 @@
-import { scanTemplateDirectory } from "@/modules/playground/lib/path-to-json";
+import { readTemplateStructureFromJson, saveTemplateStructureToJson } from "@/modules/playground/lib/path-to-json";
 import { db } from "@/lib/db";
 import { templatePaths } from "@/lib/template";
 import path from "path";
+import fs from "fs/promises";
 import { NextRequest } from "next/server";
 
 // Helper function to ensure valid JSON
@@ -43,21 +44,29 @@ export async function GET(
 
   try {
     const inputPath = path.join(process.cwd(), templatePath);
-    console.log("Input Path for scan:", inputPath);
-    console.log("CWD:", process.cwd());
+    const outputFile = path.join(process.cwd(), `output/${templateKey}.json`);
 
-    // Scan the template directory directly without writing to a file
-    const result = await scanTemplateDirectory(inputPath);
+    console.log("Input Path:", inputPath);
+    console.log("Output Path:", outputFile);
 
-    // Validate the JSON structure
+    // Save and read the template structure
+    await saveTemplateStructureToJson(inputPath, outputFile);
+    const result = await readTemplateStructureFromJson(outputFile);
+
+    // Validate the JSON structure before saving
     if (!validateJsonStructure(result.items)) {
-      console.error("Invalid JSON structure detected");
       return Response.json({ error: "Invalid JSON structure" }, { status: 500 });
     }
+
+
+
+    await fs.unlink(outputFile);
 
     return Response.json({ success: true, templateJson: result }, { status: 200 });
   } catch (error) {
     console.error("Error generating template JSON:", error);
-    return Response.json({ error: "Failed to generate template", details: (error as Error).message }, { status: 500 });
+    return Response.json({ error: "Failed to generate template" }, { status: 500 });
   }
 }
+
+

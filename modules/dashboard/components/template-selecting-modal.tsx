@@ -149,17 +149,17 @@ const TemplateSelectionModal = ({
   >("all");
   const [projectName, setProjectName] = useState("");
 
-  const filteredTemplates = templates.filter((template) => {
+const filteredTemplates = templates.filter((template)=>{
     const matchesSearch =
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    template.tags.some((tag) =>tag.toLowerCase().includes(searchQuery.toLowerCase()))
 
     const matchesCategory = category === "all" || template.category === category;
 
-    return matchesCategory && matchesSearch;
+return matchesCategory && matchesSearch;
 
-  })
+})
 
 
   const handleSelectTemplate = (templateId: string) => {
@@ -193,7 +193,7 @@ const TemplateSelectionModal = ({
         description: template?.description
       })
 
-
+     
       onClose();
       // Reset state for next time
       setStep("select");
@@ -285,10 +285,11 @@ const TemplateSelectionModal = ({
                       <div
                         key={template.id}
                         className={`relative flex p-6 border rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02]
-                        ${selectedTemplate === template.id
+                        ${
+                        selectedTemplate === template.id
                             ? "border-[#E93F3F] shadow-[0_0_0_1px_#E93F3F,0_8px_20px_rgba(233,63,63,0.15)]"
                             : "hover:border-[#E93F3F] shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)]"
-                          }
+                        }
                     `}
                         onClick={() => handleSelectTemplate(template.id)}
                       >
@@ -305,13 +306,14 @@ const TemplateSelectionModal = ({
                         <div className="flex gap-4">
                           <div
                             className="relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-full"
-                            style={{ backgroundColor: `${template.color}15` }}
+                            style={{ backgroundColor: `${template.color}15`}}
                           >
                             <Image
                               src={template.icon || "/placeholder.svg"}
                               alt={`${template.name} icon`}
-                              fill
-                              className="object-contain p-3"
+                              width={40}
+                              height={40}
+                              className="object-contain"
                             />
                           </div>
 
