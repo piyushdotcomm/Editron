@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeToggle } from "@/components/ui/toggle-theme";
 import UserButton from "../auth/components/user-button";
 import { cn } from "@/lib/utils";
-import { Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "../auth/hooks/use-current-user";
 
@@ -18,8 +18,15 @@ export function Header() {
                 {/* Logo Area */}
                 <div className="flex items-center gap-6">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="relative flex items-center justify-center p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 group-hover:bg-red-500/20 transition-colors">
-                            <Code2 className="w-5 h-5 text-red-500" />
+                        <div className="relative flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
+                            <Image
+                                src="/logo.svg"
+                                alt="Editron Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                                priority
+                            />
                         </div>
                         <span className="font-heading font-bold text-lg tracking-tight text-foreground group-hover:text-red-500 transition-colors">
                             Editron
