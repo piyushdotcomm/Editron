@@ -43,19 +43,21 @@ export async function GET(
 
   try {
     const inputPath = path.join(process.cwd(), templatePath);
-    console.log("Scanning Template Path:", inputPath);
+    console.log("Input Path for scan:", inputPath);
+    console.log("CWD:", process.cwd());
 
     // Scan the template directory directly without writing to a file
     const result = await scanTemplateDirectory(inputPath);
 
     // Validate the JSON structure
     if (!validateJsonStructure(result.items)) {
+      console.error("Invalid JSON structure detected");
       return Response.json({ error: "Invalid JSON structure" }, { status: 500 });
     }
 
     return Response.json({ success: true, templateJson: result }, { status: 200 });
   } catch (error) {
     console.error("Error generating template JSON:", error);
-    return Response.json({ error: "Failed to generate template" }, { status: 500 });
+    return Response.json({ error: "Failed to generate template", details: (error as Error).message }, { status: 500 });
   }
 }
