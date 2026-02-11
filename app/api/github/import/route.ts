@@ -33,7 +33,19 @@ export async function POST(req: NextRequest) {
             // 1. Clone the repository using spawn
             console.log(`Cloning ${repoUrl} to ${tempDir}`);
 
-            const gitExecutable = process.platform === "win32" ? "C:\\Program Files\\Git\\cmd\\git.exe" : "git";
+            let gitExecutable = "git";
+            const winGitPath = "C:\\Program Files\\Git\\cmd\\git.exe";
+
+            if (process.platform === "win32") {
+                try {
+                    await fs.access(winGitPath);
+                    gitExecutable = winGitPath;
+                } catch (e) {
+                    console.warn("Could not find git at default Windows location, falling back to 'git' in PATH");
+                }
+            }
+
+            console.log(`Debug Info: Platform=${process.platform}, GitExecutable=${gitExecutable}`);
 
             // Use spawn instead of exec to avoid shell issues on Windows/Unix
             await new Promise<void>((resolve, reject) => {
@@ -47,11 +59,14 @@ export async function POST(req: NextRequest) {
                         resolve();
                     } else {
                         reject(new Error(`Git clone failed with exit code ${code}`));
+                        console.error(`Git clone failed with exit code ${code}`);
                     }
                 });
 
                 git.on("error", (err) => {
-                    reject(new Error(`Failed to start git process: ${err.message}`));
+                    console.error("Git spawn error:", err);
+                    // Include the attempted executable in the error message for debugging
+                    reject(new Error(`Failed to start git process with command '${gitExecutable}': ${err.message}`));
                 });
             });
 
