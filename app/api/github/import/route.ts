@@ -1,14 +1,11 @@
 import { NextRequest } from "next/server";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import * as fs from "fs/promises";
 import * as path from "path";
 import * as os from "os";
 import { db } from "@/lib/db";
 import { scanTemplateDirectory } from "@/modules/playground/lib/path-to-json";
 import { auth } from "@/auth"; // Verified path
-
-const execAsync = promisify(exec);
 
 export async function POST(req: NextRequest) {
     try {
@@ -33,13 +30,30 @@ export async function POST(req: NextRequest) {
         const repoName = repoUrl.split("/").pop()?.replace(".git", "") || "Imported Repo";
 
         try {
-            // 1. Clone the repository
+            // 1. Clone the repository using spawn
             console.log(`Cloning ${repoUrl} to ${tempDir}`);
-            await execAsync(`git clone --depth 1 ${repoUrl} ${tempDir}`);
+
+            // Use spawn instead of exec to avoid shell issues on Windows/Unix
+            await new Promise<void>((resolve, reject) => {
+                const git = spawn("git", ["clone", "--depth", "1", repoUrl, tempDir], {
+                    stdio: "inherit", // Pipe output to parent process for logs used by server
+                    shell: false // Important: Do not use shell to avoid /bin/sh issues on Windows environments if configured oddly
+                });
+
+                git.on("close", (code) => {
+                    if (code === 0) {
+                        resolve();
+                    } else {
+                        reject(new Error(`Git clone failed with exit code ${code}`));
+                    }
+                });
+
+                git.on("error", (err) => {
+                    reject(new Error(`Failed to start git process: ${err.message}`));
+                });
+            });
 
             // 2. Scan the directory to get the template structure
-            // We need to pass ignore options to skip .git and other unnecessary files
-            // These are already handled by default in scanTemplateDirectory but we can add more if needed
             const templateData = await scanTemplateDirectory(tempDir);
 
             // Override the folder name with the repo name to look better in UI
@@ -51,17 +65,11 @@ export async function POST(req: NextRequest) {
                     title: repoName,
                     description: `Imported from ${repoUrl}`,
                     userId: session.user.id,
-                    // We might need a generic "CUSTOM" or "IMPORTED" enum later, using REACT as default for now if generic isn't available
-                    // schema says: enum Templates { REACT NEXTJS ANGULAR VUE HONO EXPRESS }
-                    // We'll stick to REACT or try to detect later.
                     template: "REACT",
                 },
             });
 
             // 4. Save the template files to the database
-            // The schema has `TemplateFile` model which links to playground
-            // content is Json type
-
             // Ensure the content is valid JSON (serializable)
             const validJson = JSON.parse(JSON.stringify(templateData));
 
