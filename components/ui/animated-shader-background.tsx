@@ -4,29 +4,38 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 const AnimatedShaderBackground = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-        const container = containerRef.current;
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        container.appendChild(renderer.domElement);
+    const container = containerRef.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                iTime: { value: 0 },
-                iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-            },
-            vertexShader: `
+    // Optimization: Limit pixel ratio for performance on high-DPI screens
+    const dpr = Math.min(window.devicePixelRatio, 1.5);
+    const renderer = new THREE.WebGLRenderer({
+      antialias: false, // Turn off antialias for performance
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        iTime: { value: 0 },
+        iResolution: { value: new THREE.Vector2(window.innerWidth * dpr, window.innerHeight * dpr) }
+      },
+      vertexShader: `
         void main() {
           gl_Position = vec4(position, 1.0);
         }
       `,
-            fragmentShader: `
+      fragmentShader: `
         uniform float iTime;
         uniform vec2 iResolution;
 
@@ -68,9 +77,10 @@ const AnimatedShaderBackground = () => {
 
           float f = 2.0 + fbm(p + vec2(iTime * 5.0, 0.0)) * 0.5;
 
-          for (float i = 0.0; i < 35.0; i++) {
+          // Optimization: Reduced iterations from 35.0 to 25.0
+          for (float i = 0.0; i < 25.0; i++) {
             v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5 + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
-            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
+            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 25.0));
             
             // RED THEME COLORS - Changed from blue to red/rose/amber gradient
             vec4 auroraColors = vec4(
@@ -81,7 +91,7 @@ const AnimatedShaderBackground = () => {
             );
             
             vec4 currentContribution = auroraColors * exp(sin(i * i + iTime * 0.8)) / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
-            float thinnessFactor = smoothstep(0.0, 1.0, i / 35.0) * 0.6;
+            float thinnessFactor = smoothstep(0.0, 1.0, i / 25.0) * 0.6;
             o += currentContribution * (1.0 + tailNoise * 0.8) * thinnessFactor;
           }
 
@@ -89,46 +99,52 @@ const AnimatedShaderBackground = () => {
           gl_FragColor = o * 1.5;
         }
       `,
-            transparent: true
-        });
+      transparent: true
+    });
 
-        const geometry = new THREE.PlaneGeometry(2, 2);
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
 
-        let frameId: number;
-        const animate = () => {
-            material.uniforms.iTime.value += 0.016;
-            renderer.render(scene, camera);
-            frameId = requestAnimationFrame(animate);
-        };
-        animate();
+    let frameId: number;
+    const animate = () => {
+      // Optimization: Limit updates if tab is not active (though rAF handles this mostly)
+      material.uniforms.iTime.value += 0.016;
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    };
+    animate();
 
-        const handleResize = () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight);
-        };
-        window.addEventListener('resize', handleResize);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      renderer.setSize(width, height);
+      // Update pixel ratio on resize just in case
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      material.uniforms.iResolution.value.set(width * dpr, height * dpr);
+    };
 
-        return () => {
-            cancelAnimationFrame(frameId);
-            window.removeEventListener('resize', handleResize);
-            if (container.contains(renderer.domElement)) {
-                container.removeChild(renderer.domElement);
-            }
-            geometry.dispose();
-            material.dispose();
-            renderer.dispose();
-        };
-    }, []);
+    window.addEventListener('resize', handleResize);
 
-    return (
-        <div
-            ref={containerRef}
-            className="fixed inset-0 w-full h-full z-0 opacity-50"
-            style={{ pointerEvents: 'none' }}
-        />
-    );
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', handleResize);
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed inset-0 w-full h-full z-0 opacity-50"
+      style={{ pointerEvents: 'none' }}
+    />
+  );
 };
 
 export default AnimatedShaderBackground;

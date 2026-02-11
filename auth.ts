@@ -86,6 +86,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
     async jwt({ token, user, account }) {
       if (!token.sub) return token;
+
+      // Optimization: If token already has role and picture, skip DB call
+      if (token.role && token.picture) {
+        return token;
+      }
+
       const existingUser = await getUserById(token.sub)
 
       if (!existingUser) return token;

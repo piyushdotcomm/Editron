@@ -20,21 +20,25 @@ export interface ProfileStats {
     playgrounds: any[];
 }
 
-export async function getUserProfileStats(): Promise<ProfileStats | null> {
-    const user = await currentUser();
-    if (!user?.id) return null;
+export async function getUserProfileStats(userId?: string): Promise<ProfileStats | null> {
+    let id = userId;
+    if (!id) {
+        const user = await currentUser();
+        if (!user?.id) return null;
+        id = user.id;
+    }
 
     const playgrounds = await db.playground.findMany({
-        where: { userId: user.id },
+        where: { userId: id },
         include: {
             Starmark: true,
-            user: true
+            // Removed redundant fetching of 'user' for every playground
         },
         orderBy: { updatedAt: 'desc' }
     });
 
     const starMarks = await db.starMark.findMany({
-        where: { userId: user.id, isMarked: true }
+        where: { userId: id, isMarked: true }
     });
 
     // Calculate Tech Stack Distribution

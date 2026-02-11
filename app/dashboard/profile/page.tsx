@@ -23,10 +23,15 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
     const user = await currentUser();
-    const stats = await getUserProfileStats();
-
-    if (!user || !stats) {
+    if (!user?.id) {
         return <div className="p-8 text-center text-muted-foreground">Please log in to view your profile.</div>;
+    }
+
+    // Optimization: Pass user.id directly to avoid re-fetching auth
+    const stats = await getUserProfileStats(user.id);
+
+    if (!stats) {
+        return <div className="p-8 text-center text-muted-foreground">Error loading stats.</div>;
     }
 
     return (
