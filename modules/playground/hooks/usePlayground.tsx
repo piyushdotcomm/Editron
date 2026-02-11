@@ -36,13 +36,16 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
       setError(null);
 
       const data = await getPlaygroundById(id);
-    //   @ts-ignore
+      //   @ts-ignore
       setPlaygroundData(data);
 
       const rawContent = data?.templateFiles?.[0]?.content;
-      if (typeof rawContent === "string") {
-        const parsedContent = JSON.parse(rawContent);
-        setTemplateData(parsedContent);
+      if (rawContent) {
+        // Content can be a JSON string or an already-parsed object (Prisma Json type)
+        const parsedContent = typeof rawContent === "string"
+          ? JSON.parse(rawContent)
+          : rawContent;
+        setTemplateData(parsedContent as TemplateFolder);
         toast.success("Playground loaded successfully");
         return;
       }
