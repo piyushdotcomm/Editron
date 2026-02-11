@@ -8,15 +8,26 @@ import {
 
 // Parse owner/repo from a GitHub URL
 function parseGithubUrl(url: string): { owner: string; repo: string } | null {
+    // Normalize the URL: trim whitespace, remove trailing slashes and .git
+    let cleaned = url.trim().replace(/\/+$/, "").replace(/\.git$/, "");
+
     // Match patterns like:
     // https://github.com/owner/repo
     // https://github.com/owner/repo.git
     // https://github.com/owner/repo/
-    const match = url.match(
-        /github\.com\/([^\/]+)\/([^\/\s.]+)/
+    // https://github.com/owner/repo/tree/main/...
+    // github.com/owner/repo
+    const match = cleaned.match(
+        /github\.com\/([^\/\s]+)\/([^\/\s]+)/
     );
     if (!match) return null;
-    return { owner: match[1], repo: match[2] };
+
+    const owner = match[1];
+    const repo = match[2];
+
+    console.log(`Parsed GitHub URL: owner="${owner}", repo="${repo}" from URL="${url}"`);
+
+    return { owner, repo };
 }
 
 // Fetch the recursive file tree from GitHub API
