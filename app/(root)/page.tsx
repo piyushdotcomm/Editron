@@ -27,7 +27,7 @@ export default function Home() {
       {/* Loading Screen Overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-700 ease-in-out",
+          "fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-700 ease-in-out",
           isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >

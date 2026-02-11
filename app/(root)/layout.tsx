@@ -17,7 +17,7 @@ export default function HomeLayout({
         <>
             <Header />
 
-            <main className="z-20 relative w-full pt-0 ">{children}</main>
+            <main className="relative w-full pt-0 ">{children}</main>
             <Footer />
         </>
     )
