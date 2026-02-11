@@ -1,6 +1,42 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes highlight {
+  0% {
+    background-color: transparent;
+  }
+
+  100% {
+    background-color: var(--highlight);
+  }
+}
+
+@keyframes flash {
+  0% {
+    background-color: hsl(var(--card));
+  }
+
+  50% {
+    background-color: var(--highlight);
+  }
+
+  100% {
+    background-color: hsl(var(--card));
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -42,6 +78,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-highlight: highlight 0.6s ease forwards;
+  --animate-flash: flash 0.6s ease forwards;
 }
 
 :root {
