@@ -1,11 +1,13 @@
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ArrowDown } from "lucide-react"
-import Image from "next/image"
+import { toast } from "sonner";
+import { ArrowDown } from "lucide-react";
+import Image from "next/image";
 
 const AddRepo = () => {
   return (
     <div
+      onClick={() => toast.info("Import from GitHub coming soon!")}
       className="group relative px-6 py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer 
       transition-all duration-300 ease-out
       hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1"

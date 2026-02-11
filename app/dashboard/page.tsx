@@ -10,6 +10,7 @@ import { currentUser } from '@/modules/auth/actions';
 import LogoutButton from '@/modules/auth/components/logout-button';
 import { LogOut } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Page = async () => {
   const playgrounds = await getAllPlaygroundForUser();
@@ -42,17 +43,21 @@ const Page = async () => {
           {/* Profile Description */}
           {user && (
             <div className="hidden md:flex flex-row items-center gap-4 bg-background/50 backdrop-blur-md border border-border/50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 max-w-sm">
-              <div className="h-12 w-12 rounded-full overflow-hidden border border-border">
-                <Image
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name || "User"}
-                  width={48}
-                  height={48}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              <Link href="/dashboard/profile">
+                <div className="h-12 w-12 rounded-full overflow-hidden border border-border hover:ring-2 hover:ring-red-500/50 transition-all cursor-pointer">
+                  <Image
+                    src={user.image || "/placeholder.svg"}
+                    alt={user.name || "User"}
+                    width={48}
+                    height={48}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </Link>
               <div className="flex flex-col">
-                <h3 className="font-bold text-foreground">{user.name}</h3>
+                <Link href="/dashboard/profile" className="hover:underline underline-offset-2 decoration-red-500/50">
+                  <h3 className="font-bold text-foreground cursor-pointer">{user.name}</h3>
+                </Link>
                 <p className="text-xs text-muted-foreground line-clamp-2">{user.email}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <LogoutButton>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Open_Sans, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SessionProvider } from "next-auth/react";
@@ -7,19 +7,14 @@ import { auth } from "@/auth";
 import { ThemeProvider } from "@/components/providers/theme-providers";
 import { Toaster } from "@/components/ui/sonner";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
-  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
@@ -37,9 +32,9 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className={`${inter.variable} ${geistMono.variable}`}>
         <body
-          className={`${montserrat.variable} ${openSans.variable} ${geistMono.variable} antialiased`}
+          className={`${inter.className} antialiased`}
         >
           <ThemeProvider
             attribute="class"
