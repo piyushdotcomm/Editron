@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Terminal, Copy, Check, Circle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { CodeLine } from "./code-line";
 
 const codeSnippet = `import { Editron } from '@editron/core';
 
@@ -73,15 +74,7 @@ export function HeroCodeDemo() {
                                         {i + 1}
                                     </span>
                                     <span className="table-cell">
-                                        {/* Basic syntax highlighting simulation */}
-                                        <span dangerouslySetInnerHTML={{
-                                            __html: line
-                                                .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
-                                                .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-                                                .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-                                                .replace(/\/\/.*/g, '<span class="text-slate-500 italic">$&</span>')
-                                                .replace(/Editron|console|editor/g, '<span class="text-rose-600 dark:text-rose-400">$&</span>')
-                                        }} />
+                                        <CodeLine line={line} />
                                     </span>
                                 </div>
                             ))}

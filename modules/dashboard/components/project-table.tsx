@@ -140,35 +140,35 @@ export default function ProjectTable({
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border border-border/40 rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm shadow-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project</TableHead>
-              <TableHead>Template</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="hover:bg-muted/50 border-border/40">
+              <TableHead className="text-muted-foreground font-medium">Project</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Template</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Created</TableHead>
+              <TableHead className="text-muted-foreground font-medium">User</TableHead>
+              <TableHead className="w-[50px] text-muted-foreground font-medium">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {projects.map((project) => (
-              <TableRow key={project.id}>
+              <TableRow key={project.id} className="hover:bg-muted/30 border-border/40 transition-colors">
                 <TableCell className="font-medium">
                   <div className="flex flex-col">
-                    <Link href={`/playground/${project.id}`} className="hover:underline">
-                      <span className="font-semibold">{project.title}</span>
+                    <Link href={`/playground/${project.id}`} className="hover:underline hover:text-red-500 transition-colors">
+                      <span className="font-semibold text-foreground">{project.title}</span>
                     </Link>
-                    <span className="text-sm text-gray-500 line-clamp-1">{project.description}</span>
+                    <span className="text-sm text-muted-foreground line-clamp-1">{project.description}</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="bg-[#E93F3F15] text-[#E93F3F] border-[#E93F3F]">
+                  <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 transition-colors">
                     {project.template}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {format(new Date(project.createdAt), "MMM d, yyyy")}
                   </span>
                 </TableCell>

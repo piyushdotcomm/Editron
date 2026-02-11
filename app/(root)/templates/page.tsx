@@ -2,8 +2,9 @@
 
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Copy, Terminal } from "lucide-react";
+import { ArrowUpRight, Copy, Terminal, Check } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -14,54 +15,54 @@ const templates = [
         title: "React",
         description: "A JavaScript library for building user interfaces with component-based architecture",
         tags: ["UI", "Frontend", "JavaScript"],
-        icon: "R",
-        color: "bg-blue-500 text-white",
+        icon: "/react.svg",
+        color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     },
     {
         id: "nextjs",
         title: "Next.js",
         description: "The React framework for production with server-side rendering and static site generation",
         tags: ["React", "SSR", "Fullstack"],
-        icon: "N",
-        color: "bg-black text-white dark:bg-white dark:text-black",
+        icon: "/nextjs-icon.svg",
+        color: "bg-black/10 text-black dark:bg-white/10 dark:text-white border-black/20 dark:border-white/20",
     },
     {
         id: "express",
         title: "Express",
         description: "Fast, unopinionated, minimalist web framework for Node.js to build APIs and web applications",
         tags: ["Node.js", "API", "Backend"],
-        icon: "E",
-        color: "bg-gray-500 text-white",
+        icon: "/expressjs-icon.svg",
+        color: "bg-gray-500/10 text-gray-500 border-gray-500/20",
     },
     {
         id: "vue",
         title: "Vue.js",
         description: "Progressive JavaScript framework for building user interfaces with an approachable learning curve",
         tags: ["UI", "Frontend", "JavaScript"],
-        icon: "V",
-        color: "bg-emerald-500 text-white",
+        icon: "/vuejs-icon.svg",
+        color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     },
     {
         id: "hono",
         title: "Hono",
         description: "Fast, lightweight, built on Web Standards. Support for any JavaScript runtime.",
         tags: ["Node.js", "TypeScript", "Backend"],
-        icon: "H",
-        color: "bg-orange-400 text-white",
+        icon: "/hono.svg",
+        color: "bg-orange-500/10 text-orange-500 border-orange-500/20",
     },
     {
         id: "angular",
         title: "Angular",
         description: "Angular is a web framework that empowers developers to build fast, reliable applications.",
         tags: ["Angular", "Fullstack", "JavaScript"],
-        icon: "A",
-        color: "bg-red-600 text-white",
+        icon: "/angular-2.svg",
+        color: "bg-red-600/10 text-red-600 border-red-600/20",
     },
 ];
 
 export default function TemplatesPage() {
     const [activeFilter, setActiveFilter] = useState("All");
-    const filters = ["All", "React", "Vue", "Svelte", "Backend"];
+    const filters = ["All", "React", "Vue", "Backend"];
 
     const filteredTemplates = activeFilter === "All"
         ? templates
@@ -142,6 +143,15 @@ export default function TemplatesPage() {
 }
 
 function TemplateCard({ template, index }: { template: any, index: number }) {
+    const [copied, setCopied] = useState(false);
+    const command = `npx editron init ${template.id}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(command);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -153,8 +163,8 @@ function TemplateCard({ template, index }: { template: any, index: number }) {
             <div className="relative h-full flex flex-col p-6 bg-card border border-border/50 rounded-xl hover:border-red-500/30 transition-colors duration-300">
 
                 <div className="flex justify-between items-start mb-4">
-                    <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm", template.color)}>
-                        {template.icon}
+                    <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center border shadow-sm p-3 bg-secondary/50", template.color)}>
+                        <Image src={template.icon} alt={template.title} width={40} height={40} className="w-full h-full object-contain" />
                     </div>
                 </div>
 
@@ -174,12 +184,20 @@ function TemplateCard({ template, index }: { template: any, index: number }) {
                     ))}
                 </div>
 
-                <Link href={`https://github.com/editron/${template.id}`} className="w-full mt-auto">
-                    <Button variant="outline" className="w-full group-hover:bg-red-500 group-hover:text-white group-hover:border-red-500 transition-all duration-300">
-                        Use Template
-                        <ArrowUpRight className="w-4 h-4 ml-2" />
-                    </Button>
-                </Link>
+                <div className="mt-auto w-full pt-4 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground mb-2 font-medium ml-1 uppercase tracking-wider">Installation</p>
+                    <div
+                        onClick={handleCopy}
+                        className="relative flex items-center justify-between px-3 py-2.5 bg-secondary/40 hover:bg-secondary/60 border border-border/50 rounded-lg cursor-pointer group/cmd transition-all active:scale-[0.98]"
+                    >
+                        <code className="text-xs font-mono text-foreground/80 group-hover/cmd:text-red-500 transition-colors truncate mr-2">
+                            {command}
+                        </code>
+                        <div className="text-muted-foreground/70 group-hover/cmd:text-foreground transition-colors shrink-0">
+                            {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                        </div>
+                    </div>
+                </div>
             </div>
         </motion.div>
     );

@@ -24,7 +24,7 @@ export const toggleStarMarked = async (
         },
       });
     } else {
-        await db.starMark.delete({
+      await db.starMark.delete({
         where: {
           userId_playgroundId: {
             userId,
@@ -35,10 +35,10 @@ export const toggleStarMarked = async (
       });
     }
 
-     revalidatePath("/dashboard");
+    revalidatePath("/dashboard");
     return { success: true, isMarked: isChecked };
   } catch (error) {
-       console.error("Error updating problem:", error);
+    console.error("Error updating problem:", error);
     return { success: false, error: "Failed to update problem" };
   }
 };
@@ -53,14 +53,17 @@ export const getAllPlaygroundForUser = async () => {
       },
       include: {
         user: true,
-        Starmark:{
-            where:{
-                userId:user?.id!
-            },
-            select:{
-                isMarked:true
-            }
-        }
+        Starmark: {
+          where: {
+            userId: user?.id!
+          },
+          select: {
+            isMarked: true
+          }
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 

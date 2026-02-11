@@ -12,20 +12,20 @@ import TemplateSelectingModal from "./template-selecting-modal";
 import { createPlayground } from "../actions";
 
 const AddNewButton = () => {
-   const [isModalOpen, setIsModalOpen] = useState(false);
-   const [selectedTemplate, setSelectedTemplate] = useState<{
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
     title: string;
     template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "ANGULAR" | "HONO";
     description?: string;
 
-   } | null>(null)
-   const router = useRouter()
+  } | null>(null)
+  const router = useRouter()
 
-  const handleSubmit = async (data:{
+  const handleSubmit = async (data: {
     title: string;
     template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "ANGULAR" | "HONO";
     description?: string;
-  })=>{
+  }) => {
     setSelectedTemplate(data)
     const res = await createPlayground(data);
     toast.success("Playground Created successfully")
@@ -37,44 +37,38 @@ const AddNewButton = () => {
     <>
       <div
         onClick={() => setIsModalOpen(true)}
-        className="group px-6 py-6 flex flex-row justify-between items-center border rounded-lg bg-muted cursor-pointer 
-        transition-all duration-300 ease-in-out
-        hover:bg-background hover:border-[#E93F3F] hover:scale-[1.02]
-        shadow-[0_2px_10px_rgba(0,0,0,0.08)]
-        hover:shadow-[0_10px_30px_rgba(233,63,63,0.15)]"
+        className="group relative px-6 py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer 
+        transition-all duration-300 ease-out
+        hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 hover:-translate-y-1"
       >
-        <div className="flex flex-row justify-center items-start gap-4">
-          <Button
-            variant={"outline"}
-            className="flex justify-center items-center bg-white group-hover:bg-[#fff8f8] group-hover:border-[#E93F3F] group-hover:text-[#E93F3F] transition-colors duration-300"
-            size={"icon"}
-          >
-            <Plus size={30} className="transition-transform duration-300 group-hover:rotate-90" />
-          </Button>
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-[#e93f3f]">Add New</h1>
-            <p className="text-sm text-muted-foreground max-w-[220px]">Create a new playground</p>
+        <div className="flex flex-row items-center gap-5">
+          <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 group-hover:bg-red-500/20 group-hover:border-red-500/40 transition-all duration-300">
+            <Plus className="h-6 w-6 text-red-500 transition-transform duration-300 group-hover:rotate-90" />
+          </div>
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-xl font-bold text-foreground group-hover:text-red-500 transition-colors">New Playground</h1>
+            <p className="text-sm text-muted-foreground">Create a new project from template</p>
           </div>
         </div>
 
-        <div className="relative overflow-hidden">
+        <div className="relative opacity-80 group-hover:opacity-100 transition-opacity">
           <Image
             src={"/add-new.svg"}
             alt="Create new playground"
-            width={150}
-            height={150}
-            className="transition-transform duration-300 group-hover:scale-110"
+            width={120}
+            height={120}
+            className="transition-transform duration-500 group-hover:scale-110 drop-shadow-lg"
           />
         </div>
       </div>
       <TemplateSelectingModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      onSubmit={handleSubmit}
-      
-      
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+
+
       />
-  
+
     </>
   )
 }

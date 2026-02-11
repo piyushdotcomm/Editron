@@ -12,34 +12,49 @@ const Page = async () => {
 
 
   return (
-    <div className="flex flex-col justify-start items-center min-h-screen mx-auto max-w-7xl px-4 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div className="relative min-h-screen bg-background selection:bg-primary/20 overflow-hidden font-sans">
+      {/* Background Grid Pattern */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
 
-        <AddNewButton />
-        <AddRepo />
-      </div>
+      <main className="flex flex-col items-center justify-start pt-6 px-4 w-full max-w-7xl mx-auto space-y-12 pb-20">
 
-      <div className='mt-10 flex flex-col justify-center items-center w-full'>
-        {
-          playgrounds && playgrounds.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <ProjectTable
-              projects={playgrounds || []}
-              onDeleteProject={deleteProjectById}
-              onUpdateProject={editProjectById}
-              onDuplicateProject={duplicateProjectById}
+        {/* Header Section */}
+        <section className="relative z-10 w-full flex flex-col items-start text-left space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-500 backdrop-blur-md cursor-default">
+            <span className="flex h-2 w-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
+            <span className="font-medium">Dashboard</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
+            My <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-2">Projects</span>
+          </h1>
+          <p className="max-w-xl text-lg text-muted-foreground">
+            Manage your playgrounds, repositories, and creative coding experiments.
+          </p>
+        </section>
 
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+          <AddNewButton />
+          <AddRepo />
+        </div>
 
+        {/* Projects Table */}
+        <div className='w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200'>
+          {
+            playgrounds && playgrounds.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <ProjectTable
+                projects={playgrounds || []}
+                onDeleteProject={deleteProjectById}
+                onUpdateProject={editProjectById}
+                onDuplicateProject={duplicateProjectById}
+              />
+            )
+          }
+        </div>
 
-            />
-          )
-        }
-      </div>
-
-
-
-
+      </main>
     </div>
   )
 }
