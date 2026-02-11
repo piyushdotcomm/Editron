@@ -1,11 +1,166 @@
 import { NextRequest } from "next/server";
-import { spawn } from "child_process";
-import * as fs from "fs/promises";
-import * as path from "path";
-import * as os from "os";
 import { db } from "@/lib/db";
-import { scanTemplateDirectory } from "@/modules/playground/lib/path-to-json";
-import { auth } from "@/auth"; // Verified path
+import { auth } from "@/auth";
+import {
+    TemplateFile,
+    TemplateFolder,
+} from "@/modules/playground/lib/path-to-json";
+
+// Parse owner/repo from a GitHub URL
+function parseGithubUrl(url: string): { owner: string; repo: string } | null {
+    // Match patterns like:
+    // https://github.com/owner/repo
+    // https://github.com/owner/repo.git
+    // https://github.com/owner/repo/
+    const match = url.match(
+        /github\.com\/([^\/]+)\/([^\/\s.]+)/
+    );
+    if (!match) return null;
+    return { owner: match[1], repo: match[2] };
+}
+
+// Fetch the recursive file tree from GitHub API
+async function fetchRepoTree(
+    owner: string,
+    repo: string,
+    branch = "main"
+): Promise<any[]> {
+    // Try "main" first, then "master" as fallback
+    for (const branchName of [branch, "master"]) {
+        const res = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchName}?recursive=1`,
+            {
+                headers: {
+                    Accept: "application/vnd.github.v3+json",
+                    "User-Agent": "Editron-App",
+                },
+            }
+        );
+
+        if (res.ok) {
+            const data = await res.json();
+            return data.tree || [];
+        }
+    }
+
+    throw new Error(
+        `Could not fetch repository tree. Make sure the repository is public and the URL is correct.`
+    );
+}
+
+// Fetch raw file content from GitHub
+async function fetchFileContent(
+    owner: string,
+    repo: string,
+    filePath: string,
+    branch = "main"
+): Promise<string> {
+    // Try "main" first, then "master"
+    for (const branchName of [branch, "master"]) {
+        const res = await fetch(
+            `https://raw.githubusercontent.com/${owner}/${repo}/${branchName}/${filePath}`,
+            {
+                headers: { "User-Agent": "Editron-App" },
+            }
+        );
+
+        if (res.ok) {
+            return await res.text();
+        }
+    }
+
+    return `[Error: Could not fetch file content]`;
+}
+
+// Check if a file is likely binary based on extension
+function isBinaryFile(filename: string): boolean {
+    const binaryExtensions = [
+        "png", "jpg", "jpeg", "gif", "bmp", "ico", "svg",
+        "woff", "woff2", "ttf", "eot", "otf",
+        "mp3", "mp4", "wav", "ogg", "webm",
+        "zip", "tar", "gz", "rar", "7z",
+        "pdf", "doc", "docx", "xls", "xlsx",
+        "exe", "dll", "so", "dylib",
+        "pyc", "class", "o", "obj",
+    ];
+    const ext = filename.split(".").pop()?.toLowerCase() || "";
+    return binaryExtensions.includes(ext);
+}
+
+// Files and folders to skip
+const IGNORE_FILES = new Set([
+    "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+    ".DS_Store", "thumbs.db", ".gitignore", ".npmrc",
+    ".env", ".env.local", ".env.development", ".env.production",
+]);
+const IGNORE_FOLDERS = new Set([
+    "node_modules", ".git", ".vscode", ".idea",
+    "dist", "build", "coverage", ".next",
+]);
+
+// Convert flat tree to nested TemplateFolder structure
+function buildTemplateStructure(
+    tree: any[],
+    fileContents: Map<string, string>,
+    rootName: string
+): TemplateFolder {
+    const root: TemplateFolder = { folderName: rootName, items: [] };
+
+    // Create a map for quick folder lookup
+    const folderMap = new Map<string, TemplateFolder>();
+    folderMap.set("", root);
+
+    // Sort tree so directories come before files within the same level
+    const sorted = [...tree].sort((a, b) => {
+        if (a.type === "tree" && b.type !== "tree") return -1;
+        if (a.type !== "tree" && b.type === "tree") return 1;
+        return a.path.localeCompare(b.path);
+    });
+
+    for (const item of sorted) {
+        const parts = item.path.split("/");
+        const name = parts[parts.length - 1];
+
+        // Check if any parent folder is ignored
+        const hasIgnoredParent = parts.some((p: string) => IGNORE_FOLDERS.has(p));
+        if (hasIgnoredParent) continue;
+
+        if (item.type === "tree") {
+            // It's a directory
+            if (IGNORE_FOLDERS.has(name)) continue;
+
+            const folder: TemplateFolder = { folderName: name, items: [] };
+            folderMap.set(item.path, folder);
+
+            // Add to parent
+            const parentPath = parts.slice(0, -1).join("/");
+            const parent = folderMap.get(parentPath) || root;
+            parent.items.push(folder);
+        } else if (item.type === "blob") {
+            // It's a file
+            if (IGNORE_FILES.has(name)) continue;
+            if (isBinaryFile(name)) continue;
+
+            const ext = name.includes(".") ? name.split(".").pop()! : "";
+            const filename = ext ? name.slice(0, -(ext.length + 1)) : name;
+
+            const content = fileContents.get(item.path) || "";
+
+            const file: TemplateFile = {
+                filename,
+                fileExtension: ext,
+                content,
+            };
+
+            // Add to parent
+            const parentPath = parts.slice(0, -1).join("/");
+            const parent = folderMap.get(parentPath) || root;
+            parent.items.push(file);
+        }
+    }
+
+    return root;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -17,77 +172,70 @@ export async function POST(req: NextRequest) {
         const { repoUrl } = await req.json();
 
         if (!repoUrl || typeof repoUrl !== "string") {
-            return Response.json({ error: "Invalid repository URL" }, { status: 400 });
+            return Response.json(
+                { error: "Invalid repository URL" },
+                { status: 400 }
+            );
         }
 
-        // Basic validation for GitHub URL
-        if (!repoUrl.includes("github.com")) {
-            return Response.json({ error: "Only GitHub repositories are supported" }, { status: 400 });
+        const parsed = parseGithubUrl(repoUrl);
+        if (!parsed) {
+            return Response.json(
+                { error: "Invalid GitHub URL. Expected format: https://github.com/owner/repo" },
+                { status: 400 }
+            );
         }
 
-        // Create a temporary directory
-        const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "editron-repo-"));
-        const repoName = repoUrl.split("/").pop()?.replace(".git", "") || "Imported Repo";
+        const { owner, repo } = parsed;
 
         try {
-            // 1. Clone the repository using spawn
-            console.log(`Cloning ${repoUrl} to ${tempDir}`);
+            // 1. Fetch the repository file tree
+            console.log(`Fetching tree for ${owner}/${repo}`);
+            const tree = await fetchRepoTree(owner, repo);
 
-            let gitExecutable = "git";
-            const winGitPath = "C:\\Program Files\\Git\\cmd\\git.exe";
+            // 2. Filter to only text files we care about
+            const filesToFetch = tree.filter(
+                (item: any) =>
+                    item.type === "blob" &&
+                    !isBinaryFile(item.path) &&
+                    !IGNORE_FILES.has(item.path.split("/").pop()!) &&
+                    !item.path.split("/").some((p: string) => IGNORE_FOLDERS.has(p)) &&
+                    (item.size || 0) < 1024 * 1024 // Skip files > 1MB
+            );
 
-            if (process.platform === "win32") {
-                try {
-                    await fs.access(winGitPath);
-                    gitExecutable = winGitPath;
-                } catch (e) {
-                    console.warn("Could not find git at default Windows location, falling back to 'git' in PATH");
+            // 3. Fetch file contents in parallel (batched to avoid rate limits)
+            console.log(`Fetching ${filesToFetch.length} files...`);
+            const fileContents = new Map<string, string>();
+            const BATCH_SIZE = 10;
+
+            for (let i = 0; i < filesToFetch.length; i += BATCH_SIZE) {
+                const batch = filesToFetch.slice(i, i + BATCH_SIZE);
+                const results = await Promise.all(
+                    batch.map(async (item: any) => {
+                        const content = await fetchFileContent(owner, repo, item.path);
+                        return { path: item.path, content };
+                    })
+                );
+
+                for (const { path, content } of results) {
+                    fileContents.set(path, content);
                 }
             }
 
-            console.log(`Debug Info: Platform=${process.platform}, GitExecutable=${gitExecutable}`);
+            // 4. Build the template structure
+            const templateData = buildTemplateStructure(tree, fileContents, repo);
 
-            // Use spawn instead of exec to avoid shell issues on Windows/Unix
-            await new Promise<void>((resolve, reject) => {
-                const git = spawn(gitExecutable, ["clone", "--depth", "1", repoUrl, tempDir], {
-                    stdio: "inherit", // Pipe output to parent process for logs used by server
-                    shell: false // Important: Do not use shell to avoid /bin/sh issues on Windows environments if configured oddly
-                });
-
-                git.on("close", (code) => {
-                    if (code === 0) {
-                        resolve();
-                    } else {
-                        reject(new Error(`Git clone failed with exit code ${code}`));
-                        console.error(`Git clone failed with exit code ${code}`);
-                    }
-                });
-
-                git.on("error", (err) => {
-                    console.error("Git spawn error:", err);
-                    // Include the attempted executable in the error message for debugging
-                    reject(new Error(`Failed to start git process with command '${gitExecutable}': ${err.message}`));
-                });
-            });
-
-            // 2. Scan the directory to get the template structure
-            const templateData = await scanTemplateDirectory(tempDir);
-
-            // Override the folder name with the repo name to look better in UI
-            templateData.folderName = repoName;
-
-            // 3. Create a new Playground in the database
+            // 5. Create a new Playground in the database
             const playground = await db.playground.create({
                 data: {
-                    title: repoName,
+                    title: repo,
                     description: `Imported from ${repoUrl}`,
                     userId: session.user.id,
                     template: "REACT",
                 },
             });
 
-            // 4. Save the template files to the database
-            // Ensure the content is valid JSON (serializable)
+            // 6. Save the template files to the database
             const validJson = JSON.parse(JSON.stringify(templateData));
 
             await db.templateFile.create({
@@ -98,22 +246,22 @@ export async function POST(req: NextRequest) {
             });
 
             return Response.json({ success: true, playgroundId: playground.id });
-
         } catch (error) {
             console.error("Error processing repository:", error);
-            return Response.json({ error: "Failed to process repository: " + (error instanceof Error ? error.message : String(error)) }, { status: 500 });
-        } finally {
-            // 5. Cleanup: Remove the temporary directory
-            try {
-                await fs.rm(tempDir, { recursive: true, force: true });
-                console.log(`Cleaned up temp directory: ${tempDir}`);
-            } catch (cleanupError) {
-                console.error("Error cleaning up temp directory:", cleanupError);
-            }
+            return Response.json(
+                {
+                    error:
+                        "Failed to import repository: " +
+                        (error instanceof Error ? error.message : String(error)),
+                },
+                { status: 500 }
+            );
         }
-
     } catch (error) {
         console.error("API Error:", error);
-        return Response.json({ error: "Internal Server Error" }, { status: 500 });
+        return Response.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
     }
 }
