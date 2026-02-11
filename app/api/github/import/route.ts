@@ -23,29 +23,45 @@ function parseGithubUrl(url: string): { owner: string; repo: string } | null {
 async function fetchRepoTree(
     owner: string,
     repo: string,
-    branch = "main"
-): Promise<any[]> {
-    // Try "main" first, then "master" as fallback
-    for (const branchName of [branch, "master"]) {
-        const res = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchName}?recursive=1`,
-            {
-                headers: {
-                    Accept: "application/vnd.github.v3+json",
-                    "User-Agent": "Editron-App",
-                },
-            }
-        );
-
-        if (res.ok) {
-            const data = await res.json();
-            return data.tree || [];
+): Promise<{ tree: any[]; defaultBranch: string }> {
+    // First, get the repo's default branch from the API
+    const repoRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}`,
+        {
+            headers: {
+                Accept: "application/vnd.github.v3+json",
+                "User-Agent": "Editron-App",
+            },
         }
+    );
+
+    if (!repoRes.ok) {
+        throw new Error(
+            `Could not fetch repository info. Make sure the repository is public and the URL is correct. (Status: ${repoRes.status})`
+        );
     }
 
-    throw new Error(
-        `Could not fetch repository tree. Make sure the repository is public and the URL is correct.`
+    const repoData = await repoRes.json();
+    const defaultBranch = repoData.default_branch || "main";
+
+    const treeRes = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`,
+        {
+            headers: {
+                Accept: "application/vnd.github.v3+json",
+                "User-Agent": "Editron-App",
+            },
+        }
     );
+
+    if (!treeRes.ok) {
+        throw new Error(
+            `Could not fetch repository tree for branch '${defaultBranch}'. (Status: ${treeRes.status})`
+        );
+    }
+
+    const treeData = await treeRes.json();
+    return { tree: treeData.tree || [], defaultBranch };
 }
 
 // Fetch raw file content from GitHub
@@ -53,20 +69,17 @@ async function fetchFileContent(
     owner: string,
     repo: string,
     filePath: string,
-    branch = "main"
+    branch: string
 ): Promise<string> {
-    // Try "main" first, then "master"
-    for (const branchName of [branch, "master"]) {
-        const res = await fetch(
-            `https://raw.githubusercontent.com/${owner}/${repo}/${branchName}/${filePath}`,
-            {
-                headers: { "User-Agent": "Editron-App" },
-            }
-        );
-
-        if (res.ok) {
-            return await res.text();
+    const res = await fetch(
+        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`,
+        {
+            headers: { "User-Agent": "Editron-App" },
         }
+    );
+
+    if (res.ok) {
+        return await res.text();
     }
 
     return `[Error: Could not fetch file content]`;
@@ -191,7 +204,7 @@ export async function POST(req: NextRequest) {
         try {
             // 1. Fetch the repository file tree
             console.log(`Fetching tree for ${owner}/${repo}`);
-            const tree = await fetchRepoTree(owner, repo);
+            const { tree, defaultBranch } = await fetchRepoTree(owner, repo);
 
             // 2. Filter to only text files we care about
             const filesToFetch = tree.filter(
@@ -212,7 +225,7 @@ export async function POST(req: NextRequest) {
                 const batch = filesToFetch.slice(i, i + BATCH_SIZE);
                 const results = await Promise.all(
                     batch.map(async (item: any) => {
-                        const content = await fetchFileContent(owner, repo, item.path);
+                        const content = await fetchFileContent(owner, repo, item.path, defaultBranch);
                         return { path: item.path, content };
                     })
                 );
