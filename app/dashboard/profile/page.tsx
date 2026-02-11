@@ -41,15 +41,7 @@ export default async function ProfilePage() {
             <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-6 justify-between">
                 <div className="flex items-center gap-4 w-full max-w-xl">
                     <h1 className="text-xl font-bold tracking-tight mr-4 hidden md:block">Profile</h1>
-                    <div className="relative w-full">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search projects, files, templates..."
-                            className="h-9 w-full rounded-md border border-input bg-muted/50 px-9 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        />
-                        <div className="absolute right-2 top-2 text-[10px] text-muted-foreground border px-1.5 rounded bg-background">⌘K</div>
-                    </div>
+                    <div className="relative w-full"></div>
                 </div>
 
                 <div className="flex items-center gap-4">
