@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            value: "credentialless", // Changed from require-corp to allow external images
           },
         ],
       },

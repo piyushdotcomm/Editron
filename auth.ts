@@ -95,6 +95,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       token.name = existingUser.name;
       token.email = existingUser.email;
       token.role = existingUser.role;
+      token.picture = existingUser.image; // Add image to token
 
       return token;
     },
@@ -107,6 +108,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (token.sub && session.user) {
         session.user.role = token.role
+      }
+
+      // Add name and image to session
+      if (session.user) {
+        session.user.name = token.name;
+        session.user.image = token.picture as string | null | undefined;
       }
 
       return session;

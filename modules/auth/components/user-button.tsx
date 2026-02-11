@@ -12,18 +12,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { LogOut, User } from "lucide-react";
 import LogoutButton from "./logout-button";
-import { useCurrentUser } from "../hooks/use-current-user";
+import { useSession } from "next-auth/react";
 
 const UserButton = () => {
 
-  const user = useCurrentUser()
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
         <div className={cn("relative rounded-full")}>
           <Avatar>
-            <AvatarImage src={user?.image!} alt={user?.name!} />
+            <AvatarImage
+              src={user?.image || ""}
+              alt={user?.name || "User"}
+              referrerPolicy="no-referrer"
+            />
             <AvatarFallback className="bg-red-500">
               <User className="text-white" />
             </AvatarFallback>
@@ -31,20 +36,20 @@ const UserButton = () => {
         </div>
       </DropdownMenuTrigger>
 
-    <DropdownMenuContent className="mr-4">
-      <DropdownMenuItem>
-        <span>
-          {user?.email}
-        </span>
-      </DropdownMenuItem>
-      <DropdownMenuSeparator/>
+      <DropdownMenuContent className="mr-4">
+        <DropdownMenuItem>
+          <span>
+            {user?.email}
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <LogoutButton>
-            <DropdownMenuItem>
-                <LogOut className="h-4 w-4 mr-2"/>
-                LogOut
-            </DropdownMenuItem>
+          <DropdownMenuItem>
+            <LogOut className="h-4 w-4 mr-2" />
+            LogOut
+          </DropdownMenuItem>
         </LogoutButton>
-    </DropdownMenuContent>
+      </DropdownMenuContent>
 
     </DropdownMenu>
   );
