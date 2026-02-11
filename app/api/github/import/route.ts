@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { repoUrl } = await req.json();
+        const { repoUrl, subdir } = await req.json();
 
         if (!repoUrl || typeof repoUrl !== "string") {
             return Response.json(
@@ -217,8 +217,55 @@ export async function POST(req: NextRequest) {
             console.log(`Fetching tree for ${owner}/${repo}`);
             const { tree, defaultBranch } = await fetchRepoTree(owner, repo);
 
-            // 2. Filter to only text files we care about
-            const filesToFetch = tree.filter(
+            // 2. Check for monorepo: if no root package.json and no subdir selected, detect subdirs
+            const hasRootPackageJson = tree.some(
+                (item: any) => item.type === "blob" && item.path === "package.json"
+            );
+
+            if (!hasRootPackageJson && !subdir) {
+                // Find all subdirectories that contain a package.json
+                const packageJsonFiles = tree.filter(
+                    (item: any) =>
+                        item.type === "blob" &&
+                        item.path.endsWith("/package.json") &&
+                        item.path.split("/").length === 2 // Only top-level subdirs
+                );
+
+                const subdirs = packageJsonFiles.map((item: any) =>
+                    item.path.replace("/package.json", "")
+                );
+
+                if (subdirs.length > 0) {
+                    console.log(`Monorepo detected. Subdirs with package.json: ${subdirs.join(", ")}`);
+                    return Response.json({
+                        needsSubdir: true,
+                        subdirs,
+                        message: "This repository is a monorepo. Please select which project to import.",
+                    });
+                }
+
+                // No package.json anywhere — import anyway as-is
+                console.log("No package.json found anywhere, importing full repo as-is");
+            }
+
+            // 3. If a subdir is selected, filter and rebase the tree
+            let workingTree = tree;
+            const subdirPrefix = subdir ? `${subdir}/` : "";
+            const projectName = subdir || repo;
+
+            if (subdir) {
+                console.log(`Importing subdirectory: ${subdir}`);
+                workingTree = tree
+                    .filter((item: any) => item.path.startsWith(subdirPrefix) || item.path === subdir)
+                    .map((item: any) => ({
+                        ...item,
+                        path: item.path.substring(subdirPrefix.length), // Strip the subdir prefix
+                    }))
+                    .filter((item: any) => item.path.length > 0); // Remove the subdir entry itself
+            }
+
+            // 4. Filter to only text files we care about
+            const filesToFetch = workingTree.filter(
                 (item: any) =>
                     item.type === "blob" &&
                     !isBinaryFile(item.path) &&
@@ -227,7 +274,7 @@ export async function POST(req: NextRequest) {
                     (item.size || 0) < 1024 * 1024 // Skip files > 1MB
             );
 
-            // 3. Fetch file contents in parallel (batched to avoid rate limits)
+            // 5. Fetch file contents in parallel (batched to avoid rate limits)
             console.log(`Fetching ${filesToFetch.length} files...`);
             const fileContents = new Map<string, string>();
             const BATCH_SIZE = 10;
@@ -236,7 +283,9 @@ export async function POST(req: NextRequest) {
                 const batch = filesToFetch.slice(i, i + BATCH_SIZE);
                 const results = await Promise.all(
                     batch.map(async (item: any) => {
-                        const content = await fetchFileContent(owner, repo, item.path, defaultBranch);
+                        // Use the ORIGINAL path (with subdir prefix) for fetching from GitHub
+                        const fetchPath = subdir ? `${subdirPrefix}${item.path}` : item.path;
+                        const content = await fetchFileContent(owner, repo, fetchPath, defaultBranch);
                         return { path: item.path, content };
                     })
                 );
@@ -246,20 +295,20 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            // 4. Build the template structure
-            const templateData = buildTemplateStructure(tree, fileContents, repo);
+            // 6. Build the template structure
+            const templateData = buildTemplateStructure(workingTree, fileContents, projectName);
 
-            // 5. Create a new Playground in the database
+            // 7. Create a new Playground in the database
             const playground = await db.playground.create({
                 data: {
-                    title: repo,
-                    description: `Imported from ${repoUrl}`,
+                    title: projectName,
+                    description: `Imported from ${repoUrl}${subdir ? ` (${subdir}/)` : ""}`,
                     userId: session.user.id,
                     template: "REACT",
                 },
             });
 
-            // 6. Save the template files to the database
+            // 8. Save the template files to the database
             const validJson = JSON.parse(JSON.stringify(templateData));
 
             await db.templateFile.create({
