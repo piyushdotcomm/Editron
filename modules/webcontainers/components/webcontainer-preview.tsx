@@ -41,12 +41,14 @@ const WebContainerPreview = ({
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [isSetupInProgress, setIsSetupInProgress] = useState(false);
   const terminalRef = useRef<any>(null);
+  const setupInProgressRef = useRef(false);
 
   // Reset setup state when forceResetup changes
   useEffect(() => {
     if (forceResetup) {
       setIsSetupComplete(false);
       setIsSetupInProgress(false);
+      setupInProgressRef.current = false;
       setPreviewUrl("");
       setCurrentStep(0);
       setLoadingState({
@@ -61,9 +63,10 @@ const WebContainerPreview = ({
 
   useEffect(() => {
     async function setupContainer() {
-      if (!instance || isSetupComplete || isSetupInProgress) return;
+      if (!instance || isSetupComplete || setupInProgressRef.current) return;
 
       try {
+        setupInProgressRef.current = true;
         setIsSetupInProgress(true);
         setSetupError(null);
 
@@ -100,12 +103,12 @@ const WebContainerPreview = ({
             setLoadingState((prev) => ({ ...prev, starting: true }));
             return;
           }
-        } catch (error) {}
+        } catch (error) { }
 
         // Step-1 transform data
         setLoadingState((prev) => ({ ...prev, transforming: true }));
         setCurrentStep(1);
-         // Write to terminal
+        // Write to terminal
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
             "🔄 Transforming template data...\r\n"
@@ -208,6 +211,7 @@ const WebContainerPreview = ({
           }));
           setIsSetupComplete(true);
           setIsSetupInProgress(false);
+          setupInProgressRef.current = false;
         });
 
         // Handle start process output - stream to terminal
@@ -228,6 +232,7 @@ const WebContainerPreview = ({
         }
         setSetupError(errorMessage);
         setIsSetupInProgress(false);
+        setupInProgressRef.current = false;
         setLoadingState({
           transforming: false,
           mounting: false,
@@ -239,10 +244,11 @@ const WebContainerPreview = ({
     }
 
     setupContainer();
-  }, [instance, templateData, isSetupComplete, isSetupInProgress]);
+    // Only re-run when instance or templateData changes, NOT on isSetupInProgress changes
+  }, [instance, templateData, isSetupComplete]);
 
   useEffect(() => {
-    return () => {};
+    return () => { };
   }, []);
 
   if (isLoading) {
@@ -288,13 +294,12 @@ const WebContainerPreview = ({
 
     return (
       <span
-        className={`text-sm font-medium ${
-          isComplete
-            ? "text-green-600"
-            : isActive
+        className={`text-sm font-medium ${isComplete
+          ? "text-green-600"
+          : isActive
             ? "text-blue-600"
             : "text-gray-500"
-        }`}
+          }`}
       >
         {label}
       </span>
@@ -333,7 +338,7 @@ const WebContainerPreview = ({
 
           {/* Terminal */}
           <div className="flex-1 p-4">
-            {<TerminalComponent 
+            {<TerminalComponent
               ref={terminalRef}
               webContainerInstance={instance}
               theme="dark"
