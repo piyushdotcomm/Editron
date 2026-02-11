@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
             // 1. Clone the repository using spawn
             console.log(`Cloning ${repoUrl} to ${tempDir}`);
 
+            const gitExecutable = process.platform === "win32" ? "C:\\Program Files\\Git\\cmd\\git.exe" : "git";
+
             // Use spawn instead of exec to avoid shell issues on Windows/Unix
             await new Promise<void>((resolve, reject) => {
-                const git = spawn("git", ["clone", "--depth", "1", repoUrl, tempDir], {
+                const git = spawn(gitExecutable, ["clone", "--depth", "1", repoUrl, tempDir], {
                     stdio: "inherit", // Pipe output to parent process for logs used by server
                     shell: false // Important: Do not use shell to avoid /bin/sh issues on Windows environments if configured oddly
                 });
