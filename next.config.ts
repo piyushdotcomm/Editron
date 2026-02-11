@@ -38,6 +38,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  outputFileTracingIncludes: {
+    '/api/template/**/*': ['./editron-starters/**/*'],
+  },
 };
 
 export default nextConfig;
