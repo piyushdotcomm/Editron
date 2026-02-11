@@ -38,14 +38,14 @@ import Link from "next/link"
 import { useState } from "react"
 import { MoreHorizontal, Edit3, Trash2, ExternalLink, Copy, Download, Eye } from "lucide-react"
 import { toast } from "sonner"
-import {MarkedToggleButton} from "./marked-toggle"
+import { MarkedToggleButton } from "./marked-toggle"
 
 
 interface ProjectTableProps {
   projects: Project[]
   onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
   onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<void>
+  onDuplicateProject?: (id: string) => Promise<any>
   onMarkasFavorite?: (id: string) => Promise<void>
 }
 
@@ -67,10 +67,11 @@ export default function ProjectTable({
   const [editData, setEditData] = useState<EditProjectData>({ title: "", description: "" })
   const [isLoading, setIsLoading] = useState(false)
   const [favoutrie, setFavourite] = useState(false)
-  
+
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
-    setEditData({ title: project.title,
+    setEditData({
+      title: project.title,
       description: project.description || ""
     })
     setEditDialogOpen(true)
@@ -92,13 +93,13 @@ export default function ProjectTable({
       toast.error("Failed to update project");
       console.error("Error updating project:", error);
     }
-    finally{
+    finally {
       setIsLoading(false)
     }
   }
 
   const handleMarkasFavorite = async (project: Project) => {
-   //    Write your logic here
+    //    Write your logic here
   }
 
   const handleDeleteProject = async () => {
@@ -118,16 +119,14 @@ export default function ProjectTable({
   }
 
   const handleDuplicateProject = async (project: Project) => {
-    if (!selectedProject || !onDeleteProject) return;
+    if (!onDuplicateProject) return;
     setIsLoading(true);
     try {
-      await onDeleteProject(selectedProject.id);
-      setDeleteDialogOpen(false);
-      setSelectedProject(null);
-      toast.success("Project deleted successfully");
+      await onDuplicateProject(project.id);
+      toast.success("Project duplicated successfully");
     } catch (error) {
-      toast.error("Failed to delete project");
-      console.error("Error deleting project:", error);
+      toast.error("Failed to duplicate project");
+      console.error("Error duplicating project:", error);
     } finally {
       setIsLoading(false);
     }
@@ -178,13 +177,13 @@ export default function ProjectTable({
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <Image
                         src={project.user.image || "/placeholder.svg"}
-                        alt={project.user.name}
+                        alt={project.user.name || "User"}
                         width={32}
                         height={32}
                         className="object-cover"
                       />
                     </div>
-                    <span className="text-sm">{project.user.name}</span>
+                    <span className="text-sm">{project.user.name || "User"}</span>
                   </div>
                 </TableCell>
                 <TableCell>
