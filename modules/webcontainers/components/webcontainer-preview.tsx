@@ -142,8 +142,9 @@ const WebContainerPreview = ({
 
         // Check if package.json exists, if not create a default one for static serving
         try {
-          const packageJsonExists = await instance.fs.readFile("package.json").catch(() => null);
-          if (!packageJsonExists) {
+          const packageJsonContent = await instance.fs.readFile("package.json", "utf8").catch(() => null);
+
+          if (!packageJsonContent) {
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
                 "⚠️ No package.json found. Creating default configuration for static site...\r\n"
@@ -159,6 +160,40 @@ const WebContainerPreview = ({
                 "servor": "^4.0.2"
               }
             }, null, 2));
+          } else {
+            // Check for missing start script and try to auto-fix
+            try {
+              const pkg = JSON.parse(packageJsonContent);
+              if (!pkg.scripts || !pkg.scripts.start) {
+                const commonEntries = ["index.js", "server.js", "app.js", "main.js", "src/index.js", "src/server.js", "src/app.js", "src/main.js"];
+                let entryFile = null;
+
+                for (const entry of commonEntries) {
+                  try {
+                    const exists = await instance.fs.readFile(entry).catch(() => null);
+                    if (exists) {
+                      entryFile = entry;
+                      break;
+                    }
+                  } catch (e) { }
+                }
+
+                if (entryFile) {
+                  if (terminalRef.current?.writeToTerminal) {
+                    terminalRef.current.writeToTerminal(
+                      `⚠️ No start script found. Auto-detected entry point: ${entryFile}. Injecting start script...\r\n`
+                    );
+                  }
+
+                  pkg.scripts = pkg.scripts || {};
+                  pkg.scripts.start = `node ${entryFile}`;
+
+                  await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
+                }
+              }
+            } catch (e) {
+              console.error("Error parsing/patching package.json:", e);
+            }
           }
         } catch (error) {
           console.error("Error checking/creating package.json:", error);
@@ -179,7 +214,7 @@ const WebContainerPreview = ({
           );
         }
 
-        const installProcess = await instance.spawn("npm", ["install"]);
+        const installProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
 
         installProcess.output.pipeTo(
           new WritableStream({
