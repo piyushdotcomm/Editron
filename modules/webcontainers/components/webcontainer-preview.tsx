@@ -139,6 +139,30 @@ const WebContainerPreview = ({
           );
         }
 
+        // Check if package.json exists, if not create a default one for static serving
+        try {
+          const packageJsonExists = await instance.fs.readFile("package.json").catch(() => null);
+          if (!packageJsonExists) {
+            if (terminalRef.current?.writeToTerminal) {
+              terminalRef.current.writeToTerminal(
+                "⚠️ No package.json found. Creating default configuration for static site...\r\n"
+              );
+            }
+            await instance.fs.writeFile("package.json", JSON.stringify({
+              name: "static-project",
+              version: "1.0.0",
+              scripts: {
+                start: "npx servor --reload"
+              },
+              dependencies: {
+                "servor": "^4.0.2"
+              }
+            }, null, 2));
+          }
+        } catch (error) {
+          console.error("Error checking/creating package.json:", error);
+        }
+
         setLoadingState((prev) => ({
           ...prev,
           mounting: false,
