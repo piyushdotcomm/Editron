@@ -191,8 +191,8 @@ const WebContainerPreview = ({
                   await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
                 } else {
                   // Check for client/server monorepo structure
-                  const hasClient = await instance.fs.readFile("client/package.json").catch(() => null);
-                  const hasServer = await instance.fs.readFile("server/package.json").catch(() => null);
+                  const hasClient = await instance.fs.readFile("client/package.json", "utf8").catch(() => null);
+                  const hasServer = await instance.fs.readFile("server/package.json", "utf8").catch(() => null);
 
                   if (hasClient || hasServer) {
                     const workspaces = [];
@@ -203,12 +203,30 @@ const WebContainerPreview = ({
                     pkg.scripts = pkg.scripts || {};
 
                     // Construct start script
-                    if (hasClient && hasServer) {
-                      pkg.scripts.start = "npm run dev --prefix server & npm run dev --prefix client";
-                    } else if (hasClient) {
-                      pkg.scripts.start = "npm run dev --prefix client";
+                    // Helper to find valid script
+                    const getScript = (pkgJson: string | null) => {
+                      if (!pkgJson) return null;
+                      try {
+                        const parsed = JSON.parse(pkgJson);
+                        return parsed.scripts?.dev ? "dev" : parsed.scripts?.start ? "start" : null;
+                      } catch { return null; }
+                    };
+
+                    const clientScript = getScript(hasClient);
+                    const serverScript = getScript(hasServer);
+
+                    // Construct start script
+                    if (hasClient && hasServer && clientScript && serverScript) {
+                      // Attempt to start client last to capture its port, or use a tool like concurrently if available. 
+                      // For now, valid method is:
+                      pkg.scripts.start = `npm run ${serverScript} --prefix server & npm run ${clientScript} --prefix client`;
+                    } else if (hasClient && clientScript) {
+                      pkg.scripts.start = `npm run ${clientScript} --prefix client`;
+                    } else if (hasServer && serverScript) {
+                      pkg.scripts.start = `npm run ${serverScript} --prefix server`;
                     } else {
-                      pkg.scripts.start = "npm run dev --prefix server";
+                      // Fallback
+                      pkg.scripts.start = "echo 'No runnable scripts found'";
                     }
 
                     if (terminalRef.current?.writeToTerminal) {
@@ -294,10 +312,20 @@ const WebContainerPreview = ({
           // todo: Terminal logic
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
-              `🌐 Server ready at ${url}\r\n`
+              `🌐 Server ready at ${url} (port ${port})\r\n`
             );
           }
-          setPreviewUrl(url);
+
+          // Heuristic: Prefer port 5173 (Vite) or 3000 (Create React App / Next.js) over others (often backend)
+          // valid ports for frontend usually: 3000, 3001, 3002, 5173, 5174, 8080, 4200 (Angular), 8000 (Gatsby)
+          const isCommonFrontendPort = [3000, 5173, 8080, 4200, 8000].includes(port);
+
+          setPreviewUrl((prevUrl) => {
+            // If we already have a URL and the new one isn't a "common frontend port", ignore it to avoid backend overriding frontend
+            if (prevUrl && !isCommonFrontendPort) return prevUrl;
+            return url;
+          });
+
           setLoadingState((prev) => ({
             ...prev,
             starting: false,
