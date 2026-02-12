@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useRef } from "react";
 
 import { transformToWebContainerFormat } from "../hooks/transformer";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { CheckCircle, Loader2, XCircle, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import TerminalComponent from "./terminal";
 
 import { WebContainer } from "@webcontainer/api";
@@ -371,15 +372,30 @@ const WebContainerPreview = ({
           </div>
         </div>
       ) : (
-        <div className="h-full flex flex-col">
-          <div className="flex-1">
+        <div className="h-full flex flex-col min-h-0 bg-background">
+          <div className="flex items-center justify-between px-4 h-10 border-b bg-muted/30">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-medium text-muted-foreground">Live Preview</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs flex items-center gap-1.5 hover:bg-muted"
+              onClick={() => window.open(previewUrl, '_blank')}
+            >
+              <ExternalLink size={12} />
+              Open in New Tab
+            </Button>
+          </div>
+          <div className="flex-1 min-h-0">
             <iframe
               src={previewUrl}
-              className="w-full h-full border-none"
+              className="w-full h-full border-none bg-white"
               title="WebContainer Preview"
             />
           </div>
-          <div className="h-64 border-t">
+          <div className="h-64 border-t shrink-0">
             <TerminalComponent
               ref={terminalRef}
               webContainerInstance={instance}
