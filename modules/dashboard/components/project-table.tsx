@@ -138,6 +138,29 @@ export default function ProjectTable({
     toast.success("Project URL copied to clipboard");
   }
 
+  const handleDownloadZip = async (project: Project) => {
+    try {
+      toast.info("Preparing download...");
+      const response = await fetch(`/api/projects/${project.id}/download`);
+
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Download started");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download project zip");
+    }
+  };
+
   return (
     <>
       <div className="border border-border/40 rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm shadow-sm">
@@ -220,8 +243,12 @@ export default function ProjectTable({
                         Duplicate
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => copyProjectUrl(project.id)}>
-                        <Download className="h-4 w-4 mr-2" />
+                        <Copy className="h-4 w-4 mr-2" />
                         Copy URL
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDownloadZip(project)}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Zip
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
