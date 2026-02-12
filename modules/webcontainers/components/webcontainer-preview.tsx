@@ -382,7 +382,10 @@ const WebContainerPreview = ({
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs flex items-center gap-1.5 hover:bg-muted"
-              onClick={() => window.open(previewUrl, '_blank')}
+              onClick={() => {
+                const url = `/preview?url=${encodeURIComponent(previewUrl)}`;
+                window.open(url, '_blank');
+              }}
             >
               <ExternalLink size={12} />
               Open in New Tab
