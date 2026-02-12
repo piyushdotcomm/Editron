@@ -9,6 +9,9 @@ import { HeroCodeDemo } from "@/modules/home/hero-code";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 import { CommitsGrid } from "@/components/ui/commits-grid";
 import { cn } from "@/lib/utils";
+import { templates } from "@/lib/constants/templates";
+import { TemplateCard } from "@/components/marketing/template-card";
+
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +92,28 @@ export default function Home() {
             isLoading ? "opacity-0" : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out"
           )}>
             <HeroCodeDemo />
+          </section>
+
+          {/* Popular Templates Section */}
+          <section className={cn(
+            "w-full relative z-10 fill-mode-both",
+            isLoading ? "opacity-0" : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out"
+          )}>
+            <div className="mb-8 flex items-center justify-between">
+              <h2 className="text-2xl md:text-3xl font-bold">Popular Templates</h2>
+              <Link href="/templates" className="text-primary hover:underline flex items-center text-sm font-medium">
+                View All Templates <ArrowRight size={14} className="ml-1" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {templates
+                .filter((t) => t.popularity === 5)
+                .slice(0, 4)
+                .map((template) => (
+                  <TemplateCard key={template.id} template={template} />
+                ))}
+            </div>
           </section>
 
           {/* Features Section */}
