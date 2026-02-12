@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPlayground } from "@/modules/dashboard/actions";
 import TemplateSelectingModal from "@/modules/dashboard/components/template-selecting-modal";
+import type { TemplateKey } from "@/lib/template";
 import {
     Plus,
     Search,
@@ -26,7 +27,7 @@ export function QuickActions() {
 
     const handleCreateProject = async (data: {
         title: string;
-        template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "ANGULAR" | "HONO";
+        template: TemplateKey;
         description?: string;
     }) => {
         try {

@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
+import type { TemplateKey } from "@/lib/template";
 
 export const toggleStarMarked = async (
   playgroundId: string,
@@ -75,7 +76,7 @@ export const getAllPlaygroundForUser = async () => {
 
 export const createPlayground = async (data: {
   title: string;
-  template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR";
+  template: TemplateKey;
   description?: string;
 }) => {
   const user = await currentUser();

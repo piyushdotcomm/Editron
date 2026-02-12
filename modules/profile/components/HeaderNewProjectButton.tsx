@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createPlayground } from "@/modules/dashboard/actions";
 import TemplateSelectingModal from "@/modules/dashboard/components/template-selecting-modal";
 import { Button } from "@/components/ui/button";
+import type { TemplateKey } from "@/lib/template";
 
 export default function HeaderNewProjectButton() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,7 +14,7 @@ export default function HeaderNewProjectButton() {
 
     const handleCreateProject = async (data: {
         title: string;
-        template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "ANGULAR" | "HONO";
+        template: TemplateKey;
         description?: string;
     }) => {
         try {
