@@ -189,6 +189,40 @@ const WebContainerPreview = ({
                   pkg.scripts.start = `node ${entryFile}`;
 
                   await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
+                } else {
+                  // Check for client/server monorepo structure
+                  const hasClient = await instance.fs.readFile("client/package.json").catch(() => null);
+                  const hasServer = await instance.fs.readFile("server/package.json").catch(() => null);
+
+                  if (hasClient || hasServer) {
+                    const workspaces = [];
+                    if (hasClient) workspaces.push("client");
+                    if (hasServer) workspaces.push("server");
+
+                    pkg.workspaces = workspaces;
+                    pkg.scripts = pkg.scripts || {};
+
+                    // Construct start script
+                    if (hasClient && hasServer) {
+                      pkg.scripts.start = "npm run dev --prefix server & npm run dev --prefix client";
+                    } else if (hasClient) {
+                      pkg.scripts.start = "npm run dev --prefix client";
+                    } else {
+                      pkg.scripts.start = "npm run dev --prefix server";
+                    }
+
+                    if (terminalRef.current?.writeToTerminal) {
+                      terminalRef.current.writeToTerminal(
+                        `⚠️ Detected monorepo structure (${workspaces.join(", ")}). Configuring workspaces and start script...\r\n`
+                      );
+                    }
+
+                    // Ensure name and version exist for valid workspace root
+                    if (!pkg.name) pkg.name = "monorepo-root";
+                    if (!pkg.version) pkg.version = "1.0.0";
+
+                    await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
+                  }
                 }
               }
             } catch (e) {

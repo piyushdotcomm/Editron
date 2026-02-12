@@ -88,13 +88,34 @@ const MainPlaygroundPage = () => {
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
     setPlaygroundId(id);
-  }, [id, setPlaygroundId]);
-
-  useEffect(() => {
     if (templateData && !openFiles.length) {
       setTemplateData(templateData);
     }
-  }, [templateData, setTemplateData, openFiles.length]);
+  }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);
+
+  // Auto-open default file when preview is shown if no file is open
+  useEffect(() => {
+    if (isPreviewVisible && !activeFileId && templateData) {
+      const findDefaultFile = (items: any[]): TemplateFile | null => {
+        for (const item of items) {
+          if (!("folderName" in item)) {
+            if (["App.tsx", "App.jsx", "index.tsx", "index.jsx", "index.js", "main.tsx", "main.js", "index.html"].includes(`${item.filename}.${item.fileExtension}`)) {
+              return item;
+            }
+          } else {
+            const found = findDefaultFile(item.items);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const defaultFile = findDefaultFile(templateData.items);
+      if (defaultFile) {
+        openFile(defaultFile);
+      }
+    }
+  }, [isPreviewVisible, activeFileId, templateData, openFile]);
   // Create wrapper functions that pass saveTemplateData
   const wrappedHandleAddFile = useCallback(
     (newFile: TemplateFile, parentPath: string) => {

@@ -251,7 +251,7 @@ function TemplateNode({
     React.useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isOpen, setIsOpen] = React.useState(level < 2);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isValidItem) return null;
 
