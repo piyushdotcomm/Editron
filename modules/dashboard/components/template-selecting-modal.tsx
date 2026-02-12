@@ -92,7 +92,7 @@ const templates: TemplateOption[] = [
     name: "Vue.js",
     description:
       "Progressive JavaScript framework for building user interfaces with an approachable learning curve",
-    icon: "/vuejs-icon.svg",
+    icon: "/vue.svg",
     color: "#4FC08D",
     popularity: 4,
     tags: ["UI", "Frontend", "JavaScript"],
@@ -104,7 +104,7 @@ const templates: TemplateOption[] = [
     name: "Angular",
     description:
       "Angular is a web framework that empowers developers to build fast, reliable applications",
-    icon: "/angular-2.svg",
+    icon: "/angular.svg",
     color: "#DD0031",
     popularity: 3,
     tags: ["TypeScript", "Frontend", "Enterprise"],
@@ -120,7 +120,7 @@ const templates: TemplateOption[] = [
     name: "Qwik",
     description:
       "Resumable framework that delivers instant-loading web apps with zero hydration",
-    icon: "/react.svg",
+    icon: "/qwik.svg",
     color: "#18B6F6",
     popularity: 3,
     tags: ["Frontend", "Performance", "Resumable"],
@@ -132,7 +132,7 @@ const templates: TemplateOption[] = [
     name: "Quasar",
     description:
       "High-performance Vue.js framework for building responsive websites, PWAs, and mobile apps",
-    icon: "/vuejs-icon.svg",
+    icon: "/quasar.svg",
     color: "#1976D2",
     popularity: 3,
     tags: ["Vue", "Frontend", "Cross-platform"],
@@ -144,7 +144,7 @@ const templates: TemplateOption[] = [
     name: "TresJS",
     description:
       "Create stunning 3D experiences with Three.js and Vue — declarative and reactive 3D rendering",
-    icon: "/vuejs-icon.svg",
+    icon: "/tres.svg",
     color: "#82DBC5",
     popularity: 2,
     tags: ["Vue", "3D", "WebGL"],
@@ -156,7 +156,7 @@ const templates: TemplateOption[] = [
     name: "Bootstrap 5",
     description:
       "The world's most popular CSS framework for building responsive, mobile-first sites",
-    icon: "/globe.svg",
+    icon: "/bootstrap.svg",
     color: "#7952B3",
     popularity: 4,
     tags: ["CSS", "Frontend", "Responsive"],
@@ -168,7 +168,7 @@ const templates: TemplateOption[] = [
     name: "Expo (React Native)",
     description:
       "Build native mobile apps for iOS and Android using React Native with Expo toolchain",
-    icon: "/react.svg",
+    icon: "/expo.svg",
     color: "#000020",
     popularity: 3,
     tags: ["Mobile", "React Native", "Cross-platform"],
@@ -180,7 +180,7 @@ const templates: TemplateOption[] = [
     name: "Remotion",
     description:
       "Create videos programmatically using React — render motion graphics and animations in code",
-    icon: "/react.svg",
+    icon: "/remotion.svg",
     color: "#0B84F3",
     popularity: 2,
     tags: ["React", "Video", "Animation"],
@@ -192,7 +192,7 @@ const templates: TemplateOption[] = [
     name: "Slidev",
     description:
       "Presentation slides for developers — write slides in Markdown with Vue components",
-    icon: "/vuejs-icon.svg",
+    icon: "/slidev.svg",
     color: "#2B90B6",
     popularity: 2,
     tags: ["Vue", "Markdown", "Presentation"],
@@ -206,7 +206,7 @@ const templates: TemplateOption[] = [
     name: "Next.js",
     description:
       "The React framework for production with server-side rendering and static site generation",
-    icon: "/nextjs-icon.svg",
+    icon: "/next.svg",
     color: "#000000",
     popularity: 5,
     tags: ["React", "SSR", "Fullstack"],
@@ -218,7 +218,7 @@ const templates: TemplateOption[] = [
     name: "Next.js + shadcn/ui",
     description:
       "Next.js with shadcn/ui component library pre-configured for beautiful, accessible UIs",
-    icon: "/nextjs-icon.svg",
+    icon: "/next.svg",
     color: "#000000",
     popularity: 4,
     tags: ["React", "shadcn", "Fullstack"],
@@ -230,7 +230,7 @@ const templates: TemplateOption[] = [
     name: "Vite + React + TS",
     description:
       "Lightning-fast React development with Vite bundler and TypeScript support",
-    icon: "/react.svg",
+    icon: "/vite.svg",
     color: "#646CFF",
     popularity: 4,
     tags: ["React", "Vite", "TypeScript"],
@@ -242,7 +242,7 @@ const templates: TemplateOption[] = [
     name: "Vite + shadcn/ui",
     description:
       "Vite-powered React app with shadcn/ui components for rapid, beautiful UI development",
-    icon: "/react.svg",
+    icon: "/vite.svg",
     color: "#646CFF",
     popularity: 3,
     tags: ["React", "Vite", "shadcn"],
@@ -254,7 +254,7 @@ const templates: TemplateOption[] = [
     name: "SvelteKit",
     description:
       "Full-stack framework for building Svelte apps with SSR, routing, and server-side logic",
-    icon: "/globe.svg",
+    icon: "/svelte.svg",
     color: "#FF3E00",
     popularity: 4,
     tags: ["Svelte", "SSR", "Fullstack"],
@@ -266,7 +266,7 @@ const templates: TemplateOption[] = [
     name: "Astro + shadcn/ui",
     description:
       "Content-focused framework with island architecture and shadcn/ui components",
-    icon: "/globe.svg",
+    icon: "/astro.svg",
     color: "#BC52EE",
     popularity: 3,
     tags: ["Astro", "Islands", "Content"],
@@ -278,7 +278,7 @@ const templates: TemplateOption[] = [
     name: "TutorialKit",
     description:
       "Build interactive coding tutorials with embedded editors and live previews",
-    icon: "/globe.svg",
+    icon: "/tutorialkit.svg",
     color: "#FF6347",
     popularity: 2,
     tags: ["Education", "Interactive", "Tutorials"],
@@ -292,7 +292,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + React",
     description:
       "Professional-grade animations in React using the GreenSock Animation Platform",
-    icon: "/react.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 3,
     tags: ["React", "Animation", "GSAP"],
@@ -304,7 +304,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + Next.js",
     description:
       "Server-rendered Next.js apps with powerful GSAP animations and scroll interactions",
-    icon: "/nextjs-icon.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 3,
     tags: ["Next.js", "Animation", "GSAP"],
@@ -316,7 +316,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + Vue",
     description:
       "Stunning animations in Vue.js applications with GSAP's animation engine",
-    icon: "/vuejs-icon.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 2,
     tags: ["Vue", "Animation", "GSAP"],
@@ -328,7 +328,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + Nuxt",
     description:
       "Nuxt.js with GSAP for server-rendered Vue apps with professional animations",
-    icon: "/vuejs-icon.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 2,
     tags: ["Nuxt", "Animation", "GSAP"],
@@ -340,7 +340,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + Svelte",
     description:
       "Combine Svelte's reactivity with GSAP's animation power for buttery-smooth UIs",
-    icon: "/globe.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 2,
     tags: ["Svelte", "Animation", "GSAP"],
@@ -352,7 +352,7 @@ const templates: TemplateOption[] = [
     name: "GSAP + SvelteKit",
     description:
       "Full-stack SvelteKit with GSAP animations for immersive web experiences",
-    icon: "/globe.svg",
+    icon: "/gsap.svg",
     color: "#88CE02",
     popularity: 2,
     tags: ["SvelteKit", "Animation", "GSAP"],
@@ -366,7 +366,7 @@ const templates: TemplateOption[] = [
     name: "Express",
     description:
       "Fast, unopinionated, minimalist web framework for Node.js to build APIs and web applications",
-    icon: "/expressjs-icon.svg",
+    icon: "/express.svg",
     color: "#000000",
     popularity: 4,
     tags: ["Node.js", "API", "Backend"],
@@ -402,7 +402,7 @@ const templates: TemplateOption[] = [
     name: "Koa",
     description:
       "Next-generation web framework for Node.js by the Express team with async/await support",
-    icon: "/expressjs-icon.svg",
+    icon: "/koa.svg",
     color: "#33333D",
     popularity: 3,
     tags: ["Node.js", "API", "Backend"],
@@ -414,7 +414,7 @@ const templates: TemplateOption[] = [
     name: "Egg.js",
     description:
       "Born to build better enterprise Node.js frameworks with convention over configuration",
-    icon: "/expressjs-icon.svg",
+    icon: "/egg.svg",
     color: "#D4A05A",
     popularity: 2,
     tags: ["Node.js", "Enterprise", "Backend"],
@@ -426,7 +426,7 @@ const templates: TemplateOption[] = [
     name: "GraphQL Server",
     description:
       "GraphQL API server with schema-first approach for flexible and efficient data fetching",
-    icon: "/expressjs-icon.svg",
+    icon: "/graphql.svg",
     color: "#E10098",
     popularity: 3,
     tags: ["GraphQL", "API", "Backend"],
@@ -438,7 +438,7 @@ const templates: TemplateOption[] = [
     name: "JSON Server",
     description:
       "Full fake REST API with zero coding — perfect for prototyping and mocking",
-    icon: "/expressjs-icon.svg",
+    icon: "/json.svg",
     color: "#1A1A2E",
     popularity: 3,
     tags: ["REST", "Mock API", "Prototyping"],
@@ -450,7 +450,7 @@ const templates: TemplateOption[] = [
     name: "JSON GraphQL Server",
     description:
       "Get a full fake GraphQL API from a JSON file — instant GraphQL prototyping",
-    icon: "/expressjs-icon.svg",
+    icon: "/json.svg",
     color: "#E10098",
     popularity: 2,
     tags: ["GraphQL", "Mock API", "Prototyping"],
@@ -464,7 +464,7 @@ const templates: TemplateOption[] = [
     name: "Static HTML/CSS/JS",
     description:
       "Simple static website with HTML, CSS, and JavaScript — no build tools required",
-    icon: "/globe.svg",
+    icon: "/html.svg",
     color: "#E44D26",
     popularity: 4,
     tags: ["HTML", "CSS", "Vanilla"],
@@ -476,7 +476,7 @@ const templates: TemplateOption[] = [
     name: "JavaScript",
     description:
       "Vanilla JavaScript sandbox for quick experiments and prototypes",
-    icon: "/globe.svg",
+    icon: "/javascript.svg",
     color: "#F7DF1E",
     popularity: 3,
     tags: ["JavaScript", "Vanilla", "Sandbox"],
@@ -488,7 +488,7 @@ const templates: TemplateOption[] = [
     name: "TypeScript",
     description:
       "TypeScript sandbox with compilation support for type-safe JavaScript development",
-    icon: "/globe.svg",
+    icon: "/typescript.svg",
     color: "#3178C6",
     popularity: 3,
     tags: ["TypeScript", "Types", "Sandbox"],
@@ -500,7 +500,7 @@ const templates: TemplateOption[] = [
     name: "Node.js",
     description:
       "Minimal Node.js project for server-side JavaScript development",
-    icon: "/expressjs-icon.svg",
+    icon: "/node.svg",
     color: "#339933",
     popularity: 3,
     tags: ["Node.js", "Server", "JavaScript"],
@@ -512,7 +512,7 @@ const templates: TemplateOption[] = [
     name: "Nodemon",
     description:
       "Node.js with Nodemon for auto-restart on file changes during development",
-    icon: "/expressjs-icon.svg",
+    icon: "/nodemon.svg",
     color: "#76D04B",
     popularity: 3,
     tags: ["Node.js", "Dev Tools", "Hot Reload"],
@@ -524,7 +524,7 @@ const templates: TemplateOption[] = [
     name: "RxJS",
     description:
       "Reactive Extensions library for composing asynchronous and event-based programs",
-    icon: "/globe.svg",
+    icon: "/rxjs.svg",
     color: "#B7178C",
     popularity: 2,
     tags: ["Reactive", "Observables", "TypeScript"],
@@ -536,7 +536,7 @@ const templates: TemplateOption[] = [
     name: "Web Platform",
     description:
       "Modern web platform APIs playground — explore native browser features and standards",
-    icon: "/globe.svg",
+    icon: "/html.svg",
     color: "#4285F4",
     popularity: 2,
     tags: ["Web APIs", "Standards", "Browser"],
