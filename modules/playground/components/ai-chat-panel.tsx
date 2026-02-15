@@ -25,7 +25,8 @@ import {
     useAI,
     type AIProvider,
     runAgenticChat,
-    updateFileByPath,
+    addOrUpdateFile,
+    deleteFileByPath,
 } from "@/modules/playground/hooks/useAI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
@@ -105,7 +106,7 @@ export default function AIChatPanel({
                 (activity) => addMessage({ role: "tool_activity", content: activity }),
                 (path, content) => {
                     if (!templateData) return;
-                    const updatedItems = updateFileByPath(templateData.items, path, content);
+                    const updatedItems = addOrUpdateFile(templateData.items, path, content);
                     const updatedTemplate = { ...templateData, items: updatedItems };
                     setTemplateData(updatedTemplate);
 
@@ -120,6 +121,22 @@ export default function AIChatPanel({
                     setOpenFiles(updatedOpenFiles);
                     saveTemplateData(updatedTemplate).catch(console.error);
                     toast.success(`AI updated ${path}`);
+                },
+                (path) => {
+                    if (!templateData) return;
+                    const updatedItems = deleteFileByPath(templateData.items, path);
+                    const updatedTemplate = { ...templateData, items: updatedItems };
+                    setTemplateData(updatedTemplate);
+
+                    // Close the file if it was open
+                    const updatedOpenFiles = openFiles.filter((f) => {
+                        const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                        const fullName = `${f.filename}${ext}`;
+                        return !path.endsWith(fullName);
+                    });
+                    setOpenFiles(updatedOpenFiles);
+                    saveTemplateData(updatedTemplate).catch(console.error);
+                    toast.success(`AI deleted ${path}`);
                 },
                 chatMessages
                     .filter((m) => m.role === "user" || m.role === "assistant")

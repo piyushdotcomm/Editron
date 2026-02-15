@@ -149,18 +149,121 @@ export function findFileByPath(items: any[], targetPath: string, prefix = ""): a
     return null;
 }
 
-export function updateFileByPath(items: any[], targetPath: string, newContent: string, prefix = ""): any[] {
-    return items.map((item) => {
+export function deleteFileByPath(items: any[], targetPath: string, prefix = ""): any[] {
+    return items.filter((item) => {
         if ("folderName" in item) {
             const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
-            return { ...item, items: updateFileByPath(item.items, targetPath, newContent, fp) };
+            item.items = deleteFileByPath(item.items, targetPath, fp);
+            return true;
         } else {
             const ext = item.fileExtension ? `.${item.fileExtension}` : "";
             const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
-            if (filePath === targetPath) return { ...item, content: newContent };
+            return filePath !== targetPath;
+        }
+    });
+}
+
+export function addOrUpdateFile(items: any[], targetPath: string, newContent: string, prefix = ""): any[] {
+    // 1. Try to find and update existing file
+    let found = false;
+    const updated = items.map((item) => {
+        if ("folderName" in item) {
+            const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
+            // Only recurse if the target path starts with this folder's path
+            if (targetPath.startsWith(fp + "/")) {
+                const newItems = addOrUpdateFile(item.items, targetPath, newContent, fp);
+                // If the recursive call returned something different (or we know we found it inside),
+                // we assume it handled it. But we need to know if it was *found*.
+                // A simpler check: if the recursive call results in a change, use it.
+                // Actually, let's just use the result.
+                return { ...item, items: newItems };
+            }
+            return item;
+        } else {
+            const ext = item.fileExtension ? `.${item.fileExtension}` : "";
+            const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
+            if (filePath === targetPath) {
+                found = true;
+                return { ...item, content: newContent };
+            }
             return item;
         }
     });
+
+    // If we found and updated the file (or it was handled in recursion which we can't easily detect with just map),
+    // we need a better strategy. passing 'found' back up is hard with just return value.
+
+    // BETTER STRATEGY:
+    // Check if file exists using findFileByPath.
+    // If yes, use the map logic to update.
+    // If no, we need to CREATE it.
+
+    // Let's rewrite this function to be cleaner.
+    // We can use a separate "create" path if "update" fails? 
+    // No, recursive creation is best done in one go.
+
+    // For now, let's stick to the existing update logic BUT use a helper to detect if it exists first.
+    const existing = findFileByPath(items, targetPath, prefix);
+    if (existing) {
+        return items.map((item) => {
+            if ("folderName" in item) {
+                const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
+                if (targetPath.startsWith(fp + "/")) {
+                    return { ...item, items: addOrUpdateFile(item.items, targetPath, newContent, fp) };
+                }
+                return item;
+            } else {
+                const ext = item.fileExtension ? `.${item.fileExtension}` : "";
+                const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
+                if (filePath === targetPath) return { ...item, content: newContent };
+                return item;
+            }
+        });
+    }
+
+    // 2. If not found, we need to create it.
+    // Split path to find where to insert.
+    // e.g. "foo/bar/baz.txt" -> at root, look for "foo".
+    const relativePath = prefix ? targetPath.slice(prefix.length + 1) : targetPath;
+    const parts = relativePath.split("/");
+    const nextPart = parts[0];
+
+    // If this is the last part, it's the file to create
+    if (parts.length === 1) {
+        const fileName = nextPart;
+        const lastDot = fileName.lastIndexOf(".");
+        const name = lastDot > -1 ? fileName.slice(0, lastDot) : fileName;
+        const ext = lastDot > -1 ? fileName.slice(lastDot + 1) : "";
+        return [...items, { filename: name, fileExtension: ext, content: newContent }];
+    }
+
+    // Otherwise, we need to find or create the folder 'nextPart'
+    const folderIndex = items.findIndex((item) => "folderName" in item && item.folderName === nextPart);
+
+    if (folderIndex > -1) {
+        // Folder exists, recurse into it
+        const newItems = [...items];
+        const folder = newItems[folderIndex];
+        const fp = prefix ? `${prefix}/${folder.folderName}` : folder.folderName;
+        newItems[folderIndex] = {
+            ...folder,
+            items: addOrUpdateFile(folder.items, targetPath, newContent, fp)
+        };
+        return newItems;
+    } else {
+        // Folder doesn't exist, create it and recurse
+        const fp = prefix ? `${prefix}/${nextPart}` : nextPart;
+        // Construct the new folder structure recursively
+        // A shortcut: we can just call addOrUpdateFile on an empty array for the rest of path
+        // but we need to pass the correct prefix.
+
+        // Actually, we can just create the folder item with the rest of the path resolved.
+        const newFolder = {
+            folderName: nextPart,
+            items: addOrUpdateFile([], targetPath, newContent, fp)
+        };
+        return [...items, newFolder];
+    }
 }
 
 // --- Agentic loop ---
@@ -172,6 +275,7 @@ export async function runAgenticChat(
     onText: (text: string) => void,
     onToolActivity: (activity: string) => void,
     onFileEdit: (path: string, content: string) => void,
+    onFileDelete: (path: string) => void,
     existingMessages: { role: string; content: string }[] = []
 ) {
     const fileTree = templateData
@@ -257,6 +361,16 @@ export async function runAgenticChat(
                                 tool_calls: [{ id: tc.id, type: "function", function: { name: tc.name, arguments: JSON.stringify(tc.arguments) } }],
                             });
                             apiMessages.push({ role: "tool", content: `Successfully updated ${tc.arguments.path}`, tool_call_id: tc.id });
+                        } else if (tc.name === "delete_file") {
+                            onToolActivity(`🗑️ Deleting \`${tc.arguments.path}\`...`);
+                            onFileDelete(tc.arguments.path);
+
+                            apiMessages.push({
+                                role: "assistant",
+                                content: null,
+                                tool_calls: [{ id: tc.id, type: "function", function: { name: tc.name, arguments: JSON.stringify(tc.arguments) } }],
+                            });
+                            apiMessages.push({ role: "tool", content: `Successfully deleted ${tc.arguments.path}`, tool_call_id: tc.id });
                         }
                     } else if (event.type === "error") {
                         throw new Error(event.content);

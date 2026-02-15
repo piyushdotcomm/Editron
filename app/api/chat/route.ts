@@ -62,6 +62,23 @@ const TOOLS_OPENAI = [
             },
         },
     },
+    {
+        type: "function" as const,
+        function: {
+            name: "delete_file",
+            description: "Delete a file from the project.",
+            parameters: {
+                type: "object",
+                properties: {
+                    path: {
+                        type: "string",
+                        description: "The file path relative to the project root",
+                    },
+                },
+                required: ["path"],
+            },
+        },
+    },
 ];
 
 const TOOLS_GEMINI = [
@@ -100,6 +117,20 @@ const TOOLS_GEMINI = [
                         },
                     },
                     required: ["path", "content"],
+                },
+            },
+            {
+                name: "delete_file",
+                description: "Delete a file from the project.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        path: {
+                            type: "STRING",
+                            description: "The file path relative to the project root",
+                        },
+                    },
+                    required: ["path"],
                 },
             },
         ],
