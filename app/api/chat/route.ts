@@ -331,7 +331,7 @@ function getProviderConfig(provider: string) {
         case "groq":
             return {
                 endpoint: GROQ_ENDPOINT,
-                model: "openai/gpt-oss-120b",
+                model: "llama-3.3-70b-versatile",
                 envKey: "GROQ_API_KEY",
                 label: "Groq",
             };
