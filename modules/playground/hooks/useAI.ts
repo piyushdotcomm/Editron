@@ -56,7 +56,7 @@ export const useAI = create<AIState>((set, get) => {
         : true;
 
     return {
-        provider: "gemini",
+        provider: "mistral",
         isChatOpen: false,
         chatMessages: [],
         isGenerating: false,

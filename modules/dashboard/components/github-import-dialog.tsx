@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, FolderOpen, ArrowLeft } from "lucide-react";
@@ -24,7 +24,12 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
     const [subdirs, setSubdirs] = useState<string[]>([]);
     const [selectedSubdir, setSelectedSubdir] = useState("");
     const [step, setStep] = useState<"url" | "pick-subdir">("url");
+    const [isMounted, setIsMounted] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const resetState = () => {
         setRepoUrl("");
@@ -92,6 +97,10 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
+    if (!isMounted) {
+        return <>{children}</>;
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => {
             setIsOpen(open);
@@ -154,8 +163,8 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
                                     <label
                                         key={dir}
                                         className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedSubdir === dir
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-primary/50"
+                                            ? "border-primary bg-primary/5"
+                                            : "border-border hover:border-primary/50"
                                             }`}
                                     >
                                         <input

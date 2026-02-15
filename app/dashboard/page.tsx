@@ -2,6 +2,7 @@
 import { deleteProjectById, duplicateProjectById, editProjectById, getAllPlaygroundForUser } from '@/modules/dashboard/actions';
 import AddNewButton from '@/modules/dashboard/components/add-new'
 import AddRepo from '@/modules/dashboard/components/add-repo'
+import UploadZip from '@/modules/dashboard/components/upload-zip'
 import EmptyState from '@/modules/dashboard/components/empty-state';
 import ProjectTable from '@/modules/dashboard/components/project-table';
 import React from 'react'
@@ -73,9 +74,10 @@ const Page = async () => {
         </section>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
           <AddNewButton />
           <AddRepo />
+          <UploadZip />
         </div>
 
         {/* Projects Table */}

@@ -148,7 +148,7 @@ export default function AIChatPanel({
             <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
                 {/* Header — minimal */}
                 <SheetHeader className="p-4 pb-3 border-b">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pr-6">
                         <div className="flex items-center gap-2">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
                                 <Bot className="h-4 w-4 text-white" />
@@ -273,8 +273,8 @@ export default function AIChatPanel({
                                     <button
                                         key={p.id}
                                         className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-colors ${provider === p.id
-                                                ? "bg-accent text-accent-foreground font-medium"
-                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                            ? "bg-accent text-accent-foreground font-medium"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                             }`}
                                         onClick={() => {
                                             setProvider(p.id);

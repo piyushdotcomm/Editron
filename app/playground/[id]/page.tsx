@@ -1,12 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import JSZip from "jszip";
+// dropdown removed — actions are direct buttons now
 import {
   ResizableHandle,
   ResizablePanel,
@@ -25,12 +20,17 @@ import LoadingStep from "@/modules/playground/components/loader";
 import PlaygroundEditor from "@/modules/playground/components/playground-editor";
 import {
   AlertCircle,
+  ArrowLeft,
   Bot,
+  Download,
+  Eye,
+  EyeOff,
   FileText,
   FolderOpen,
   Save,
   Settings,
   X,
+  XCircle,
 } from "lucide-react";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
@@ -296,6 +296,44 @@ const MainPlaygroundPage = () => {
     }
   };
 
+  // recursive function to add files to zip
+  const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
+    folder.items.forEach((item) => {
+      if ("folderName" in item) {
+        const newFolder = zipFolder.folder(item.folderName);
+        if (newFolder) {
+          addFilesToZip(item, newFolder);
+        }
+      } else {
+        zipFolder.file(item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""), item.content);
+      }
+    });
+  };
+
+  const handleDownloadZip = async () => {
+    if (!templateData) return;
+
+    try {
+      const zip = new JSZip();
+      addFilesToZip(templateData, zip);
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${playgroundData?.title || "project"}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Project downloaded successfully");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download project");
+    }
+  };
+
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -381,6 +419,14 @@ const MainPlaygroundPage = () => {
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => window.location.href = '/dashboard'}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Back to Dashboard</TooltipContent>
+            </Tooltip>
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex flex-1 items-center gap-2">
               <div className="flex flex-col flex-1">
@@ -422,33 +468,51 @@ const MainPlaygroundPage = () => {
                   <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
                 </Tooltip>
 
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDownloadZip}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Download Project</TooltipContent>
+                </Tooltip>
+
+
+
                 <Button variant={"default"} size={"icon"} onClick={() => useAI.getState().toggleChat()}>
                   <Bot className="size-4" />
                 </Button>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" onClick={() => setIsPreviewVisible(!isPreviewVisible)}>
+                      {isPreviewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isPreviewVisible ? "Hide" : "Show"} Preview</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" onClick={() => setShowAISettings(true)}>
                       <Settings className="h-4 w-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => setIsPreviewVisible(!isPreviewVisible)}
-                    >
-                      {isPreviewVisible ? "Hide" : "Show"} Preview
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowAISettings(true)}>
-                      <Bot className="h-4 w-4 mr-2" />
-                      AI Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={closeAllFiles}>
-                      Close All Files
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </TooltipTrigger>
+                  <TooltipContent>AI Settings</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" onClick={closeAllFiles}>
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Close All Files</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </header>
