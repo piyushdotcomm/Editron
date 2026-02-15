@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
+import { useAI } from "@/modules/playground/hooks/useAI";
+import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
+import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
 import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
@@ -55,6 +58,7 @@ import { toast } from "sonner";
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
 
@@ -418,7 +422,7 @@ const MainPlaygroundPage = () => {
                   <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
                 </Tooltip>
 
-                <Button variant={"default"} size={"icon"}>
+                <Button variant={"default"} size={"icon"} onClick={() => useAI.getState().toggleChat()}>
                   <Bot className="size-4" />
                 </Button>
 
@@ -433,6 +437,11 @@ const MainPlaygroundPage = () => {
                       onClick={() => setIsPreviewVisible(!isPreviewVisible)}
                     >
                       {isPreviewVisible ? "Hide" : "Show"} Preview
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setShowAISettings(true)}>
+                      <Bot className="h-4 w-4 mr-2" />
+                      AI Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={closeAllFiles}>
@@ -541,6 +550,11 @@ const MainPlaygroundPage = () => {
             )}
           </div>
         </SidebarInset>
+        <AIChatPanel
+          templateData={templateData}
+          saveTemplateData={saveTemplateData}
+        />
+        <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
       </>
     </TooltipProvider>
   );

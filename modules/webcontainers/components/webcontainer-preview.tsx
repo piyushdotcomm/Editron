@@ -1,11 +1,13 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
 
 import { transformToWebContainerFormat } from "../hooks/transformer";
 import { CheckCircle, Loader2, XCircle, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import TerminalComponent from "./terminal";
+
+const TerminalComponent = dynamic(() => import("./terminal"), { ssr: false });
 
 import { WebContainer } from "@webcontainer/api";
 import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
@@ -78,7 +80,7 @@ const WebContainerPreview = ({
           );
 
           if (packageJsonExists) {
-            // Files are already mounted, just reconnect to existing server
+            // Files are already mounted, restart the server
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
                 "🔄 Reconnecting to existing WebContainer session...\r\n"
@@ -88,20 +90,45 @@ const WebContainerPreview = ({
             instance.on("server-ready", (port: number, url: string) => {
               if (terminalRef.current?.writeToTerminal) {
                 terminalRef.current.writeToTerminal(
-                  `🌐 Reconnected to server at ${url}\r\n`
+                  `🌐 Server ready at ${url} (port ${port})\r\n`
                 );
               }
 
-              setPreviewUrl(url);
+              const isCommonFrontendPort = [3000, 5173, 8080, 4200, 8000].includes(port);
+              setPreviewUrl((prevUrl) => {
+                if (prevUrl && !isCommonFrontendPort) return prevUrl;
+                return url;
+              });
+
               setLoadingState((prev) => ({
                 ...prev,
                 starting: false,
                 ready: true,
               }));
+              setIsSetupComplete(true);
+              setIsSetupInProgress(false);
+              setupInProgressRef.current = false;
             });
 
             setCurrentStep(4);
             setLoadingState((prev) => ({ ...prev, starting: true }));
+
+            // Actually restart the server
+            if (terminalRef.current?.writeToTerminal) {
+              terminalRef.current.writeToTerminal(
+                "🚀 Restarting development server...\r\n"
+              );
+            }
+            const startProcess = await instance.spawn("npm", ["run", "start"]);
+            startProcess.output.pipeTo(
+              new WritableStream({
+                write(data) {
+                  if (terminalRef.current?.writeToTerminal) {
+                    terminalRef.current.writeToTerminal(data);
+                  }
+                },
+              })
+            );
             return;
           }
         } catch (error) { }
