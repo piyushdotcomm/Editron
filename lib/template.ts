@@ -37,7 +37,9 @@ export type TemplateKey =
     | "GSAP_NEXT"
     | "GSAP_NUXT"
     | "HONO_NODEJS"
-    | "TUTORIALKIT";
+    | "HONO_NODEJS"
+    | "TUTORIALKIT"
+    | "BLANK";
 
 export const templatePaths: Record<TemplateKey, string> = {
     REACT: "/editron-starters/react",
@@ -79,4 +81,5 @@ export const templatePaths: Record<TemplateKey, string> = {
     GSAP_NUXT: "/editron-starters/gsap-nuxt",
     HONO_NODEJS: "/editron-starters/hono-nodejs-starter",
     TUTORIALKIT: "/editron-starters/tutorialkit",
+    BLANK: "/editron-starters/blank",
 };

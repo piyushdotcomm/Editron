@@ -411,6 +411,18 @@ export const templates: TemplateOption[] = [
 
     // ── Tooling / Vanilla ─────────────────────────────────
     {
+        id: "BLANK",
+        name: "Blank Canvas",
+        description:
+            "A completely empty project with just an index.html - start from absolute zero",
+        icon: "/file.svg", // Using a generic file icon or similar if available
+        color: "#888888",
+        popularity: 5,
+        tags: ["HTML", "Blank", "Clean"],
+        features: ["Clean Slate", "No Dependencies", "Pure HTML"],
+        category: "frontend",
+    },
+    {
         id: "STATIC",
         name: "Static HTML/CSS/JS",
         description:

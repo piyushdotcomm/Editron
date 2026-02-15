@@ -517,9 +517,10 @@ const WebContainerPreview = ({
           </div>
           <div className="flex-1 min-h-0">
             <iframe
-              src={previewUrl}
+              src={`${previewUrl}?t=${Date.now()}`}
               className="w-full h-full border-none bg-white"
               title="WebContainer Preview"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             />
           </div>
           <div className="h-64 border-t shrink-0">
