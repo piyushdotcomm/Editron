@@ -1,111 +1,108 @@
 # Editron
 
-**A next-generation browser-based code editor with AI-powered intelligence and WebContainer integration**
+**A browser-based code editor with AI assistance, 40+ framework templates, and live preview — powered by WebContainers.**
 
-Editron is a modern, full-stack web application that brings the power of a complete development environment to your browser. Built with Next.js 15, it features real-time code execution, multiple framework templates, and seamless authentication—all without leaving your browser.
+Editron turns your browser into a full development environment. Pick a template (React, Next.js, Vue, Angular, Svelte, and dozens more), write code in Monaco Editor, run it in an integrated terminal, and preview the result — all without installing anything locally. An AI assistant (Gemini, Groq, or Mistral) can read, edit, and create files in your project on the fly.
 
----
-
-## ✨ Features
-
-### 🚀 Core Capabilities
-- **Browser-Based IDE**: Full-featured code editor powered by Monaco Editor
-- **Live Code Execution**: Run Node.js, React, Next.js, Vue, Angular, and more directly in the browser using WebContainer API
-- **Multiple Templates**: Pre-configured starter templates for popular frameworks:
-  - React (TypeScript)
-  - Next.js
-  - Express.js
-  - Vue
-  - Angular
-  - Hono (Node.js)
-- **Real-Time Terminal**: Integrated xterm.js terminal with full command execution
-- **File System Management**: Create, edit, and organize files in a virtual file system
-
-### 🔐 Authentication & User Management
-- **Multi-Provider Auth**: Sign in with GitHub or Google via NextAuth.js
-- **User Roles**: Support for Admin, User, and Premium User tiers
-- **Persistent Playgrounds**: Save and manage your coding projects
-- **Starred Projects**: Bookmark your favorite playgrounds
-
-### 🎨 Modern UI/UX
-- **Responsive Design**: Fully responsive interface built with Tailwind CSS v4
-- **Dark/Light Mode**: Theme switching with next-themes
-- **Radix UI Components**: Accessible, customizable UI primitives
-- **Framer Motion Animations**: Smooth, professional animations
-- **Monochrome Theme**: Clean, distraction-free aesthetic
+[![Built with Next.js](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
+[![WebContainer API](https://img.shields.io/badge/WebContainer-API-1389FD?logo=stackblitz)](https://webcontainers.io/)
 
 ---
 
-## 🛠️ Tech Stack
+## Features
 
-### Frontend
-- **Framework**: Next.js 15.5.12 (App Router)
-- **React**: 19.1.0
-- **TypeScript**: ^5
-- **Styling**: Tailwind CSS v4
-- **UI Components**: Radix UI, shadcn/ui
-- **Animations**: Framer Motion
-- **Code Editor**: Monaco Editor (@monaco-editor/react)
-- **Terminal**: xterm.js with addons (fit, search, web-links)
+### Code Playground
+- **Monaco Editor** with syntax highlighting, IntelliSense, and multi-file support
+- **Integrated terminal** (xterm.js) with full command execution inside WebContainer
+- **Live preview** — see your app running in a side panel as you code
+- **Resizable panels** — drag to resize editor, terminal, and preview panes
+- **Virtual file system** — create, rename, and delete files and folders
 
-### Backend
-- **Runtime**: Node.js (Next.js API Routes)
-- **Database**: MongoDB (via Prisma ORM)
-- **Authentication**: NextAuth.js v5 (beta)
-- **Adapter**: Prisma Adapter for NextAuth
+### 40+ Starter Templates
 
-### Key Dependencies
-- **WebContainer API**: Browser-based Node.js runtime
-- **Prisma**: Type-safe database ORM
-- **Zod**: Schema validation
-- **Zustand**: State management
-- **React Hook Form**: Form handling
-- **Sonner**: Toast notifications
+| Frontend | Backend | Full-Stack | Tooling |
+|----------|---------|------------|---------|
+| React, React TS | Express | Next.js | Slidev |
+| Vue | Hono | SvelteKit | TutorialKit |
+| Angular | Koa | Quasar | RxJS |
+| Svelte | Egg | Astro + shadcn | GSAP (React, Vue, Svelte, Next, Nuxt) |
+| Bootstrap 5 | GraphQL | Next.js + shadcn | JSON Server |
+| Static HTML/CSS/JS | Node, Nodemon | Vite + shadcn | Bolt (Qwik, Remotion, Expo) |
+| TypeScript | JSON GraphQL Server | Tres (Three.js + Vue) | Blank |
+
+Or **import from GitHub** — paste a repo URL and Editron fetches the code, with monorepo sub-directory selection.
+
+### AI Assistant
+Chat with an AI that can **read, edit, and create files** directly in your project:
+- **Gemini 2.0 Flash** — Google's fast multimodal model
+- **Groq** (Llama) — ultra-low-latency inference
+- **Mistral** — open-weight European model
+
+Bring your own API key. The AI sees your file tree for context-aware edits.
+
+### Authentication & Persistence
+- Sign in with **GitHub** or **Google** via NextAuth.js v5
+- **Save playgrounds** to MongoDB — come back to them anytime
+- **Star** your favorite playgrounds for quick access
+- **User roles**: Admin, User, Premium User
+
+### Modern UI
+- **Dark / Light mode** with next-themes
+- **shadcn/ui** + Radix UI component primitives
+- **Framer Motion** animations
+- Monochrome, distraction-free aesthetic
 
 ---
 
-## 📋 Prerequisites
+## Tech Stack
 
-Before you begin, ensure you have:
-
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher (or yarn/pnpm/bun)
-- **MongoDB**: Database instance (local or cloud, e.g., MongoDB Atlas)
-- **OAuth Credentials**:
-  - GitHub OAuth App (Client ID & Secret)
-  - Google OAuth App (Client ID & Secret)
+| Layer | Technology |
+|-------|------------|
+| **Framework** | Next.js 15 (App Router, Turbopack) |
+| **Language** | TypeScript 5 |
+| **UI** | React 19, Tailwind CSS v4, shadcn/ui, Radix UI, Framer Motion |
+| **Editor** | Monaco Editor (`@monaco-editor/react`) |
+| **Terminal** | xterm.js with fit, search, and web-links addons |
+| **Runtime** | WebContainer API (browser-based Node.js) |
+| **Database** | MongoDB via Prisma ORM |
+| **Auth** | NextAuth.js v5 (JWT strategy, Prisma adapter) |
+| **State** | Zustand |
+| **Forms** | React Hook Form + Zod validation |
+| **Notifications** | Sonner toasts |
 
 ---
 
-## 🚀 Getting Started
+## Prerequisites
 
-### 1. Clone the Repository
+- **Node.js** ≥ 18
+- **npm** ≥ 9 (or yarn / pnpm / bun)
+- **MongoDB** instance (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
+- **OAuth apps** for [GitHub](https://github.com/settings/developers) and [Google](https://console.cloud.google.com/apis/credentials)
+
+---
+
+## Getting Started
+
+### 1. Clone & Install
 
 ```bash
 git clone https://github.com/piyushdotcomm/Editron.git
 cd Editron
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
 ```
 
-### 3. Environment Setup
+### 2. Configure Environment
 
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the project root:
 
 ```env
 # Database
-DATABASE_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority"
+DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<db>?retryWrites=true&w=majority"
 
-# NextAuth.js
-AUTH_SECRET="<your-auth-secret>"  # Generate with: openssl rand -base64 32
+# NextAuth
+AUTH_SECRET="<generate with: openssl rand -base64 32>"
 
 # GitHub OAuth
 AUTH_GITHUB_ID="<your-github-client-id>"
@@ -116,233 +113,130 @@ AUTH_GOOGLE_ID="<your-google-client-id>"
 AUTH_GOOGLE_SECRET="<your-google-client-secret>"
 ```
 
-**Important**: Never commit your `.env` file to version control. It's already included in `.gitignore`.
+> **Note:** The `.env` file is git-ignored. Never commit secrets to version control.
 
-### 4. Database Setup
-
-Generate Prisma client and push schema to database:
+### 3. Set Up the Database
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-### 5. Run Development Server
+### 4. Start the Dev Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000). That's it.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Editron/
-├── app/                      # Next.js App Router
-│   ├── (root)/              # Public routes (landing page)
-│   ├── api/                 # API routes
-│   │   └── template/        # Template generation endpoints
-│   ├── auth/                # Authentication pages
-│   ├── dashboard/           # User dashboard
-│   └── playground/          # Code playground interface
-├── modules/                 # Feature modules
-│   ├── auth/               # Authentication logic
-│   ├── dashboard/          # Dashboard components
-│   ├── home/               # Landing page components
-│   ├── playground/         # Playground features
-│   └── webcontainers/      # WebContainer integration
-├── components/             # Reusable UI components
-│   └── ui/                # shadcn/ui components
-├── lib/                   # Utility functions
-│   ├── db.ts             # Prisma client
-│   ├── template.ts       # Template paths configuration
-│   └── utils.ts          # Helper functions
-├── prisma/               # Database schema
-│   └── schema.prisma
-├── public/               # Static assets
-├── editron-starters/     # Framework starter templates
-├── auth.ts              # NextAuth.js configuration
-├── middleware.ts        # Route protection middleware
-└── routes.ts           # Route definitions
+├── app/                          # Next.js App Router
+│   ├── (root)/                   # Landing page (public)
+│   ├── (auth)/                   # Login / register pages
+│   ├── api/
+│   │   ├── chat/                 # AI chat endpoint (Gemini, Groq, Mistral)
+│   │   ├── completion/           # Code completion endpoint
+│   │   ├── github/               # GitHub repo import
+│   │   ├── projects/             # CRUD for playgrounds
+│   │   ├── template/             # Template file scanning
+│   │   └── upload-zip/           # ZIP file upload
+│   ├── dashboard/                # User dashboard
+│   ├── playground/               # Code playground UI
+│   └── preview/                  # Live preview iframe
+│
+├── modules/                      # Feature modules
+│   ├── auth/                     # Auth forms, guards, providers
+│   ├── dashboard/                # Dashboard cards, stats, GitHub import dialog
+│   ├── home/                     # Landing page sections
+│   ├── playground/               # Editor, explorer, AI chat, dialogs, hooks
+│   ├── profile/                  # User profile management
+│   └── webcontainers/            # WebContainer boot, preview, terminal hooks
+│
+├── components/ui/                # shadcn/ui primitives (40+ components)
+├── lib/                          # Utilities, Prisma client, template paths
+├── prisma/schema.prisma          # MongoDB schema
+├── editron-starters/             # 40+ starter template directories
+├── auth.ts                       # NextAuth configuration
+├── middleware.ts                  # Route protection
+└── routes.ts                     # Route definitions
 ```
 
 ---
 
-## 🎯 Key Features Explained
-
-### Playground System
-
-Each playground is a fully isolated development environment:
-
-1. **Template Selection**: Choose from 6 pre-configured framework templates
-2. **File System**: Virtual file system powered by WebContainer API
-3. **Code Editor**: Monaco Editor with syntax highlighting and IntelliSense
-4. **Terminal**: Full terminal access for running commands
-5. **Live Preview**: Real-time preview of your application
-6. **Persistence**: Playgrounds are saved to MongoDB with user association
-
-### Authentication Flow
-
-1. User clicks "Sign In" and selects provider (GitHub/Google)
-2. OAuth flow redirects to provider for authorization
-3. NextAuth.js handles callback and creates/links user account
-4. User session is managed via JWT strategy
-5. Protected routes are enforced via middleware
-
-### Template Generation
-
-Templates are dynamically scanned and converted to JSON:
-
-```typescript
-// API Route: /api/template/[id]
-1. Fetch playground from database
-2. Resolve template path from template key
-3. Scan template directory structure
-4. Generate JSON representation of files
-5. Return to client for WebContainer initialization
-```
-
----
-
-## 🔧 Configuration
-
-### Tailwind CSS
-
-Tailwind v4 is configured via `@tailwindcss/postcss`. Custom theme tokens are defined in `app/globals.css`.
-
-### TypeScript
-
-TypeScript configuration is in `tsconfig.json` with strict mode enabled and path aliases:
-
-```json
-{
-  "@/*": ["./*"]
-}
-```
-
-### ESLint
-
-ESLint is configured to ignore build errors during development (see `next.config.ts`).
-
----
-
-## 📜 Available Scripts
+## Available Scripts
 
 ```bash
-# Development
-npm run dev          # Start dev server with Turbopack
-
-# Production
-npm run build        # Build for production
+npm run dev          # Start dev server (Turbopack)
+npm run build        # Production build
 npm run start        # Start production server
-
-# Database
-npx prisma generate  # Generate Prisma client
-npx prisma db push   # Push schema to database
-npx prisma studio    # Open Prisma Studio (database GUI)
-
-# Linting
 npm run lint         # Run ESLint
+
+npx prisma generate  # Regenerate Prisma client
+npx prisma db push   # Push schema changes to MongoDB
+npx prisma studio    # Open database GUI
 ```
 
 ---
 
-## 🗄️ Database Schema
-
-### Models
-
-- **User**: User accounts with role-based access
-- **Account**: OAuth provider accounts linked to users
-- **Playground**: User-created coding environments
-- **TemplateFile**: JSON storage of playground file structures
-- **StarMark**: User bookmarks for playgrounds
-
-### Enums
-
-- **UserRole**: `ADMIN`, `USER`, `PREMIUM_USER`
-- **Templates**: `REACT`, `NEXTJS`, `ANGULAR`, `VUE`, `HONO`, `EXPRESS`
-
----
-
-## 🔒 Security
-
-- **Environment Variables**: Sensitive credentials stored in `.env` (gitignored)
-- **JWT Sessions**: Secure session management with NextAuth.js
-- **CORS Headers**: Configured for WebContainer API compatibility
-- **Route Protection**: Middleware enforces authentication on protected routes
-- **OAuth 2.0**: Industry-standard authentication flow
-
----
-
-## 🚢 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 
-1. Push your code to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard
+1. Push to GitHub
+2. Import into [Vercel](https://vercel.com)
+3. Add all `.env` variables in the Vercel dashboard
 4. Deploy
 
-### Environment Variables for Production
+Make sure these environment variables are set in production:
 
-Ensure all `.env` variables are set in your deployment platform:
 - `DATABASE_URL`
 - `AUTH_SECRET`
-- `AUTH_GITHUB_ID` & `AUTH_GITHUB_SECRET`
-- `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET`
-- `NODE_ENV=production`
+- `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`
+- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
 
 ---
 
-## 🤝 Contributing
+## Known Limitations
 
-Contributions are welcome! Please follow these steps:
+- **One WebContainer per page** — the WebContainer API restricts a single instance per browser tab
+- **COEP headers** — set to `require-corp` for WebContainer compatibility, which may block some third-party resources in previews
+- **Starter templates** — the `editron-starters/` directory must be present and populated for template selection to work
+
+---
+
+## Contributing
+
+Contributions are welcome. Here's the flow:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch — `git checkout -b feature/your-idea`
+3. Commit your changes — `git commit -m "Add your idea"`
+4. Push — `git push origin feature/your-idea`
 5. Open a Pull Request
 
 ---
 
-## 📝 License
+## Acknowledgments
+
+- [Next.js](https://nextjs.org/) — React framework
+- [WebContainer API](https://webcontainers.io/) — browser-based Node.js runtime by StackBlitz
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) — VS Code's editor component
+- [Prisma](https://www.prisma.io/) — type-safe ORM
+- [shadcn/ui](https://ui.shadcn.com/) — component library
+- [Radix UI](https://www.radix-ui.com/) — accessible primitives
+
+---
+
+## License
 
 This project is private and proprietary. All rights reserved.
 
 ---
 
-## 🐛 Known Issues
-
-- **WebContainer Limitations**: Only one WebContainer instance can be booted per page
-- **COEP Headers**: Set to `require-corp` for WebContainer compatibility (may block some third-party resources)
-- **Template Path**: Ensure `editron-starters/` directory contains all framework templates
-
----
-
-## 📞 Support
-
-For issues, questions, or feature requests:
-
-- **GitHub Issues**: [Create an issue](https://github.com/piyushdotcomm/Editron/issues)
-- **Email**: Contact the maintainer
-
----
-
-## 🙏 Acknowledgments
-
-- **Next.js** - The React framework for production
-- **Vercel** - Deployment and hosting platform
-- **Prisma** - Next-generation ORM
-- **WebContainer API** - Browser-based Node.js runtime by StackBlitz
-- **shadcn/ui** - Beautifully designed components
-- **Radix UI** - Unstyled, accessible components
-
----
-
-**Built with ❤️ by [Piyush](https://github.com/piyushdotcomm)**
-
-*Last updated: February 2026*
+**Built by [Piyush](https://github.com/piyushdotcomm)**
