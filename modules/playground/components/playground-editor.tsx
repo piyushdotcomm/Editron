@@ -9,6 +9,14 @@ import {
 import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 
+// Prettier standalone browser imports
+import prettier from "prettier/standalone";
+import prettierPluginBabel from "prettier/plugins/babel";
+import prettierPluginEstree from "prettier/plugins/estree";
+import prettierPluginHtml from "prettier/plugins/html";
+import prettierPluginPostcss from "prettier/plugins/postcss";
+import prettierPluginTypeScript from "prettier/plugins/typescript";
+
 interface PlaygroundEditorProps {
   activeFile: TemplateFile | undefined;
   content: string;
@@ -16,6 +24,7 @@ interface PlaygroundEditorProps {
 }
 
 let inlineProviderDisposable: any = null;
+let formatterDisposable: any = null;
 
 const PlaygroundEditor = ({
   activeFile,
@@ -33,11 +42,82 @@ const PlaygroundEditor = ({
     editor.updateOptions({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
+      formatOnSave: true,
     });
 
     configureMonaco(monaco);
     updateEditorLanguage();
     registerInlineCompletionProvider(monaco);
+    registerPrettierFormatter(monaco);
+  };
+
+  const registerPrettierFormatter = (monaco: Monaco) => {
+    if (formatterDisposable) {
+      formatterDisposable.dispose();
+      formatterDisposable = null;
+    }
+
+    const languages = ["javascript", "typescript", "html", "css", "json"];
+
+    formatterDisposable = monaco.languages.registerDocumentFormattingEditProvider(languages, {
+      async provideDocumentFormattingEdits(model, options, token) {
+        const text = model.getValue();
+        const languageId = model.getLanguageId();
+
+        // Map monaco language ids to prettier parsers
+        let parser = "babel";
+        const plugins = [
+          prettierPluginBabel,
+          prettierPluginEstree,
+          prettierPluginHtml,
+          prettierPluginPostcss,
+          prettierPluginTypeScript
+        ];
+
+        switch (languageId) {
+          case "javascript":
+            parser = "babel";
+            break;
+          case "typescript":
+            parser = "typescript";
+            break;
+          case "html":
+            parser = "html";
+            break;
+          case "css":
+            parser = "css";
+            break;
+          case "json":
+            parser = "json";
+            // Prettier json parser is in babel/estree usually for standalone or it needs its own.
+            // Using babel as a fallback, though technically prettier exposes a separate json plugin if needed.
+            // But usually babel handles json well enough in browser standalone.
+            break;
+          default:
+            return [];
+        }
+
+        try {
+          const formatted = await prettier.format(text, {
+            parser,
+            plugins,
+            singleQuote: false,
+            tabWidth: options.tabSize || 2,
+            useTabs: options.insertSpaces === false,
+          });
+
+          return [
+            {
+              range: model.getFullModelRange(),
+              text: formatted,
+            },
+          ];
+        } catch (error) {
+          console.error("Prettier formatting error:", error);
+          return [];
+        }
+      }
+    });
   };
 
   const registerInlineCompletionProvider = (monaco: Monaco) => {
@@ -164,6 +244,10 @@ const PlaygroundEditor = ({
       if (inlineProviderDisposable) {
         inlineProviderDisposable.dispose();
         inlineProviderDisposable = null;
+      }
+      if (formatterDisposable) {
+        formatterDisposable.dispose();
+        formatterDisposable = null;
       }
     };
   }, []);
