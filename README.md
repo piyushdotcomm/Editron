@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/logo.svg" alt="Editron Logo" width="150" />
+</p>
+
 # Editron
 
 **A browser-based code editor with AI assistance, 40+ framework templates, and live preview — powered by WebContainers.**
@@ -15,6 +19,8 @@ Editron turns your browser into a full development environment. Pick a template 
 
 ### Code Playground
 - **Monaco Editor** with syntax highlighting, IntelliSense, and multi-file support
+- **Custom VS Code Themes** — choose from 50+ classic and modern themes 
+- **Format on Save** — automatic code formatting via integrated Prettier
 - **Integrated terminal** (xterm.js) with full command execution inside WebContainer
 - **Live preview** — see your app running in a side panel as you code
 - **Resizable panels** — drag to resize editor, terminal, and preview panes
@@ -240,3 +246,5 @@ This project is private and proprietary. All rights reserved.
 ---
 
 **Built by [Piyush](https://github.com/piyushdotcomm)**
+
+*Last reviewed: March 2026*
