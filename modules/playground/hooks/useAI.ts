@@ -17,6 +17,7 @@ interface AIState {
     chatMessages: ChatMessage[];
     isGenerating: boolean;
     inlineSuggestionsEnabled: boolean;
+    editorTheme: string;
 
     // User API keys (persisted to localStorage)
     userGeminiKey: string;
@@ -34,6 +35,7 @@ interface AIState {
     setUserApiKey: (provider: AIProvider, key: string) => void;
     getUserApiKey: (provider?: AIProvider) => string;
     toggleInlineSuggestions: () => void;
+    setEditorTheme: (theme: string) => void;
 }
 
 function loadUserKeys() {
@@ -61,6 +63,7 @@ export const useAI = create<AIState>((set, get) => {
         chatMessages: [],
         isGenerating: false,
         inlineSuggestionsEnabled: inlineEnabled,
+        editorTheme: typeof window !== "undefined" ? localStorage.getItem("editron_editor_theme") || "vs-dark" : "vs-dark",
         userGeminiKey: keys.gemini,
         userGroqKey: keys.groq,
         userMistralKey: keys.mistral,
@@ -89,6 +92,11 @@ export const useAI = create<AIState>((set, get) => {
             const next = !get().inlineSuggestionsEnabled;
             try { localStorage.setItem("editron_inline_suggestions", String(next)); } catch { }
             set({ inlineSuggestionsEnabled: next });
+        },
+
+        setEditorTheme: (theme: string) => {
+            try { localStorage.setItem("editron_editor_theme", theme); } catch { }
+            set({ editorTheme: theme });
         },
 
         setUserApiKey: (provider, key) => {

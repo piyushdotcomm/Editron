@@ -37,6 +37,7 @@ import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
+import { ThemeSelector } from "@/modules/playground/components/theme-selector";
 import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
@@ -481,7 +482,8 @@ const MainPlaygroundPage = () => {
                   <TooltipContent>Download Project</TooltipContent>
                 </Tooltip>
 
-
+                <div className="mx-2 h-4 w-px bg-border" />
+                <ThemeSelector />
 
                 <Button variant={"default"} size={"icon"} onClick={() => useAI.getState().toggleChat()}>
                   <Bot className="size-4" />

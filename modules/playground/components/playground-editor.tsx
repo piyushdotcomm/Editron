@@ -252,6 +252,36 @@ const PlaygroundEditor = ({
     };
   }, []);
 
+  const { editorTheme } = useAI();
+
+  useEffect(() => {
+    async function loadTheme() {
+      if (!monacoRef.current) return;
+
+      const sanitizeThemeId = (name: string) => name.replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
+      const safeThemeId = sanitizeThemeId(editorTheme);
+
+      if (editorTheme === "vs-dark" || editorTheme === "vs" || editorTheme === "hc-black") {
+        monacoRef.current.editor.setTheme(editorTheme);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/themes/${editorTheme}.json`);
+        if (!res.ok) throw new Error("Network response was not ok");
+        const themeData = await res.json();
+
+        monacoRef.current.editor.defineTheme(safeThemeId, themeData);
+        monacoRef.current.editor.setTheme(safeThemeId);
+      } catch (error) {
+        console.error("Failed to load Monaco theme", error);
+        monacoRef.current.editor.setTheme("vs-dark"); // fallback
+      }
+    }
+
+    loadTheme();
+  }, [editorTheme]);
+
   return (
     <div className="h-full relative">
       <Editor
