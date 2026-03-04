@@ -3,14 +3,14 @@
 import {
     Lock,
     Palette,
-    SunMoon,
     LayoutTemplate,
     FolderTree,
     Code2,
     BrainCircuit,
     Server,
     Terminal,
-    MessageSquareText
+    Users,
+    Command
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
@@ -24,63 +24,63 @@ interface Feature {
 
 const features: Feature[] = [
     {
-        title: "OAuth Login",
-        description: "Google & GitHub login support with NextAuth for secure authentication.",
-        icon: Lock,
+        title: "Real-Time Collaboration",
+        description: "Live cursors and instant keystroke syncing via Yjs and WebSockets.",
+        icon: Users,
         area: "md:[grid-area:1/1/2/7] xl:[grid-area:1/1/2/5]"
     },
     {
-        title: "Modern UI",
-        description: "Built with TailwindCSS & ShadCN UI for a clean, accessible interface.",
-        icon: Palette,
+        title: "Vercel AI SDK",
+        description: "Smart code completions and agentic file editing powered by leading AI models.",
+        icon: BrainCircuit,
         area: "md:[grid-area:1/7/2/13] xl:[grid-area:1/5/2/9]"
     },
     {
-        title: "Dark/Light Mode",
-        description: "Seamlessly toggle between themes to reduce eye strain.",
-        icon: SunMoon,
+        title: "Cloud Environments",
+        description: "Run Node.js, React, and full-stack apps instantly in the browser via WebContainers.",
+        icon: Server,
         area: "md:[grid-area:2/1/3/7] xl:[grid-area:1/9/2/13]"
     },
     {
-        title: "Project Templates",
-        description: "Start quickly with React, Next.js, Express, Hono, Vue, or Angular.",
-        icon: LayoutTemplate,
+        title: "Monaco Editor",
+        description: "VS Code capabilities, syntax highlighting, and Prettier formatting built-in.",
+        icon: Code2,
         area: "md:[grid-area:2/7/3/13] xl:[grid-area:2/1/3/5]"
     },
     {
-        title: "File Explorer",
-        description: "Create, rename, delete, and manage files/folders effortlessly.",
-        icon: FolderTree,
+        title: "Command Palette",
+        description: "Lightning-fast Cmd+K navigation and shortcuts across the entire application.",
+        icon: Command,
         area: "md:[grid-area:3/1/4/7] xl:[grid-area:2/5/3/9]"
     },
     {
-        title: "Monaco Editor",
-        description: "Syntax highlighting, formatting, keybindings, and AI autocomplete.",
-        icon: Code2,
+        title: "Project Templates",
+        description: "Start instantly with Next.js, React, Vue, Express, Angular, and 40+ frameworks.",
+        icon: LayoutTemplate,
         area: "md:[grid-area:3/7/4/13] xl:[grid-area:2/9/3/13]"
     },
     {
-        title: "AI Suggestions",
-        description: "Local models via Ollama provide smart code completion.",
-        icon: BrainCircuit,
+        title: "OAuth Security",
+        description: "Robust Git integration and secure authentication backed by NextAuth.",
+        icon: Lock,
         area: "md:[grid-area:4/1/5/7] xl:[grid-area:3/1/4/5]"
     },
     {
-        title: "WebContainers",
-        description: "Run frontend/backend apps instantly in your browser.",
-        icon: Server,
+        title: "Interactive Terminal",
+        description: "Fully featured command-line interface powered by xterm.js.",
+        icon: Terminal,
         area: "md:[grid-area:4/7/5/13] xl:[grid-area:3/5/4/9]"
     },
     {
-        title: "Terminal",
-        description: "Fully interactive embedded terminal powered by xterm.js.",
-        icon: Terminal,
+        title: "Virtual File System",
+        description: "Advanced explorer to seamlessly create, rename, and manage project structures.",
+        icon: FolderTree,
         area: "md:[grid-area:5/1/6/7] xl:[grid-area:3/9/4/13]"
     },
     {
-        title: "AI Chat Assistant",
-        description: "Get help, refactors, or explanations by chatting with AI.",
-        icon: MessageSquareText,
+        title: "Premium Design",
+        description: "Crafted with shadcn/ui, dynamic theming, and immersive 3D interface animations.",
+        icon: Palette,
         area: "md:[grid-area:5/7/6/13] xl:[grid-area:4/1/5/13]"
     },
 ];
