@@ -18,8 +18,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Editron",
-  description: "A powerful cloud-based code editor for seamless development.",
+  title: "Editron | AI-Powered Cloud Code Editor",
+  description: "A fast, browser-based development environment with WebContainers, 40+ starter templates, live previews, and integrated AI assistance (Gemini, Groq, Mistral). Stop installing, start coding.",
+  keywords: ["cloud editor", "webcontainers", "browser ide", "ai code assistant", "nextjs templates", "react playground", "online code editor"],
+  openGraph: {
+    title: "Editron | AI-Powered Cloud Code Editor",
+    description: "Code directly in your browser with WebContainers, 40+ templates, and an AI assistant. No local setup required.",
+    url: "https://editron.vercel.app", // Replace with your actual domain later
+    siteName: "Editron",
+    images: [
+      {
+        url: "/og-image.jpg", // Create this eventually
+        width: 1200,
+        height: 630,
+        alt: "Editron Interface Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Editron | AI-Powered Cloud Code Editor",
+    description: "Code directly in your browser with WebContainers, 40+ templates, and an AI assistant.",
+    images: ["/og-image.jpg"], // Create this eventually
+  },
 };
 
 export default async function RootLayout({

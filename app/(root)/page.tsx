@@ -16,6 +16,31 @@ import { TemplateCard } from "@/components/marketing/template-card";
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
+  // Schema Markup for AI SEO (Organization & SoftwareApplication)
+  const schemaMarkup = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Editron",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Browser",
+        "description": "A browser-based code editor with AI assistance, WebContainers, and 40+ framework templates.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      },
+      {
+        "@type": "Organization",
+        "name": "Editron",
+        "url": "https://editron.vercel.app", // Replace with your domain once active
+        "logo": "https://editron.vercel.app/logo.svg"
+      }
+    ]
+  };
+
   useEffect(() => {
     // Show loading screen for 2.2 seconds
     const timer = setTimeout(() => {
@@ -26,7 +51,10 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/20 overflow-hidden font-sans">
-
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }}
+      />
       {/* Loading Screen Overlay */}
       <div
         className={cn(
@@ -57,7 +85,7 @@ export default function Home() {
 
             <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-500 backdrop-blur-md hover:bg-red-500/20 transition-colors cursor-default">
               <span className="flex h-2 w-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
-              <span className="font-medium">Experience Intelligent Coding</span>
+              <span className="font-medium">The Intelligent Cloud IDE for Modern Web Dev</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
@@ -73,7 +101,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full sm:w-auto">
               <Link href="/dashboard" className="w-full sm:w-auto">
                 <Button size="lg" className="rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-red-500/20 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white border-0 w-full sm:w-auto transition-transform hover:scale-105">
-                  Start Coding
+                  Start Coding for Free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
