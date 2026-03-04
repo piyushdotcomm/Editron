@@ -21,6 +21,21 @@
       "sourceType": "github",
       "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
     },
+    "frontend-performance": {
+      "source": "b-open-io/prompts",
+      "sourceType": "github",
+      "computedHash": "778824b89e5e4d37a429d35772bac242c0810e9d15c94ec74fbec5bb69135126"
+    },
+    "next-cache-components": {
+      "source": "vercel-labs/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "844401be868754beba2e7dc2c66abbe08b740eeefdec69c630ff6cbd81cc4c62"
+    },
+    "optimize": {
+      "source": "open-horizon-labs/impeccable",
+      "sourceType": "github",
+      "computedHash": "3856db90b8c18d129e1ae878535c1e080fc58a1e2a43e38ccf45cd6688464d45"
+    },
     "playwright-testing": {
       "source": "chongdashu/phaserjs-oakwoods",
       "sourceType": "github",

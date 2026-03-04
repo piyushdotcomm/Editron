@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Performance: tree-shake icon/utility libraries (only bundle used exports)
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@radix-ui/react-icons",
+      "date-fns",
+    ],
+  },
+
+  // Keep server-only packages out of client bundles
+  serverExternalPackages: ["@prisma/client", "prisma"],
+
   async headers() {
     return [
       {
@@ -22,7 +34,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "credentialless", // Changed from require-corp to allow external images
+            value: "credentialless",
           },
         ],
       },
@@ -31,7 +43,6 @@ const nextConfig: NextConfig = {
 
   reactStrictMode: false,
 
-  // 🔴 THIS IS THE IMPORTANT PART
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -44,3 +55,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
