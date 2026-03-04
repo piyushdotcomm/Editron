@@ -3,7 +3,8 @@ import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
 
 const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
 
@@ -21,54 +22,73 @@ WORKFLOW for every request that involves code:
 
 If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
 
+const MAX_FILE_CONTENT_LENGTH = 500_000; // 500KB max per file content
+
 const tools = {
     read_file: createTool({
         description: "Read the contents of a file in the project. Use this to understand existing code before making changes.",
         parameters: z.object({
-            path: z.string().describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
+            path: z.string().max(500).describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
         }),
     }),
     edit_file: createTool({
         description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
         parameters: z.object({
-            path: z.string().describe("The file path relative to the project root"),
-            content: z.string().describe("The complete new file content"),
+            path: z.string().max(500).describe("The file path relative to the project root"),
+            content: z.string().max(MAX_FILE_CONTENT_LENGTH).describe("The complete new file content"),
         }),
     }),
     edit_multiple_files: createTool({
         description: "Create or replace the content of MULTIPLE files at once. Use this for refactoring or scaffolding complete features. Provide COMPLETE file contents for EVERY file.",
         parameters: z.object({
             changes: z.array(z.object({
-                path: z.string().describe("The file path relative to the project root, e.g. components/Header.tsx"),
-                content: z.string().describe("The complete new file content"),
-            })).describe("An array of file modifications to execute as a batch transaction"),
+                path: z.string().max(500).describe("The file path relative to the project root, e.g. components/Header.tsx"),
+                content: z.string().max(MAX_FILE_CONTENT_LENGTH).describe("The complete new file content"),
+            })).max(20).describe("An array of file modifications to execute as a batch transaction (max 20 files)"),
         }),
     }),
     delete_file: createTool({
         description: "Delete a file from the project.",
         parameters: z.object({
-            path: z.string().describe("The file path relative to the project root"),
+            path: z.string().max(500).describe("The file path relative to the project root"),
         }),
     }),
 };
 
 const RequestBodySchema = z.object({
-    messages: z.array(z.any()),
+    messages: z.array(z.any()).max(100),
     provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
-    fileTree: z.string().optional(),
-    userApiKey: z.string().optional(),
+    fileTree: z.string().max(50_000).optional(),
+    userApiKey: z.string().max(256).optional(),
 });
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limiting: 20 requests per minute per IP
+        const ip = getClientIp(request);
+        const { allowed, remaining } = rateLimit(ip, 20, 60_000);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, error: "Rate limit exceeded. Please wait before sending more messages." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
+            );
+        }
+
         const body = await request.json();
         const result = RequestBodySchema.safeParse(body);
 
         if (!result.success) {
-            return new Response(JSON.stringify({ error: result.error.issues }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
+            return NextResponse.json(
+                { success: false, error: "Invalid request", details: result.error.issues },
+                { status: 400 }
+            );
         }
 
         const { messages, provider, fileTree, userApiKey } = result.data;
@@ -82,9 +102,9 @@ export async function POST(request: NextRequest) {
         if (provider === "gemini") {
             const apiKey = userApiKey || process.env.GEMINI_API_KEY;
             if (!apiKey) {
-                return new Response(
-                    JSON.stringify({ error: "Gemini API key not configured. Add your key in AI settings." }),
-                    { status: 400, headers: { "Content-Type": "application/json" } }
+                return NextResponse.json(
+                    { success: false, error: "Gemini API key not configured. Add your key in AI settings." },
+                    { status: 400 }
                 );
             }
             const google = createGoogleGenerativeAI({ apiKey });
@@ -92,9 +112,9 @@ export async function POST(request: NextRequest) {
         } else if (provider === "groq") {
             const apiKey = userApiKey || process.env.GROQ_API_KEY;
             if (!apiKey) {
-                return new Response(
-                    JSON.stringify({ error: "Groq API key not configured. Add your key in AI settings." }),
-                    { status: 400, headers: { "Content-Type": "application/json" } }
+                return NextResponse.json(
+                    { success: false, error: "Groq API key not configured. Add your key in AI settings." },
+                    { status: 400 }
                 );
             }
             const groq = createGroq({ apiKey });
@@ -102,15 +122,18 @@ export async function POST(request: NextRequest) {
         } else if (provider === "mistral") {
             const apiKey = userApiKey || process.env.MISTRAL_API_KEY;
             if (!apiKey) {
-                return new Response(
-                    JSON.stringify({ error: "Mistral API key not configured. Add your key in AI settings." }),
-                    { status: 400, headers: { "Content-Type": "application/json" } }
+                return NextResponse.json(
+                    { success: false, error: "Mistral API key not configured. Add your key in AI settings." },
+                    { status: 400 }
                 );
             }
             const mistral = createMistral({ apiKey });
             model = mistral("mistral-small-latest");
         } else {
-            return new Response(JSON.stringify({ error: "Invalid provider" }), { status: 400 });
+            return NextResponse.json(
+                { success: false, error: "Invalid provider" },
+                { status: 400 }
+            );
         }
 
         const resultStream = streamText({
@@ -122,11 +145,7 @@ export async function POST(request: NextRequest) {
         });
 
         return resultStream.toDataStreamResponse();
-    } catch (error: any) {
-        console.error("Chat API error:", error);
-        return new Response(
-            JSON.stringify({ error: error.message || "Internal server error" }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
-        );
+    } catch (error: unknown) {
+        return handleApiError(error, "POST /api/chat");
     }
 }

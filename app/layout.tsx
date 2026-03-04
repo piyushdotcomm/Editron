@@ -68,11 +68,18 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              {/* Skip to content link for keyboard accessibility */}
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:text-sm focus:font-medium"
+              >
+                Skip to main content
+              </a>
               <div className="flex flex-col min-h-screen">
                 <Toaster />
-                <div className="flex-1">
+                <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
                   {children}
-                </div>
+                </main>
               </div>
 
               <CommandPalette />

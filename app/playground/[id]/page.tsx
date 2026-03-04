@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { ErrorBoundary } from "@/components/error-boundary";
 import JSZip from "jszip";
 // dropdown removed — actions are direct buttons now
 import {
@@ -605,13 +606,15 @@ const MainPlaygroundPage = () => {
                     className="h-full"
                   >
                     <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
-                      <PlaygroundEditor
-                        activeFile={activeFile}
-                        content={activeFile?.content || ""}
-                        onContentChange={(value) =>
-                          activeFileId && updateFileContent(activeFileId, value)
-                        }
-                      />
+                      <ErrorBoundary name="MonacoEditor">
+                        <PlaygroundEditor
+                          activeFile={activeFile}
+                          content={activeFile?.content || ""}
+                          onContentChange={(value) =>
+                            activeFileId && updateFileContent(activeFileId, value)
+                          }
+                        />
+                      </ErrorBoundary>
                     </ResizablePanel>
                     {isPreviewVisible && (
                       <>

@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "accessibility": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "computedHash": "3f390c14d09ca45da332b6c421b3195d12da099ec24ee549f80e666ec48dc89b"
+    },
+    "code-review-and-quality": {
+      "source": "addyosmani/agent-skills",
+      "sourceType": "github",
+      "computedHash": "3ba983d384b21f9957d93752f20aff40707650cbeebd7db1f926eca8def28850"
+    },
     "design-md": {
       "source": "google-labs-code/stitch-skills",
       "sourceType": "github",
@@ -10,6 +20,21 @@
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
+    },
+    "playwright-testing": {
+      "source": "chongdashu/phaserjs-oakwoods",
+      "sourceType": "github",
+      "computedHash": "f8e923143bf08567557d58542cc3ebd6d02a6a6da98fee226b35c3bda78e6a69"
+    },
+    "react-best-practices": {
+      "source": "onekeyhq/app-monorepo",
+      "sourceType": "github",
+      "computedHash": "3c619705eb63ccf6f1b796189d1477628cc5174b288b887f9f61e921051409bf"
+    },
+    "typescript-react-reviewer": {
+      "source": "dotneet/claude-code-marketplace",
+      "sourceType": "github",
+      "computedHash": "21fa76f3823df89fbd4e299d03772aaaa5c1d67c586a8b9b51d1888431acd84a"
     }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Sheet,
     SheetContent,
@@ -64,6 +64,12 @@ export default function AIChatPanel({
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const pickerRef = useRef<HTMLDivElement>(null);
 
+    // Memoize the file tree string to avoid re-computing on every render
+    const fileTree = useMemo(
+        () => templateData ? collectFilePaths(templateData.items).join("\n") : "",
+        [templateData]
+    );
+
     const {
         messages,
         input,
@@ -76,7 +82,7 @@ export default function AIChatPanel({
         api: "/api/chat",
         body: {
             provider,
-            fileTree: templateData ? collectFilePaths(templateData.items).join("\n") : "",
+            fileTree,
             userApiKey: getUserApiKey(provider) || undefined,
         },
         onError: (err: Error) => {

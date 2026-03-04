@@ -169,17 +169,27 @@
     @apply font-heading;
   }
 
-  /* Hide scrollbars but keep functionality */
-  * {
+  /* Hide scrollbars on decorative/editor containers only — NOT globally */
+  .hide-scrollbar {
     scrollbar-width: none;
-    /* Firefox */
     -ms-overflow-style: none;
-    /* IE and Edge */
   }
 
-  *::-webkit-scrollbar {
+  .hide-scrollbar::-webkit-scrollbar {
     display: none;
-    /* Chrome, Safari, Opera */
+  }
+}
+
+/* Respect user's reduced motion preference (WCAG 2.3) */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -189,6 +199,7 @@
   margin-top: -2px;
   margin-bottom: -2px;
 }
+
 .yRemoteSelectionHead {
   position: absolute;
   border-left: 2px solid orange;
@@ -197,6 +208,7 @@
   height: 100%;
   box-sizing: border-box;
 }
+
 .yRemoteSelectionHead::after {
   position: absolute;
   content: " ";
@@ -205,6 +217,7 @@
   left: -5px;
   top: -4px;
 }
+
 .yRemoteSelectionHead-name {
   position: absolute;
   top: -16px;
@@ -221,6 +234,7 @@
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
+
 .yRemoteSelectionHead:hover .yRemoteSelectionHead-name {
   opacity: 1;
 }
