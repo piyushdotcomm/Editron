@@ -6,7 +6,13 @@ import { ArrowRight, Terminal } from "lucide-react";
 import Link from "next/link";
 import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";
-import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
+import dynamic from "next/dynamic";
+
+// Lazy-load Three.js shader — keeps 338KB out of the critical rendering path
+const AnimatedShaderBackground = dynamic(
+  () => import("@/components/ui/animated-shader-background"),
+  { ssr: false }
+);
 import { CommitsGrid } from "@/components/ui/commits-grid";
 import { cn } from "@/lib/utils";
 import { templates } from "@/lib/constants/templates";

@@ -38,5 +38,14 @@ export default auth((req) => {
   return null;
 });
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    /*
+     * Match all paths except:
+     * - Static files (.svg, .ico, .png, .jpg, etc.)
+     * - _next internals
+     * - /icon (Next.js generated favicon)
+     * - /favicon.ico
+     */
+    "/((?!_next|icon|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
+  ],
 };
