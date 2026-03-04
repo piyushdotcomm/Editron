@@ -17,7 +17,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import LoadingStep from "@/modules/playground/components/loader";
-import PlaygroundEditor from "@/modules/playground/components/playground-editor";
+import dynamic from "next/dynamic";
+
+const PlaygroundEditor = dynamic(
+  () => import("@/modules/playground/components/playground-editor"),
+  { ssr: false }
+);
+
 import {
   AlertCircle,
   ArrowLeft,
@@ -31,7 +37,9 @@ import {
   Settings,
   X,
   XCircle,
+  Users,
 } from "lucide-react";
+import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
@@ -480,6 +488,27 @@ const MainPlaygroundPage = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Download Project</TooltipContent>
+                </Tooltip>
+
+                <div className="mx-2 h-4 w-px bg-border" />
+
+                <CollaborationAvatars playgroundId={id as string} />
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const url = `${window.location.origin}/playground/${id}?collab=true`;
+                        navigator.clipboard.writeText(url);
+                        toast.success("Collaboration link copied to clipboard!");
+                      }}
+                    >
+                      <Users className="h-4 w-4 mr-2" /> Share
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Invite collaborators</TooltipContent>
                 </Tooltip>
 
                 <div className="mx-2 h-4 w-px bg-border" />

@@ -24,13 +24,15 @@ import {
 import {
     useAI,
     type AIProvider,
-    runAgenticChat,
     addOrUpdateFile,
     deleteFileByPath,
+    findFileByPath,
+    collectFilePaths
 } from "@/modules/playground/hooks/useAI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
+import { useChat } from "@ai-sdk/react";
 
 interface AIChatPanelProps {
     templateData: TemplateFolder | null;
@@ -52,25 +54,40 @@ export default function AIChatPanel({
         closeChat,
         provider,
         setProvider,
-        chatMessages,
-        addMessage,
-        clearChat,
-        isGenerating,
-        setIsGenerating,
         getUserApiKey,
     } = useAI();
 
     const { openFiles, setOpenFiles, setTemplateData } = useFileExplorer();
-
-    const [input, setInput] = useState("");
     const [showProviderPicker, setShowProviderPicker] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const pickerRef = useRef<HTMLDivElement>(null);
 
+    const {
+        messages,
+        input,
+        handleInputChange,
+        handleSubmit,
+        isLoading,
+        setMessages,
+        addToolResult,
+    } = useChat({
+        api: "/api/chat",
+        body: {
+            provider,
+            fileTree: templateData ? collectFilePaths(templateData.items).join("\n") : "",
+            userApiKey: getUserApiKey(provider) || undefined,
+        },
+        onError: (err: Error) => {
+            console.error("AI Chat Error:", err);
+            toast.error(err.message || "An error occurred");
+        }
+    } as any) as any;
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [chatMessages]);
+    }, [messages]);
 
     useEffect(() => {
         if (isChatOpen) setTimeout(() => inputRef.current?.focus(), 300);
@@ -87,83 +104,89 @@ export default function AIChatPanel({
         return () => document.removeEventListener("mousedown", handleClick);
     }, [showProviderPicker]);
 
-    const handleSend = useCallback(async () => {
-        const trimmed = input.trim();
-        if (!trimmed || isGenerating) return;
+    // Handle incoming client-side tool calls
+    useEffect(() => {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage?.role !== "assistant" || !(lastMessage as any).toolInvocations) return;
 
-        setInput("");
-        addMessage({ role: "user", content: trimmed });
-        setIsGenerating(true);
+        for (const toolInvocation of (lastMessage as any).toolInvocations) {
+            if (toolInvocation.state === "call") {
+                const { toolName, args, toolCallId } = toolInvocation;
 
-        try {
-            const userApiKey = getUserApiKey();
-            await runAgenticChat(
-                trimmed,
-                templateData,
-                provider,
-                userApiKey,
-                (text) => addMessage({ role: "assistant", content: text }),
-                (activity) => addMessage({ role: "tool_activity", content: activity }),
-                (path, content) => {
-                    if (!templateData) return;
-                    const updatedItems = addOrUpdateFile(templateData.items, path, content);
-                    const updatedTemplate = { ...templateData, items: updatedItems };
-                    setTemplateData(updatedTemplate);
+                let result: any = null;
 
-                    const updatedOpenFiles = openFiles.map((f) => {
-                        const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                        const fullName = `${f.filename}${ext}`;
-                        if (path.endsWith(fullName)) {
-                            return { ...f, content, hasUnsavedChanges: true };
-                        }
-                        return f;
-                    });
-                    setOpenFiles(updatedOpenFiles);
-                    saveTemplateData(updatedTemplate).catch(console.error);
-                    toast.success(`AI updated ${path}`);
-                },
-                (path) => {
-                    if (!templateData) return;
-                    const updatedItems = deleteFileByPath(templateData.items, path);
-                    const updatedTemplate = { ...templateData, items: updatedItems };
-                    setTemplateData(updatedTemplate);
+                try {
+                    if (toolName === "read_file") {
+                        const { path } = args as { path: string };
+                        const file = findFileByPath(templateData?.items || [], path);
+                        result = file ? file.content : `Error: File "${path}" not found`;
+                    } else if (toolName === "edit_file") {
+                        const { path, content } = args as { path: string; content: string };
+                        if (!templateData) throw new Error("Template data not loaded");
 
-                    // Close the file if it was open
-                    const updatedOpenFiles = openFiles.filter((f) => {
-                        const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                        const fullName = `${f.filename}${ext}`;
-                        return !path.endsWith(fullName);
-                    });
-                    setOpenFiles(updatedOpenFiles);
-                    saveTemplateData(updatedTemplate).catch(console.error);
-                    toast.success(`AI deleted ${path}`);
-                },
-                chatMessages
-                    .filter((m) => m.role === "user" || m.role === "assistant")
-                    .map((m) => ({ role: m.role, content: m.content }))
-            );
-        } catch (error: any) {
-            console.error("AI chat error:", error);
-            addMessage({ role: "assistant", content: `❌ Error: ${error.message}` });
-            toast.error(error.message || "AI request failed");
-        } finally {
-            setIsGenerating(false);
+                        const updatedItems = addOrUpdateFile(templateData.items, path, content);
+                        const updatedTemplate = { ...templateData, items: updatedItems };
+                        setTemplateData(updatedTemplate);
+
+                        const updatedOpenFiles = openFiles.map((f) => {
+                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                            const fullName = `${f.filename}${ext}`;
+                            if (path.endsWith(fullName)) {
+                                return { ...f, content, hasUnsavedChanges: true };
+                            }
+                            return f;
+                        });
+
+                        setOpenFiles(updatedOpenFiles);
+                        saveTemplateData(updatedTemplate).catch(console.error);
+                        toast.success(`AI updated ${path}`);
+                        result = `Successfully updated ${path}`;
+                    } else if (toolName === "delete_file") {
+                        const { path } = args as { path: string };
+                        if (!templateData) throw new Error("Template data not loaded");
+
+                        const updatedItems = deleteFileByPath(templateData.items, path);
+                        const updatedTemplate = { ...templateData, items: updatedItems };
+                        setTemplateData(updatedTemplate);
+
+                        const updatedOpenFiles = openFiles.filter((f) => {
+                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                            const fullName = `${f.filename}${ext}`;
+                            return !path.endsWith(fullName);
+                        });
+
+                        setOpenFiles(updatedOpenFiles);
+                        saveTemplateData(updatedTemplate).catch(console.error);
+                        toast.success(`AI deleted ${path}`);
+                        result = `Successfully deleted ${path}`;
+                    } else {
+                        result = `Error: Unknown tool ${toolName}`;
+                    }
+                } catch (err: any) {
+                    result = `Error: ${err.message}`;
+                }
+
+                // Append the result back to the chat stream
+                addToolResult({ toolCallId, result: result as any });
+            }
         }
-    }, [input, isGenerating, provider, templateData, chatMessages, openFiles, addMessage, setIsGenerating, getUserApiKey, setTemplateData, setOpenFiles, saveTemplateData]);
+    }, [messages, templateData, openFiles, setTemplateData, setOpenFiles, saveTemplateData, addToolResult]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            handleSend();
+            if (input.trim() && !isLoading) {
+                handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+            }
         }
     };
 
+    const clearChat = () => setMessages([]);
     const currentProvider = PROVIDERS.find((p) => p.id === provider) || PROVIDERS[0];
 
     return (
         <Sheet open={isChatOpen} onOpenChange={(open) => !open && closeChat()}>
             <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
-                {/* Header — minimal */}
                 <SheetHeader className="p-4 pb-3 border-b">
                     <div className="flex items-center justify-between pr-6">
                         <div className="flex items-center gap-2">
@@ -183,9 +206,8 @@ export default function AIChatPanel({
                     </div>
                 </SheetHeader>
 
-                {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-                    {chatMessages.length === 0 && (
+                    {messages.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-3">
                             <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-blue-600/20 flex items-center justify-center">
                                 <Bot className="h-6 w-6 text-violet-500" />
@@ -201,12 +223,12 @@ export default function AIChatPanel({
                         </div>
                     )}
 
-                    {chatMessages.map((msg) => (
+                    {messages.map((msg: any) => (
                         <div key={msg.id}>
                             {msg.role === "user" && (
                                 <div className="flex gap-2 justify-end">
-                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-3 py-2 max-w-[85%] text-sm">
-                                        {msg.content}
+                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap">
+                                        {(msg as any).content}
                                     </div>
                                     <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center shrink-0 mt-1">
                                         <User className="h-3 w-3" />
@@ -218,21 +240,28 @@ export default function AIChatPanel({
                                     <div className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center shrink-0 mt-1">
                                         <Bot className="h-3 w-3 text-white" />
                                     </div>
-                                    <div className="bg-muted rounded-2xl rounded-tl-sm px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap break-words">
-                                        {msg.content}
+                                    <div className="flex-1 space-y-2">
+                                        {(msg as any).content && (
+                                            <div className="bg-muted rounded-2xl rounded-tl-sm px-3 py-2 max-w-[100%] text-sm whitespace-pre-wrap break-words">
+                                                {(msg as any).content}
+                                            </div>
+                                        )}
+                                        {/* @ts-ignore - Vercel AI SDK types sometimes conflict on toolInvocations */}
+                                        {(msg as any).toolInvocations?.map((ti: any) => (
+                                            <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground border rounded-lg bg-muted/30">
+                                                <Wrench className="h-3 w-3 shrink-0" />
+                                                <span className="font-mono truncate">
+                                                    {ti.toolName}({ti.args && (ti.args as any).path ? (ti.args as any).path : ''}) {ti.state === 'result' ? '✓' : '...'}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
-                                </div>
-                            )}
-                            {msg.role === "tool_activity" && (
-                                <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
-                                    <Wrench className="h-3 w-3 shrink-0" />
-                                    <span className="font-mono">{msg.content}</span>
                                 </div>
                             )}
                         </div>
                     ))}
 
-                    {isGenerating && (
+                    {isLoading && messages.length > 0 && messages[messages.length - 1].role !== "assistant" && (
                         <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span>Thinking...</span>
@@ -241,20 +270,18 @@ export default function AIChatPanel({
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Bottom: provider selector + input */}
                 <div className="border-t bg-background">
-                    {/* Input area */}
-                    <div className="p-3 pb-2">
+                    <form className="p-3 pb-2" onSubmit={(e) => { e.preventDefault(); if (input.trim() && !isLoading) handleSubmit(e); }}>
                         <div className="flex gap-2 items-end">
                             <textarea
                                 ref={inputRef}
                                 className="flex-1 text-sm bg-muted rounded-xl px-3 py-2.5 resize-none outline-none min-h-[40px] max-h-[120px] placeholder:text-muted-foreground"
                                 placeholder="Ask AI to edit your code..."
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
+                                onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                                 rows={1}
-                                disabled={isGenerating}
+                                disabled={isLoading}
                                 onInput={(e) => {
                                     const t = e.target as HTMLTextAreaElement;
                                     t.style.height = "auto";
@@ -262,19 +289,19 @@ export default function AIChatPanel({
                                 }}
                             />
                             <Button
+                                type="submit"
                                 size="icon"
                                 className="h-10 w-10 rounded-xl shrink-0"
-                                onClick={handleSend}
-                                disabled={!input.trim() || isGenerating}
+                                disabled={!(input ?? "").trim() || isLoading}
                             >
-                                {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             </Button>
                         </div>
-                    </div>
+                    </form>
 
-                    {/* Provider selector row — at the very bottom */}
                     <div className="px-3 pb-3 relative" ref={pickerRef}>
                         <button
+                            type="button"
                             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded-md hover:bg-muted"
                             onClick={() => setShowProviderPicker(!showProviderPicker)}
                         >
@@ -283,12 +310,12 @@ export default function AIChatPanel({
                             <ChevronDown className="h-3 w-3" />
                         </button>
 
-                        {/* Provider picker popover */}
                         {showProviderPicker && (
                             <div className="absolute bottom-full left-3 mb-1 bg-popover border rounded-lg shadow-lg p-1 min-w-[140px] z-50">
                                 {PROVIDERS.map((p) => (
                                     <button
                                         key={p.id}
+                                        type="button"
                                         className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-colors ${provider === p.id
                                             ? "bg-accent text-accent-foreground font-medium"
                                             : "text-muted-foreground hover:bg-muted hover:text-foreground"

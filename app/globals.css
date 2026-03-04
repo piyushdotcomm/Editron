@@ -182,3 +182,45 @@
     /* Chrome, Safari, Opera */
   }
 }
+
+/* Yjs Monaco Remote Cursor Awareness Styles */
+.yRemoteSelection {
+  background-color: rgb(250, 129, 0, 0.5);
+  margin-top: -2px;
+  margin-bottom: -2px;
+}
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid orange;
+  border-top: 2px solid orange;
+  border-bottom: 2px solid orange;
+  height: 100%;
+  box-sizing: border-box;
+}
+.yRemoteSelectionHead::after {
+  position: absolute;
+  content: " ";
+  border: 4px solid orange;
+  border-radius: 4px;
+  left: -5px;
+  top: -4px;
+}
+.yRemoteSelectionHead-name {
+  position: absolute;
+  top: -16px;
+  left: -2px;
+  font-size: 10px;
+  background-color: orange;
+  color: white;
+  padding: 0 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  font-family: var(--font-inter), sans-serif;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.yRemoteSelectionHead:hover .yRemoteSelectionHead-name {
+  opacity: 1;
+}

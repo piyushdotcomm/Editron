@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import {
   configureMonaco,
@@ -9,7 +9,6 @@ import {
 import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 
-// Prettier standalone browser imports
 import prettier from "prettier/standalone";
 import prettierPluginBabel from "prettier/plugins/babel";
 import prettierPluginEstree from "prettier/plugins/estree";
@@ -17,7 +16,12 @@ import prettierPluginHtml from "prettier/plugins/html";
 import prettierPluginPostcss from "prettier/plugins/postcss";
 import prettierPluginTypeScript from "prettier/plugins/typescript";
 
-interface PlaygroundEditorProps {
+import { MonacoBinding } from "y-monaco";
+import { getOrCreateYDoc, destroyYDoc } from "@/lib/yjs";
+import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+
+export interface PlaygroundEditorProps {
   activeFile: TemplateFile | undefined;
   content: string;
   onContentChange: (value: string) => void;
@@ -31,13 +35,19 @@ const PlaygroundEditor = ({
   content,
   onContentChange,
 }: PlaygroundEditorProps) => {
+  const params = useParams();
+  const playgroundId = params?.id as string;
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bindingRef = useRef<any>(null);
+  const { data: session } = useSession();
+  const [isMounted, setIsMounted] = useState(false);
 
   const handleEditorDidMount = (editor: any, monaco: Monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    setIsMounted(true);
 
     editor.updateOptions({
       ...defaultEditorOptions,
@@ -238,6 +248,115 @@ const PlaygroundEditor = ({
     updateEditorLanguage();
   }, [activeFile]);
 
+  // Bind Yjs to Monaco
+  useEffect(() => {
+    if (!activeFile || !monacoRef.current || !editorRef.current || !playgroundId) return;
+
+    // Check if collaboration enabled ideally... For now we bind unconditionally or check session docs.
+    // If the room doesn't exist on server, y-websocket will just act locally until server connects.
+    const model = editorRef.current.getModel();
+    if (!model) return;
+
+    const { doc, provider } = getOrCreateYDoc(playgroundId);
+    // Use filename + ext as unique key for the Y.Text in this doc
+    const ext = activeFile.fileExtension ? `.${activeFile.fileExtension}` : "";
+    const fileKey = `${activeFile.filename}${ext}`;
+
+    const yText = doc.getText(fileKey);
+
+    // Initial content population if empty
+    if (yText.length === 0 && content) {
+      yText.insert(0, content);
+    }
+
+    if (bindingRef.current) {
+      bindingRef.current.destroy();
+    }
+
+    try {
+      const binding = new MonacoBinding(
+        yText,
+        model,
+        new Set([editorRef.current]),
+        provider.awareness
+      );
+
+      const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+
+      provider.awareness.setLocalStateField('user', {
+        name: session?.user?.name || "Anonymous",
+        color: userColor
+      });
+
+      // Dynamically inject CSS for remote cursors based on awareness state
+      provider.awareness.on("update", () => {
+        const styleId = "yjs-awareness-styles";
+        let styleEl = document.getElementById(styleId);
+        if (!styleEl) {
+          styleEl = document.createElement("style");
+          styleEl.id = styleId;
+          document.head.appendChild(styleEl);
+        }
+
+        const states = Array.from(provider.awareness.getStates().entries() as any);
+        let css = "";
+
+        for (const [clientId, state] of states as [number, any][]) {
+          if (state.user) {
+            const color = state.user.color || "orange";
+            const name = state.user.name || "Anonymous";
+
+            css += `
+              .yRemoteSelection-${clientId} {
+                background-color: ${color}40; /* 40 hex is 25% opacity */
+              }
+              .yRemoteSelectionHead-${clientId} {
+                border-left: 2px solid ${color};
+                border-top: 2px solid ${color};
+                border-bottom: 2px solid ${color};
+              }
+              .yRemoteSelectionHead-${clientId}::after {
+                border-color: ${color};
+              }
+              .yRemoteSelectionHead-${clientId}::before {
+                content: "${name}";
+                position: absolute;
+                top: -18px;
+                left: -2px;
+                font-size: 11px;
+                background-color: ${color};
+                color: white;
+                padding: 1px 4px;
+                border-radius: 2px;
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 10;
+                font-family: var(--font-inter), sans-serif;
+                opacity: 0;
+                transition: opacity 0.2s ease-in-out;
+              }
+              .yRemoteSelectionHead-${clientId}:hover::before {
+                opacity: 1;
+              }
+            `;
+          }
+        }
+        styleEl.innerHTML = css;
+      });
+
+      bindingRef.current = binding;
+    } catch (e) {
+      console.error("Yjs binding error:", e);
+    }
+
+    return () => {
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+        bindingRef.current = null;
+      }
+    };
+  }, [activeFile?.filename, activeFile?.fileExtension, playgroundId, isMounted]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -249,8 +368,15 @@ const PlaygroundEditor = ({
         formatterDisposable.dispose();
         formatterDisposable = null;
       }
+      if (bindingRef.current) {
+        bindingRef.current.destroy();
+        bindingRef.current = null;
+      }
+      if (playgroundId) {
+        destroyYDoc(playgroundId);
+      }
     };
-  }, []);
+  }, [playgroundId]);
 
   const { editorTheme } = useAI();
 
@@ -286,7 +412,7 @@ const PlaygroundEditor = ({
     <div className="h-full relative">
       <Editor
         height={"100%"}
-        value={content}
+        defaultValue={content}
         onChange={(value) => onContentChange(value || "")}
         onMount={handleEditorDidMount}
         language={

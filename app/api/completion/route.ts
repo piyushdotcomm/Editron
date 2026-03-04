@@ -1,140 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const GEMINI_ENDPOINT =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-const MISTRAL_ENDPOINT = "https://api.mistral.ai/v1/chat/completions";
+import { generateText } from "ai";
+import { z } from "zod";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq } from "@ai-sdk/groq";
+import { createMistral } from "@ai-sdk/mistral";
 
 const COMPLETION_SYSTEM_PROMPT =
     "You are an inline code completion engine. Given the code context below, provide ONLY the next few tokens/lines that naturally continue the code. Do NOT include explanations, markdown, or the existing code. Output ONLY the completion text.";
 
-async function callGemini(apiKey: string, prompt: string): Promise<string> {
-    const res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            contents: [
-                {
-                    parts: [{ text: `${COMPLETION_SYSTEM_PROMPT}\n\n${prompt}` }],
-                },
-            ],
-            generationConfig: {
-                temperature: 0.2,
-                maxOutputTokens: 256,
-                topP: 0.8,
-            },
-        }),
-    });
-
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Gemini API error: ${res.status} — ${err}`);
-    }
-
-    const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-}
-
-async function callOpenAICompatible(
-    endpoint: string,
-    apiKey: string,
-    model: string,
-    prompt: string
-): Promise<string> {
-    const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model,
-            messages: [
-                { role: "system", content: COMPLETION_SYSTEM_PROMPT },
-                { role: "user", content: prompt },
-            ],
-            temperature: 0.2,
-            max_tokens: 256,
-        }),
-    });
-
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`API error: ${res.status} — ${err}`);
-    }
-
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.content?.trim() || "";
-}
-
-function getProviderConfig(provider: string) {
-    switch (provider) {
-        case "groq":
-            return {
-                endpoint: GROQ_ENDPOINT,
-                model: "llama-3.3-70b-versatile",
-                envKey: "GROQ_API_KEY",
-                label: "Groq",
-            };
-        case "mistral":
-            return {
-                endpoint: MISTRAL_ENDPOINT,
-                model: "codestral-latest",
-                envKey: "MISTRAL_API_KEY",
-                label: "Mistral",
-            };
-        default:
-            return {
-                endpoint: "",
-                model: "",
-                envKey: "GEMINI_API_KEY",
-                label: "Gemini",
-            };
-    }
-}
+const RequestBodySchema = z.object({
+    prompt: z.string(),
+    language: z.string().optional(),
+    provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
+    userApiKey: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
     try {
-        const { prompt, language, provider, userApiKey } = await request.json();
+        const body = await request.json();
+        const result = RequestBodySchema.safeParse(body);
 
-        if (!prompt) {
-            return NextResponse.json({ error: "prompt is required" }, { status: 400 });
+        if (!result.success) {
+            return NextResponse.json({ error: result.error.issues }, { status: 400 });
         }
 
-        const selectedProvider = provider || "gemini";
+        const { prompt, language, provider, userApiKey } = result.data;
+
         const contextPrompt = language
             ? `Language: ${language}\n\n${prompt}`
             : prompt;
 
-        let completion = "";
+        let model;
 
-        if (selectedProvider === "gemini") {
-            const key = userApiKey || process.env.GEMINI_API_KEY;
-            if (!key) {
+        if (provider === "gemini") {
+            const apiKey = userApiKey || process.env.GEMINI_API_KEY;
+            if (!apiKey) {
                 return NextResponse.json(
                     { error: "Gemini API key not configured. Add your key in AI settings." },
                     { status: 400 }
                 );
             }
-            completion = await callGemini(key, contextPrompt);
-        } else {
-            const config = getProviderConfig(selectedProvider);
-            const key = userApiKey || process.env[config.envKey];
-            if (!key) {
+            const google = createGoogleGenerativeAI({ apiKey });
+            model = google("gemini-2.0-flash");
+        } else if (provider === "groq") {
+            const apiKey = userApiKey || process.env.GROQ_API_KEY;
+            if (!apiKey) {
                 return NextResponse.json(
-                    { error: `${config.label} API key not configured. Add your key in AI settings.` },
+                    { error: "Groq API key not configured. Add your key in AI settings." },
                     { status: 400 }
                 );
             }
-            completion = await callOpenAICompatible(
-                config.endpoint,
-                key,
-                config.model,
-                contextPrompt
-            );
+            const groq = createGroq({ apiKey });
+            model = groq("llama-3.3-70b-versatile");
+        } else if (provider === "mistral") {
+            const apiKey = userApiKey || process.env.MISTRAL_API_KEY;
+            if (!apiKey) {
+                return NextResponse.json(
+                    { error: "Mistral API key not configured. Add your key in AI settings." },
+                    { status: 400 }
+                );
+            }
+            const mistral = createMistral({ apiKey });
+            model = mistral("codestral-latest");
+        } else {
+            return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
         }
 
-        return NextResponse.json({ completion });
+        const { text } = await generateText({
+            model,
+            system: COMPLETION_SYSTEM_PROMPT,
+            prompt: contextPrompt,
+            maxTokens: 256,
+            temperature: 0.2,
+            topP: 0.8,
+        });
+
+        return NextResponse.json({ completion: text.trim() });
     } catch (error: any) {
         console.error("Completion API error:", error);
         return NextResponse.json(

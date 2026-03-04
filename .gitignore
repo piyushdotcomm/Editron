@@ -45,3 +45,7 @@ next-env.d.ts
 # agent
 .agent
 .agents
+
+# unexpected/unnecessary files
+install_skills.ps1
+server/collab.js

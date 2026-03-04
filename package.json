@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "start:collab": "npx tsx server/collab.ts",
     "lint": "eslint",
     "postinstall": "prisma generate"
   },

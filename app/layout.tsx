@@ -5,6 +5,8 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 import { ThemeProvider } from "@/components/providers/theme-providers";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { CommandPalette } from "@/components/command-palette";
 import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
@@ -59,20 +61,23 @@ export default async function RootLayout({
         <body
           className={`${inter.className} antialiased`}
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="flex flex-col min-h-screen">
-              <Toaster />
-              <div className="flex-1">
-                {children}
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="flex flex-col min-h-screen">
+                <Toaster />
+                <div className="flex-1">
+                  {children}
+                </div>
               </div>
-            </div>
 
-          </ThemeProvider>
+              <CommandPalette />
+            </ThemeProvider>
+          </QueryProvider>
         </body>
       </html>
     </SessionProvider>
