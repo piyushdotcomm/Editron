@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable gzip compression for all responses
+  compress: true,
+
   images: {
     remotePatterns: [
       {
@@ -25,6 +28,7 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      // Security + COOP/COEP headers for all routes
       {
         source: "/:path*",
         headers: [
@@ -35,6 +39,38 @@ const nextConfig: NextConfig = {
           {
             key: "Cross-Origin-Embedder-Policy",
             value: "credentialless",
+          },
+          // Security headers (improves Pingdom grade)
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          // Signal compression support
+          {
+            key: "Vary",
+            value: "Accept-Encoding",
+          },
+        ],
+      },
+      // Long cache for static assets (SVGs, images, fonts)
+      {
+        source: "/:file(.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|.*\\.ico|.*\\.woff2?)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
