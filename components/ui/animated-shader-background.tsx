@@ -1,34 +1,27 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import React, { useEffect, useRef } from "react";
+import * as THREE from "three";
 
 const AnimatedShaderBackground = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
     const container = containerRef.current;
+    if (!container) return;
+
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-    // Optimization: Limit pixel ratio for performance on high-DPI screens
-    const dpr = Math.min(window.devicePixelRatio, 1.0);
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false, // Turn off antialias for performance
-      alpha: true,
-      powerPreference: "high-performance"
-    });
-
-    renderer.setPixelRatio(dpr);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
         iTime: { value: 0 },
-        iResolution: { value: new THREE.Vector2(window.innerWidth * dpr, window.innerHeight * dpr) }
+        iResolution: {
+          value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+        },
       },
       vertexShader: `
         void main() {
@@ -39,7 +32,7 @@ const AnimatedShaderBackground = () => {
         uniform float iTime;
         uniform vec2 iResolution;
 
-        #define NUM_OCTAVES 2
+        #define NUM_OCTAVES 3
 
         float rand(vec2 n) {
           return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
@@ -77,21 +70,17 @@ const AnimatedShaderBackground = () => {
 
           float f = 2.0 + fbm(p + vec2(iTime * 5.0, 0.0)) * 0.5;
 
-          // Optimization: Reduced iterations from 25.0 to 12.0
-          for (float i = 0.0; i < 12.0; i++) {
+          for (float i = 0.0; i < 35.0; i++) {
             v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5 + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
-            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 12.0));
-            
-            // RED THEME COLORS - Changed from blue to red/rose/amber gradient
+            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
             vec4 auroraColors = vec4(
-              0.7 + 0.3 * sin(i * 0.2 + iTime * 0.4),  // Red channel - increased
-              0.1 + 0.2 * cos(i * 0.3 + iTime * 0.5),  // Green channel - decreased
-              0.1 + 0.2 * sin(i * 0.4 + iTime * 0.3),  // Blue channel - decreased
+              0.1 + 0.3 * sin(i * 0.2 + iTime * 0.4),
+              0.3 + 0.5 * cos(i * 0.3 + iTime * 0.5),
+              0.7 + 0.3 * sin(i * 0.4 + iTime * 0.3),
               1.0
             );
-            
             vec4 currentContribution = auroraColors * exp(sin(i * i + iTime * 0.8)) / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
-            float thinnessFactor = smoothstep(0.0, 1.0, i / 12.0) * 0.6;
+            float thinnessFactor = smoothstep(0.0, 1.0, i / 35.0) * 0.6;
             o += currentContribution * (1.0 + tailNoise * 0.8) * thinnessFactor;
           }
 
@@ -99,7 +88,6 @@ const AnimatedShaderBackground = () => {
           gl_FragColor = o * 1.5;
         }
       `,
-      transparent: true
     });
 
     const geometry = new THREE.PlaneGeometry(2, 2);
@@ -108,7 +96,6 @@ const AnimatedShaderBackground = () => {
 
     let frameId: number;
     const animate = () => {
-      // Optimization: Limit updates if tab is not active (though rAF handles this mostly)
       material.uniforms.iTime.value += 0.016;
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -116,19 +103,17 @@ const AnimatedShaderBackground = () => {
     animate();
 
     const handleResize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      renderer.setSize(width, height);
-      // Update pixel ratio on resize just in case
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
-      material.uniforms.iResolution.value.set(width * dpr, height * dpr);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      material.uniforms.iResolution.value.set(
+        window.innerWidth,
+        window.innerHeight
+      );
     };
-
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       cancelAnimationFrame(frameId);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -141,8 +126,8 @@ const AnimatedShaderBackground = () => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 w-full h-full z-0 opacity-50"
-      style={{ pointerEvents: 'none' }}
+      className="fixed inset-0 w-full h-full z-0"
+      style={{ pointerEvents: "none" }}
     />
   );
 };
