@@ -141,6 +141,34 @@ export default function AIChatPanel({
                         saveTemplateData(updatedTemplate).catch(console.error);
                         toast.success(`AI updated ${path}`);
                         result = `Successfully updated ${path}`;
+                    } else if (toolName === "edit_multiple_files") {
+                        const { changes } = args as { changes: { path: string; content: string }[] };
+                        if (!templateData) throw new Error("Template data not loaded");
+
+                        let currentItems = templateData.items;
+                        let currentOpenFiles = [...openFiles];
+
+                        // Process all file changes in the batch transaction
+                        for (const change of changes) {
+                            currentItems = addOrUpdateFile(currentItems, change.path, change.content);
+
+                            currentOpenFiles = currentOpenFiles.map((f) => {
+                                const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                                const fullName = `${f.filename}${ext}`;
+                                if (change.path.endsWith(fullName)) {
+                                    return { ...f, content: change.content, hasUnsavedChanges: true };
+                                }
+                                return f;
+                            });
+                        }
+
+                        const updatedTemplate = { ...templateData, items: currentItems };
+                        setTemplateData(updatedTemplate);
+                        setOpenFiles(currentOpenFiles);
+                        saveTemplateData(updatedTemplate).catch(console.error);
+
+                        toast.success(`AI rapidly scaffolded ${changes.length} files`);
+                        result = `Successfully updated ${changes.length} files`;
                     } else if (toolName === "delete_file") {
                         const { path } = args as { path: string };
                         if (!templateData) throw new Error("Template data not loaded");

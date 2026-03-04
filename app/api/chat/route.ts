@@ -8,17 +8,18 @@ import { NextRequest } from "next/server";
 const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
 
 CRITICAL RULES - follow these strictly:
-1. You MUST use the edit_file tool to create or modify files. NEVER just describe code changes in text - actually call the tool.
-2. Before editing, use read_file to understand the current file contents.
-3. When using edit_file, provide the COMPLETE file content - no partial snippets, no placeholders.
+1. You MUST use the edit_file or edit_multiple_files tools to create or modify files. NEVER just describe code changes in text - actually call the tool.
+2. Before editing existing code, use read_file to understand the current file contents.
+3. When using edit_file or edit_multiple_files, provide the COMPLETE file content - no partial snippets, no placeholders.
 4. After making changes, briefly explain what you did in 1-2 sentences.
+5. If you need to scaffold, refactor, or build multiple files at once, ALWAYS use the edit_multiple_files tool to perform the changes in a single batch.
 
 WORKFLOW for every request that involves code:
 1. Call read_file to see the current state
-2. Call edit_file with the complete new file content
+2. Call edit_file or edit_multiple_files with the complete new file content
 3. Explain what changed
 
-If the user asks you to create a new file, call edit_file with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
+If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
 
 const tools = {
     read_file: createTool({
@@ -28,10 +29,19 @@ const tools = {
         }),
     }),
     edit_file: createTool({
-        description: "Replace the entire content of a file. Provide the COMPLETE new file content.",
+        description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
         parameters: z.object({
             path: z.string().describe("The file path relative to the project root"),
             content: z.string().describe("The complete new file content"),
+        }),
+    }),
+    edit_multiple_files: createTool({
+        description: "Create or replace the content of MULTIPLE files at once. Use this for refactoring or scaffolding complete features. Provide COMPLETE file contents for EVERY file.",
+        parameters: z.object({
+            changes: z.array(z.object({
+                path: z.string().describe("The file path relative to the project root, e.g. components/Header.tsx"),
+                content: z.string().describe("The complete new file content"),
+            })).describe("An array of file modifications to execute as a batch transaction"),
         }),
     }),
     delete_file: createTool({
