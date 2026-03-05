@@ -3,15 +3,17 @@
 import * as React from "react";
 import {
   ChevronRight,
-  File,
-  Folder,
   Plus,
   FilePlus,
   FolderPlus,
   MoreHorizontal,
   Trash2,
   Edit3,
+  Search,
+  X,
 } from "lucide-react";
+import { FileIcon, FolderIcon } from "./file-icon";
+import { Input } from "@/components/ui/input";
 
 import {
   Collapsible,
@@ -96,6 +98,7 @@ export function TemplateFileTree({
   onRenameFolder,
 }: TemplateFileTreeProps) {
   const isRootFolder = data && typeof data === "object" && "folderName" in data;
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [isNewFileDialogOpen, setIsNewFileDialogOpen] = React.useState(false);
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] =
     React.useState(false);
@@ -131,6 +134,23 @@ export function TemplateFileTree({
     setIsNewFolderDialogOpen(false);
   };
 
+  // Filter items recursively
+  const filterItems = (items: (TemplateFile | TemplateFolder)[], query: string): (TemplateFile | TemplateFolder)[] => {
+    if (!query.trim()) return items;
+    const q = query.toLowerCase();
+    return items.filter((item) => {
+      if ("folderName" in item) {
+        // Keep folder if its name matches or any child matches
+        if (item.folderName.toLowerCase().includes(q)) return true;
+        return filterItems(item.items, query).length > 0;
+      }
+      const name = `${item.filename}.${item.fileExtension}`;
+      return name.toLowerCase().includes(q);
+    });
+  };
+
+  const filteredItems = isRootFolder ? filterItems((data as TemplateFolder).items, searchQuery) : [];
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -153,10 +173,34 @@ export function TemplateFileTree({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Search filter */}
+          <div className="px-2 pb-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/60" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter files..."
+                className="h-7 text-xs pl-7 pr-7 bg-muted/30 border-border/50"
+                aria-label="Filter files"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground"
+                  aria-label="Clear filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <SidebarGroupContent>
             <SidebarMenu>
               {isRootFolder ? (
-                (data as TemplateFolder).items.map((child, index) => (
+                filteredItems.map((child, index) => (
                   <TemplateNode
                     key={index}
                     item={child}
@@ -170,6 +214,7 @@ export function TemplateFileTree({
                     onDeleteFolder={onDeleteFolder}
                     onRenameFile={onRenameFile}
                     onRenameFolder={onRenameFolder}
+                    searchQuery={searchQuery}
                   />
                 ))
               ) : (
@@ -229,6 +274,7 @@ interface TemplateNodeProps {
     newFolderName: string,
     parentPath: string
   ) => void;
+  searchQuery?: string;
 }
 
 function TemplateNode({
@@ -243,6 +289,7 @@ function TemplateNode({
   onDeleteFolder,
   onRenameFile,
   onRenameFolder,
+  searchQuery,
 }: TemplateNodeProps) {
   const isValidItem = item && typeof item === "object";
   const isFolder = isValidItem && "folderName" in item;
@@ -290,7 +337,7 @@ function TemplateNode({
             onClick={() => onFileSelect?.(file)}
             className="flex-1"
           >
-            <File className="h-4 w-4 mr-2 shrink-0" />
+            <FileIcon extension={file.fileExtension} className="h-4 w-4 mr-2" />
             <span>{fileName}</span>
           </SidebarMenuButton>
 
@@ -406,7 +453,7 @@ function TemplateNode({
             <CollapsibleTrigger asChild>
               <SidebarMenuButton className="flex-1">
                 <ChevronRight className="transition-transform" />
-                <Folder className="h-4 w-4 mr-2 shrink-0" />
+                <FolderIcon isOpen={isOpen} className="h-4 w-4 mr-2" />
                 <span>{folderName}</span>
               </SidebarMenuButton>
             </CollapsibleTrigger>
@@ -463,6 +510,7 @@ function TemplateNode({
                   onDeleteFolder={onDeleteFolder}
                   onRenameFile={onRenameFile}
                   onRenameFolder={onRenameFolder}
+                  searchQuery={searchQuery}
                 />
               ))}
             </SidebarMenuSub>

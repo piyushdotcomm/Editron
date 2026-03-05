@@ -3,9 +3,10 @@ import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 import { transformToWebContainerFormat } from "../hooks/transformer";
-import { CheckCircle, Loader2, XCircle, ExternalLink } from "lucide-react";
+import { CheckCircle, Loader2, XCircle, ExternalLink, RefreshCw, Monitor, Tablet, Smartphone, Globe } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const TerminalComponent = dynamic(() => import("./terminal"), { ssr: false });
 
@@ -31,6 +32,8 @@ const WebContainerPreview = ({
   forceResetup = false,
 }: WebContainerPreviewProps) => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [loadingState, setLoadingState] = useState({
     transforming: false,
     mounting: false,
@@ -110,10 +113,44 @@ const WebContainerPreview = ({
               setupInProgressRef.current = false;
             });
 
-            setCurrentStep(4);
-            setLoadingState((prev) => ({ ...prev, starting: true }));
+            setCurrentStep(3);
+            setLoadingState((prev) => ({ ...prev, installing: true }));
 
-            // Actually restart the server
+            // Reinstall dependencies first (ensures local CLIs like ng, vite are available)
+            if (terminalRef.current?.writeToTerminal) {
+              terminalRef.current.writeToTerminal(
+                "📦 Reinstalling dependencies...\r\n"
+              );
+            }
+            const reinstallProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
+            reinstallProcess.output.pipeTo(
+              new WritableStream({
+                write(data) {
+                  if (terminalRef.current?.writeToTerminal) {
+                    terminalRef.current.writeToTerminal(data);
+                  }
+                },
+              })
+            );
+            const reinstallExitCode = await reinstallProcess.exit;
+            if (reinstallExitCode !== 0) {
+              if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal(
+                  `⚠️ npm install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`
+                );
+              }
+            } else {
+              if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal(
+                  "✅ Dependencies ready\r\n"
+                );
+              }
+            }
+
+            setLoadingState((prev) => ({ ...prev, installing: false, starting: true }));
+            setCurrentStep(4);
+
+            // Now restart the server
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
                 "🚀 Restarting development server...\r\n"
@@ -497,32 +534,92 @@ const WebContainerPreview = ({
         </div>
       ) : (
         <div className="h-full flex flex-col min-h-0 bg-background">
-          <div className="flex items-center justify-between px-4 h-10 border-b bg-muted/30">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-medium text-muted-foreground">Live Preview</span>
+          {/* Browser-like preview bar */}
+          <div className="flex items-center gap-2 px-3 h-10 border-b bg-muted/30">
+            {/* Traffic lights */}
+            <div className="flex items-center gap-1 shrink-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
             </div>
+
+            {/* Refresh */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              onClick={() => setRefreshKey((k) => k + 1)}
+              aria-label="Refresh preview"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+
+            {/* URL bar */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 bg-background/80 border rounded-md px-2 h-6">
+                <Globe className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+                <span className="text-[11px] text-muted-foreground truncate font-mono select-all">
+                  {previewUrl}
+                </span>
+              </div>
+            </div>
+
+            {/* Viewport toggles */}
+            <div className="flex items-center border rounded-md overflow-hidden shrink-0">
+              <button
+                onClick={() => setViewport("desktop")}
+                className={`h-6 w-7 flex items-center justify-center transition-colors ${viewport === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                aria-label="Desktop viewport"
+              >
+                <Monitor className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => setViewport("tablet")}
+                className={`h-6 w-7 flex items-center justify-center transition-colors border-x ${viewport === "tablet" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                aria-label="Tablet viewport"
+              >
+                <Tablet className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => setViewport("mobile")}
+                className={`h-6 w-7 flex items-center justify-center transition-colors ${viewport === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                aria-label="Mobile viewport"
+              >
+                <Smartphone className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Open in new tab */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs flex items-center gap-1.5 hover:bg-muted"
+              className="h-6 px-2 text-xs flex items-center gap-1 shrink-0"
               onClick={() => {
                 const url = `/preview?url=${encodeURIComponent(previewUrl)}`;
                 window.open(url, '_blank');
               }}
+              aria-label="Open preview in new tab"
             >
               <ExternalLink size={12} />
-              Open in New Tab
             </Button>
           </div>
-          <div className="flex-1 min-h-0">
+
+          {/* Preview iframe */}
+          <div className="flex-1 min-h-0 flex justify-center bg-muted/10">
             <iframe
-              src={`${previewUrl}?t=${Date.now()}`}
-              className="w-full h-full border-none bg-white"
+              key={refreshKey}
+              src={previewUrl}
+              className="h-full border-none bg-white transition-all duration-300"
+              style={{
+                width: viewport === "mobile" ? "375px" : viewport === "tablet" ? "768px" : "100%",
+                maxWidth: "100%",
+              }}
               title="WebContainer Preview"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             />
           </div>
+
+          {/* Terminal */}
           <div className="h-64 border-t shrink-0">
             <TerminalComponent
               ref={terminalRef}

@@ -25,6 +25,7 @@ export interface PlaygroundEditorProps {
   activeFile: TemplateFile | undefined;
   content: string;
   onContentChange: (value: string) => void;
+  onCursorChange?: (line: number, col: number) => void;
 }
 
 let inlineProviderDisposable: any = null;
@@ -34,6 +35,7 @@ const PlaygroundEditor = ({
   activeFile,
   content,
   onContentChange,
+  onCursorChange,
 }: PlaygroundEditorProps) => {
   const params = useParams();
   const playgroundId = params?.id as string;
@@ -53,6 +55,11 @@ const PlaygroundEditor = ({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
       formatOnSave: true,
+    });
+
+    // Cursor position tracking for status bar
+    editor.onDidChangeCursorPosition((e: any) => {
+      onCursorChange?.(e.position.lineNumber, e.position.column);
     });
 
     configureMonaco(monaco);

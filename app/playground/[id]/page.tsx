@@ -2,14 +2,24 @@
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
 import JSZip from "jszip";
-// dropdown removed — actions are direct buttons now
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -17,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import LoadingStep from "@/modules/playground/components/loader";
+import PlaygroundSkeleton from "@/modules/playground/components/loader";
 import dynamic from "next/dynamic";
 
 const PlaygroundEditor = dynamic(
@@ -32,13 +42,13 @@ import {
   Download,
   Eye,
   EyeOff,
-  FileText,
   FolderOpen,
+  MoreHorizontal,
   Save,
   Settings,
+  Users,
   X,
   XCircle,
-  Users,
 } from "lucide-react";
 import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
@@ -59,18 +69,27 @@ import {
 import React, {
   useCallback,
   useEffect,
-  useReducer,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
 
+// New components
+import { FileIcon } from "@/modules/playground/components/file-icon";
+import { StatusBar } from "@/modules/playground/components/status-bar";
+import { WelcomeScreen } from "@/modules/playground/components/welcome-screen";
+import { Breadcrumbs } from "@/modules/playground/components/breadcrumbs";
+import { CommandPalette } from "@/modules/playground/components/command-palette";
+
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
+  const sidebar = useSidebar();
 
   const {
     setTemplateData,
@@ -130,6 +149,7 @@ const MainPlaygroundPage = () => {
       }
     }
   }, [isPreviewVisible, activeFileId, templateData, openFile]);
+
   // Create wrapper functions that pass saveTemplateData
   const wrappedHandleAddFile = useCallback(
     (newFile: TemplateFile, parentPath: string) => {
@@ -344,17 +364,59 @@ const MainPlaygroundPage = () => {
     }
   };
 
-
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "s") {
-        e.preventDefault()
-        handleSave()
+      // Ctrl+S — Save
+      if (e.ctrlKey && !e.shiftKey && e.key === "s") {
+        e.preventDefault();
+        handleSave();
       }
-    }
+      // Ctrl+Shift+S — Save All
+      if (e.ctrlKey && e.shiftKey && e.key === "S") {
+        e.preventDefault();
+        handleSaveAll();
+      }
+      // Ctrl+K or Ctrl+Shift+P — Command Palette
+      if ((e.ctrlKey && e.key === "k") || (e.ctrlKey && e.shiftKey && e.key === "P")) {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+      // Ctrl+B — Toggle Sidebar
+      if (e.ctrlKey && !e.shiftKey && e.key === "b") {
+        e.preventDefault();
+        sidebar.toggleSidebar();
+      }
+      // Ctrl+\ — Toggle Preview
+      if (e.ctrlKey && e.key === "\\") {
+        e.preventDefault();
+        setIsPreviewVisible((prev) => !prev);
+      }
+      // Ctrl+Shift+A — Toggle AI Chat
+      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        useAI.getState().toggleChat();
+      }
+      // Ctrl+W — Close current tab
+      if (e.ctrlKey && !e.shiftKey && e.key === "w") {
+        e.preventDefault();
+        if (activeFileId) {
+          closeFile(activeFileId);
+        }
+      }
+    };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleSave]);
+  }, [handleSave, handleSaveAll, sidebar, activeFileId, closeFile]);
+
+  // Derive container status
+  const containerStatus: "idle" | "building" | "running" | "error" = containerError
+    ? "error"
+    : containerLoading
+      ? "building"
+      : serverUrl
+        ? "running"
+        : "idle";
 
   if (error) {
     return (
@@ -371,30 +433,9 @@ const MainPlaygroundPage = () => {
     );
   }
 
-  // Loading state
+  // Loading state — skeleton
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
-        <div className="w-full max-w-md p-6 rounded-lg shadow-sm border">
-          <h2 className="text-xl font-semibold mb-6 text-center">
-            Loading Playground
-          </h2>
-          <div className="mb-8">
-            <LoadingStep
-              currentStep={1}
-              step={1}
-              label="Loading playground data"
-            />
-            <LoadingStep
-              currentStep={2}
-              step={2}
-              label="Setting up environment"
-            />
-            <LoadingStep currentStep={3} step={3} label="Ready to code" />
-          </div>
-        </div>
-      </div>
-    );
+    return <PlaygroundSkeleton />;
   }
 
   // No template data
@@ -411,6 +452,7 @@ const MainPlaygroundPage = () => {
       </div>
     );
   }
+
   return (
     <TooltipProvider>
       <>
@@ -427,232 +469,300 @@ const MainPlaygroundPage = () => {
           onRenameFolder={wrappedHandleRenameFolder}
         />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
+          {/* ==== HEADER ==== */}
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
+            <SidebarTrigger className="-ml-1" aria-label="Toggle file explorer" />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => window.location.href = '/dashboard'}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => window.location.href = '/dashboard'}
+                  aria-label="Back to Dashboard"
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Back to Dashboard</TooltipContent>
             </Tooltip>
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex flex-1 items-center gap-2">
-              <div className="flex flex-col flex-1">
-                <h1 className="text-sm font-medium">
-                  {playgroundData?.title || "Code Playground"}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {openFiles.length} File(s) Open
-                  {hasUnsavedChanges && " • Unsaved changes"}
-                </p>
-              </div>
+            <Separator orientation="vertical" className="mr-1 h-4" />
 
-              <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleSave()}
-                      disabled={!activeFile || !activeFile.hasUnsavedChanges}
-                    >
-                      <Save className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save (Ctrl+S)</TooltipContent>
-                </Tooltip>
+            {/* Title */}
+            <div className="flex flex-col flex-1 min-w-0">
+              <h1 className="text-sm font-medium truncate">
+                {playgroundData?.title || "Code Playground"}
+              </h1>
+              <p className="text-[11px] text-muted-foreground">
+                {openFiles.length} file{openFiles.length !== 1 ? "s" : ""} open
+                {hasUnsavedChanges && " • Unsaved changes"}
+              </p>
+            </div>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleSaveAll}
-                      disabled={!hasUnsavedChanges}
-                    >
-                      <Save className="h-4 w-4" /> All
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
-                </Tooltip>
+            {/* Right toolbar */}
+            <div className="flex items-center gap-1">
+              {/* Primary: Save + Preview */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={activeFile?.hasUnsavedChanges ? "default" : "outline"}
+                    onClick={() => handleSave()}
+                    disabled={!activeFile || !activeFile.hasUnsavedChanges}
+                    className="h-7 px-2.5 text-xs"
+                    aria-label="Save file (Ctrl+S)"
+                  >
+                    <Save className="h-3.5 w-3.5 mr-1" />
+                    Save
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save (Ctrl+S)</TooltipContent>
+              </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleDownloadZip}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Download Project</TooltipContent>
-                </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={isPreviewVisible ? "default" : "outline"}
+                    onClick={() => setIsPreviewVisible(!isPreviewVisible)}
+                    className="h-7 px-2.5 text-xs"
+                    aria-label={`${isPreviewVisible ? "Hide" : "Show"} Preview (Ctrl+\\)`}
+                  >
+                    {isPreviewVisible ? <EyeOff className="h-3.5 w-3.5 mr-1" /> : <Eye className="h-3.5 w-3.5 mr-1" />}
+                    Preview
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isPreviewVisible ? "Hide" : "Show"} Preview (Ctrl+\)</TooltipContent>
+              </Tooltip>
 
-                <div className="mx-2 h-4 w-px bg-border" />
+              <div className="mx-1 h-4 w-px bg-border" />
 
-                <CollaborationAvatars playgroundId={id as string} />
+              {/* Collaboration */}
+              <CollaborationAvatars playgroundId={id as string} />
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const url = `${window.location.origin}/playground/${id}?collab=true`;
-                        navigator.clipboard.writeText(url);
-                        toast.success("Collaboration link copied to clipboard!");
-                      }}
-                    >
-                      <Users className="h-4 w-4 mr-2" /> Share
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Invite collaborators</TooltipContent>
-                </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 px-2.5 text-xs"
+                    onClick={() => {
+                      const url = `${window.location.origin}/playground/${id}?collab=true`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Collaboration link copied to clipboard!");
+                    }}
+                    aria-label="Share collaboration link"
+                  >
+                    <Users className="h-3.5 w-3.5 mr-1" />
+                    Share
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Invite collaborators</TooltipContent>
+              </Tooltip>
 
-                <div className="mx-2 h-4 w-px bg-border" />
-                <ThemeSelector />
+              <div className="mx-1 h-4 w-px bg-border" />
 
-                <Button variant={"default"} size={"icon"} onClick={() => useAI.getState().toggleChat()}>
-                  <Bot className="size-4" />
-                </Button>
+              {/* Theme + AI */}
+              <ThemeSelector />
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" onClick={() => setIsPreviewVisible(!isPreviewVisible)}>
-                      {isPreviewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{isPreviewVisible ? "Hide" : "Show"} Preview</TooltipContent>
-                </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => useAI.getState().toggleChat()}
+                    aria-label="Toggle AI Chat (Ctrl+Shift+A)"
+                  >
+                    <Bot className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>AI Chat (Ctrl+Shift+A)</TooltipContent>
+              </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" onClick={() => setShowAISettings(true)}>
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>AI Settings</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" onClick={closeAllFiles}>
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Close All Files</TooltipContent>
-                </Tooltip>
-              </div>
+              {/* Overflow menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSaveAll} disabled={!hasUnsavedChanges}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save All
+                    <span className="ml-auto text-xs text-muted-foreground">Ctrl+Shift+S</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadZip}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Project
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowAISettings(true)}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    AI Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={closeAllFiles} disabled={openFiles.length === 0}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Close All Files
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
-          <div className="h-[calc(100vh-4rem)]">
-            {openFiles.length > 0 ? (
-              <div className="h-full flex flex-col">
-                <div className="border-b bg-muted/30">
-                  <Tabs
-                    value={activeFileId || ""}
-                    onValueChange={setActiveFileId}
-                  >
-                    <div className="flex items-center justify-between px-4 py-2">
-                      <TabsList className="h-8 bg-transparent p-0">
-                        {openFiles.map((file) => (
-                          <TabsTrigger
-                            key={file.id}
-                            value={file.id}
-                            className="relative h-8 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm group"
-                          >
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-3 w-3" />
-                              <span>
-                                {file.filename}.{file.fileExtension}
-                              </span>
-                              {file.hasUnsavedChanges && (
-                                <span className="h-2 w-2 rounded-full bg-orange-500" />
-                              )}
-                              <span
-                                className="ml-2 h-4 w-4 hover:bg-destructive hover:text-destructive-foreground rounded-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  closeFile(file.id);
-                                }}
+          {/* ==== CONTENT ==== */}
+          <div className="flex flex-col h-[calc(100vh-3rem)]">
+            <div className="flex-1 min-h-0">
+              {openFiles.length > 0 ? (
+                <div className="h-full flex flex-col">
+                  {/* Tab bar */}
+                  <div className="border-b bg-muted/30">
+                    <Tabs
+                      value={activeFileId || ""}
+                      onValueChange={setActiveFileId}
+                    >
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <div className="overflow-x-auto scrollbar-hide flex-1">
+                          <TabsList className="h-8 bg-transparent p-0 inline-flex" role="tablist">
+                            {openFiles.map((file) => (
+                              <TabsTrigger
+                                key={file.id}
+                                value={file.id}
+                                role="tab"
+                                className="relative h-7 px-3 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm group transition-all duration-150"
                               >
-                                <X className="h-3 w-3" />
-                              </span>
-                            </div>
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
+                                <div className="flex items-center gap-1.5">
+                                  <FileIcon extension={file.fileExtension} className="h-3 w-3" />
+                                  <span>
+                                    {file.filename}.{file.fileExtension}
+                                  </span>
+                                  {file.hasUnsavedChanges && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                                  )}
+                                  <span
+                                    className="ml-1 h-4 w-4 hover:bg-destructive hover:text-destructive-foreground rounded-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      closeFile(file.id);
+                                    }}
+                                    role="button"
+                                    aria-label={`Close ${file.filename}.${file.fileExtension}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </span>
+                                </div>
+                              </TabsTrigger>
+                            ))}
+                          </TabsList>
+                        </div>
 
-                      {openFiles.length > 1 && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={closeAllFiles}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Close All
-                        </Button>
-                      )}
-                    </div>
-                  </Tabs>
-                </div>
-                <div className="flex-1">
-                  <ResizablePanelGroup
-                    direction="horizontal"
-                    className="h-full"
-                  >
-                    <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
-                      <ErrorBoundary name="MonacoEditor">
-                        <PlaygroundEditor
-                          activeFile={activeFile}
-                          content={activeFile?.content || ""}
-                          onContentChange={(value) =>
-                            activeFileId && updateFileContent(activeFileId, value)
-                          }
-                        />
-                      </ErrorBoundary>
-                    </ResizablePanel>
-                    {isPreviewVisible && (
-                      <>
-                        <ResizableHandle />
-                        <ResizablePanel defaultSize={50}>
-                          <WebContainerPreview
-                            templateData={templateData!}
-                            instance={instance}
-                            writeFileSync={writeFileSync}
-                            isLoading={containerLoading}
-                            error={containerError}
-                            serverUrl={serverUrl!}
-                            forceResetup={false}
+                        {openFiles.length > 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={closeAllFiles}
+                            className="h-6 px-2 text-[10px] shrink-0 ml-1"
+                            aria-label="Close all files"
+                          >
+                            Close All
+                          </Button>
+                        )}
+                      </div>
+                    </Tabs>
+                  </div>
+
+                  {/* Breadcrumbs */}
+                  <Breadcrumbs activeFile={activeFile} templateData={templateData} />
+
+                  {/* Editor + Preview */}
+                  <div className="flex-1 min-h-0" role="tabpanel">
+                    <ResizablePanelGroup
+                      direction="horizontal"
+                      className="h-full"
+                    >
+                      <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
+                        <ErrorBoundary name="MonacoEditor">
+                          <PlaygroundEditor
+                            activeFile={activeFile}
+                            content={activeFile?.content || ""}
+                            onContentChange={(value) =>
+                              activeFileId && updateFileContent(activeFileId, value)
+                            }
+                            onCursorChange={(line, col) => setCursorPosition({ line, col })}
                           />
-                        </ResizablePanel>
-                      </>
-                    )}
-                  </ResizablePanelGroup>
+                        </ErrorBoundary>
+                      </ResizablePanel>
+                      {isPreviewVisible && (
+                        <>
+                          <ResizableHandle />
+                          <ResizablePanel defaultSize={50}>
+                            <WebContainerPreview
+                              templateData={templateData!}
+                              instance={instance}
+                              writeFileSync={writeFileSync}
+                              isLoading={containerLoading}
+                              error={containerError}
+                              serverUrl={serverUrl!}
+                              forceResetup={false}
+                            />
+                          </ResizablePanel>
+                        </>
+                      )}
+                    </ResizablePanelGroup>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col h-full items-center justify-center text-muted-foreground gap-4">
-                <FileText className="h-16 w-16 text-gray-300" />
-                <div className="text-center">
-                  <p className="text-lg font-medium">No files open</p>
-                  <p className="text-sm text-gray-500">
-                    Select a file from the sidebar to start editing
-                  </p>
-                </div>
-              </div>
-            )}
+              ) : (
+                <WelcomeScreen
+                  projectTitle={playgroundData?.title}
+                  onTogglePreview={() => setIsPreviewVisible(true)}
+                  onOpenAI={() => useAI.getState().toggleChat()}
+                  onDownload={handleDownloadZip}
+                  onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+                />
+              )}
+            </div>
+
+            {/* Status Bar */}
+            <StatusBar
+              activeFile={activeFile}
+              cursorPosition={cursorPosition}
+              containerStatus={containerStatus}
+              collaboratorCount={0}
+              openFileCount={openFiles.length}
+            />
           </div>
         </SidebarInset>
+
+        {/* AI Chat Panel */}
         <AIChatPanel
           templateData={templateData}
           saveTemplateData={saveTemplateData}
         />
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
+
+        {/* Command Palette */}
+        <CommandPalette
+          open={isCommandPaletteOpen}
+          onOpenChange={setIsCommandPaletteOpen}
+          templateData={templateData}
+          onFileSelect={handleFileSelect}
+          onSave={() => handleSave()}
+          onSaveAll={handleSaveAll}
+          onDownload={handleDownloadZip}
+          onTogglePreview={() => setIsPreviewVisible((prev) => !prev)}
+          onToggleAI={() => useAI.getState().toggleChat()}
+          onToggleSidebar={() => sidebar.toggleSidebar()}
+          onOpenSettings={() => setShowAISettings(true)}
+          onCloseAllFiles={closeAllFiles}
+          isPreviewVisible={isPreviewVisible}
+        />
       </>
     </TooltipProvider>
   );
