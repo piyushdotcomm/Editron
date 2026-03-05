@@ -1,0 +1,21 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies (only production if needed, but we need tsx)
+RUN npm install
+
+# Copy server code
+COPY server/ ./server/
+COPY lib/ ./lib/
+COPY next-auth.d.ts ./
+COPY tsconfig.json ./
+
+# Expose port
+EXPOSE 1234
+
+# Start collab server
+CMD ["npx", "tsx", "server/collab.ts"]

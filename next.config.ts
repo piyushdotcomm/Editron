@@ -26,6 +26,16 @@ const nextConfig: NextConfig = {
   // Keep server-only packages out of client bundles
   serverExternalPackages: ["@prisma/client", "prisma"],
 
+  async rewrites() {
+    return [
+      {
+        source: "/api/collab/:path*",
+        // Proxy WebSocket connections to our standalone collab server
+        destination: "http://localhost:1234/:path*",
+      },
+    ];
+  },
+
   async headers() {
     return [
       // Security + COOP/COEP headers for all routes

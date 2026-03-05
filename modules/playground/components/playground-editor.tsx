@@ -265,9 +265,10 @@ const PlaygroundEditor = ({
     if (!model) return;
 
     const { doc, provider } = getOrCreateYDoc(playgroundId);
-    // Use filename + ext as unique key for the Y.Text in this doc
+    // Use file id if available (contains full path), otherwise fallback to filename+ext
+    const fileId = (activeFile as any)?.id;
     const ext = activeFile.fileExtension ? `.${activeFile.fileExtension}` : "";
-    const fileKey = `${activeFile.filename}${ext}`;
+    const fileKey = fileId || `${activeFile.filename}${ext}`;
 
     const yText = doc.getText(fileKey);
 

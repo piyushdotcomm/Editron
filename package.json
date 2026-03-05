@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"next dev --turbopack\" \"npm run start:collab\"",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"next start\" \"npm run start:collab\"",
     "start:collab": "npx tsx server/collab.ts",
     "lint": "eslint",
     "postinstall": "prisma generate"

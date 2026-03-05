@@ -17,7 +17,7 @@ export function getOrCreateYDoc(roomId: string) {
         serverUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL;
     } else if (typeof window !== "undefined") {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        serverUrl = `${protocol}//${window.location.hostname}:1234`;
+        serverUrl = `${protocol}//${window.location.host}/api/collab`;
     }
 
     const provider = new WebsocketProvider(serverUrl, roomId, doc);
@@ -27,6 +27,9 @@ export function getOrCreateYDoc(roomId: string) {
     // Optional: Clean up when the connection is closed to prevent memory leaks
     provider.on('synced', (isSynced: boolean) => {
         console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced);
+    });
+    provider.on('status', (event: any) => {
+        console.log(`[Yjs] Room ${roomId} status:`, event.status);
     });
 
     return { doc, provider };

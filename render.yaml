@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: editron-collab-server
+    env: node
+    buildCommand: npm install
+    startCommand: npx tsx server/collab.ts
+    envVars:
+      - key: PORT
+        value: 1234
+      - key: NODE_ENV
+        value: production
+      # Add your AUTH_SECRET and DATABASE_URL here in the Render Dashboard securely!
