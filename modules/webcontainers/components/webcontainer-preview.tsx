@@ -46,8 +46,74 @@ const WebContainerPreview = ({
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [isSetupInProgress, setIsSetupInProgress] = useState(false);
+  const [installProgress, setInstallProgress] = useState({
+    totalDeps: 0,
+    installedPackages: 0,
+    progressPercent: 0,
+    statusText: "",
+  });
   const terminalRef = useRef<any>(null);
   const setupInProgressRef = useRef(false);
+
+  // Helper to count dependencies from package.json content
+  const countDependencies = (pkgContent: string): number => {
+    try {
+      const pkg = JSON.parse(pkgContent);
+      const deps = Object.keys(pkg.dependencies || {}).length;
+      const devDeps = Object.keys(pkg.devDependencies || {}).length;
+      return deps + devDeps;
+    } catch {
+      return 0;
+    }
+  };
+
+  // Helper to create a writable stream that parses npm output for install progress
+  const createInstallOutputStream = (totalDeps: number) => {
+    let estimatedProgress = 0;
+    return new WritableStream({
+      write(data: string) {
+        if (terminalRef.current?.writeToTerminal) {
+          terminalRef.current.writeToTerminal(data);
+        }
+        // Parse npm output for progress signals
+        const addedMatch = data.match(/added (\d+) packages?/i);
+        if (addedMatch) {
+          const added = parseInt(addedMatch[1], 10);
+          setInstallProgress((prev) => ({
+            ...prev,
+            installedPackages: added,
+            progressPercent: 100,
+            statusText: `Installed ${added} packages`,
+          }));
+          return;
+        }
+        // Detect resolution / reify / etc. phases
+        if (data.includes("reify:") || data.includes("idealTree")) {
+          estimatedProgress = Math.min(estimatedProgress + 2, 85);
+          setInstallProgress((prev) => ({
+            ...prev,
+            progressPercent: estimatedProgress,
+            statusText: "Resolving dependency tree...",
+          }));
+        } else if (data.includes("http fetch") || data.includes("GET ")) {
+          estimatedProgress = Math.min(estimatedProgress + 1, 70);
+          setInstallProgress((prev) => ({
+            ...prev,
+            progressPercent: estimatedProgress,
+            statusText: "Fetching packages...",
+          }));
+        } else if (data.includes("WARN") || data.includes("warn")) {
+          // Don't update progress on warnings
+        } else if (data.trim().length > 0 && estimatedProgress < 90) {
+          estimatedProgress = Math.min(estimatedProgress + 0.5, 90);
+          setInstallProgress((prev) => ({
+            ...prev,
+            progressPercent: Math.round(estimatedProgress),
+          }));
+        }
+      },
+    });
+  };
 
   // Reset setup state when forceResetup changes
   useEffect(() => {
@@ -117,21 +183,21 @@ const WebContainerPreview = ({
             setLoadingState((prev) => ({ ...prev, installing: true }));
 
             // Reinstall dependencies first (ensures local CLIs like ng, vite are available)
+            // Count deps for progress bar
+            let reconnectTotalDeps = 0;
+            try {
+              const pkgContent = await instance.fs.readFile("package.json", "utf8");
+              reconnectTotalDeps = countDependencies(pkgContent);
+            } catch { }
+            setInstallProgress({ totalDeps: reconnectTotalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
+
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                "📦 Reinstalling dependencies...\r\n"
+                `📦 Reinstalling dependencies (${reconnectTotalDeps} packages)...\r\n`
               );
             }
             const reinstallProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
-            reinstallProcess.output.pipeTo(
-              new WritableStream({
-                write(data) {
-                  if (terminalRef.current?.writeToTerminal) {
-                    terminalRef.current.writeToTerminal(data);
-                  }
-                },
-              })
-            );
+            reinstallProcess.output.pipeTo(createInstallOutputStream(reconnectTotalDeps));
             const reinstallExitCode = await reinstallProcess.exit;
             if (reinstallExitCode !== 0) {
               if (terminalRef.current?.writeToTerminal) {
@@ -324,23 +390,23 @@ const WebContainerPreview = ({
 
         // Step-3 Install dependencies
 
+        // Count total dependencies for progress bar
+        let totalDeps = 0;
+        try {
+          const pkgContent = await instance.fs.readFile("package.json", "utf8");
+          totalDeps = countDependencies(pkgContent);
+        } catch { }
+        setInstallProgress({ totalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
+
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "📦 Installing dependencies...\r\n"
+            `📦 Installing dependencies (${totalDeps} packages)...\r\n`
           );
         }
 
         const installProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
 
-        installProcess.output.pipeTo(
-          new WritableStream({
-            write(data) {
-              if (terminalRef.current?.writeToTerminal) {
-                terminalRef.current.writeToTerminal(data);
-              }
-            },
-          })
-        );
+        installProcess.output.pipeTo(createInstallOutputStream(totalDeps));
 
         const installExitCode = await installProcess.exit;
 
@@ -511,9 +577,28 @@ const WebContainerPreview = ({
                 {getStepIcon(2)}
                 {getStepText(2, "Mounting files")}
               </div>
-              <div className="flex items-center gap-3">
-                {getStepIcon(3)}
-                {getStepText(3, "Installing dependencies")}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  {getStepIcon(3)}
+                  {getStepText(3, "Installing dependencies")}
+                </div>
+                {currentStep === 3 && (
+                  <div className="ml-8 space-y-1.5">
+                    <Progress
+                      value={installProgress.progressPercent}
+                      className="h-1.5"
+                    />
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>{installProgress.statusText || "Preparing..."}</span>
+                      <span className="font-mono">{installProgress.progressPercent}%</span>
+                    </div>
+                    {installProgress.totalDeps > 0 && (
+                      <span className="text-[11px] text-muted-foreground/60">
+                        {installProgress.totalDeps} direct dependencies
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 {getStepIcon(4)}
