@@ -12,9 +12,13 @@ export function getOrCreateYDoc(roomId: string) {
     const doc = new Y.Doc();
 
     // Connect to the collaboration server
-    // In development, it's typically ws://localhost:1234
-    // In production, use the environment variable
-    const serverUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL || "ws://localhost:1234";
+    let serverUrl = "ws://localhost:1234";
+    if (process.env.NEXT_PUBLIC_COLLAB_SERVER_URL) {
+        serverUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL;
+    } else if (typeof window !== "undefined") {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        serverUrl = `${protocol}//${window.location.hostname}:1234`;
+    }
 
     const provider = new WebsocketProvider(serverUrl, roomId, doc);
 
