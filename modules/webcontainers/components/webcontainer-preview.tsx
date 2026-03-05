@@ -115,6 +115,99 @@ const WebContainerPreview = ({
     });
   };
 
+  // Helper to detect package manager
+  const detectPackageManager = async (instance: WebContainer): Promise<"npm" | "yarn" | "pnpm"> => {
+    try {
+      if (await instance.fs.readFile("pnpm-lock.yaml", "utf8").catch(() => null)) return "pnpm";
+      if (await instance.fs.readFile("yarn.lock", "utf8").catch(() => null)) return "yarn";
+      return "npm"; // Default
+    } catch {
+      return "npm";
+    }
+  };
+
+  // Helper to determine the best start script and command
+  const resolveStartCommand = async (instance: WebContainer, pkgManager: string, packageJsonString: string) => {
+    try {
+      const pkg = JSON.parse(packageJsonString);
+      const scripts = pkg.scripts || {};
+
+      // Check for monorepo configuration
+      let isMonorepo = false;
+      let workspaces: string[] = [];
+
+      if (pkg.workspaces) {
+        isMonorepo = true;
+        workspaces = Array.isArray(pkg.workspaces) ? pkg.workspaces : (pkg.workspaces.packages || []);
+      } else {
+        const pnpmWorkspace = await instance.fs.readFile("pnpm-workspace.yaml", "utf8").catch(() => null);
+        if (pnpmWorkspace) {
+          isMonorepo = true;
+          // Simple regex to extract packages from yaml
+          const matches = [...pnpmWorkspace.matchAll(/-\s+['"]?([^'"\n]+)['"]?/g)];
+          workspaces = matches.map(m => m[1]);
+        }
+      }
+
+      if (isMonorepo && workspaces.length > 0) {
+        if (terminalRef.current?.writeToTerminal) {
+          terminalRef.current.writeToTerminal(
+            `\x1b[36mℹ Detected monorepo structure with package manager: ${pkgManager}\x1b[0m\r\n`
+          );
+        }
+
+        // Find the most likely frontend workspace (client, web, app, frontend)
+        const frontendKeywords = ["client", "web", "app", "ui", "frontend", "docs"];
+        let bestWorkspaceDir = "";
+        let bestScript = "";
+        let bestWorkspaceName = "";
+
+        // Since workspaces often have globs (e.g., "apps/*", "packages/*"), we check common directories
+        const dirsToCheck = ["client", "web", "app", "frontend", "apps/web", "apps/client", "packages/web"];
+
+        for (const dir of dirsToCheck) {
+          try {
+            const childPkgContent = await instance.fs.readFile(`${dir}/package.json`, "utf8");
+            const childPkg = JSON.parse(childPkgContent);
+            const childScripts = childPkg.scripts || {};
+
+            if (childScripts.dev || childScripts.start || childScripts.serve) {
+              bestWorkspaceDir = dir;
+              bestWorkspaceName = childPkg.name || dir;
+              bestScript = childScripts.dev ? "dev" : (childScripts.start ? "start" : "serve");
+              break;
+            }
+          } catch (e) { }
+        }
+
+        if (bestWorkspaceDir && bestScript) {
+          if (terminalRef.current?.writeToTerminal) {
+            terminalRef.current.writeToTerminal(
+              `\x1b[36mℹ Found frontend workspace: ${bestWorkspaceDir} (script: ${bestScript})\x1b[0m\r\n`
+            );
+          }
+
+          if (pkgManager === "pnpm" && bestWorkspaceName) {
+            return { cmd: "pnpm", args: ["--filter", bestWorkspaceName, "run", bestScript] };
+          } else if (pkgManager === "yarn") {
+            return { cmd: "yarn", args: ["workspace", bestWorkspaceName, "run", bestScript] };
+          } else {
+            return { cmd: "npm", args: ["run", bestScript, "--workspace=" + bestWorkspaceName] };
+          }
+        }
+      }
+
+      // Standard single-package resolution: Prefer dev over start for frontend tools
+      if (scripts.dev) return { cmd: pkgManager, args: ["run", "dev"] };
+      if (scripts.start) return { cmd: pkgManager, args: ["run", "start"] };
+      if (scripts.serve) return { cmd: pkgManager, args: ["run", "serve"] };
+
+      return { cmd: pkgManager, args: ["run", "start"] }; // Fallback
+    } catch (e) {
+      return { cmd: pkgManager, args: ["run", "start"] };
+    }
+  };
+
   // Reset setup state when forceResetup changes
   useEffect(() => {
     if (forceResetup) {
@@ -182,27 +275,33 @@ const WebContainerPreview = ({
             setCurrentStep(3);
             setLoadingState((prev) => ({ ...prev, installing: true }));
 
+            // Detect Package Manager
+            const pkgManager = await detectPackageManager(instance);
+
             // Reinstall dependencies first (ensures local CLIs like ng, vite are available)
             // Count deps for progress bar
             let reconnectTotalDeps = 0;
+            let pkgContent = "";
             try {
-              const pkgContent = await instance.fs.readFile("package.json", "utf8");
+              pkgContent = await instance.fs.readFile("package.json", "utf8");
               reconnectTotalDeps = countDependencies(pkgContent);
             } catch { }
             setInstallProgress({ totalDeps: reconnectTotalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
 
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                `📦 Reinstalling dependencies (${reconnectTotalDeps} packages)...\r\n`
+                `📦 Reinstalling dependencies using \x1b[33m${pkgManager}\x1b[0m (${reconnectTotalDeps} packages)...\r\n`
               );
             }
-            const reinstallProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
+
+            const installArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund"] : ["install"];
+            const reinstallProcess = await instance.spawn(pkgManager, installArgs);
             reinstallProcess.output.pipeTo(createInstallOutputStream(reconnectTotalDeps));
             const reinstallExitCode = await reinstallProcess.exit;
             if (reinstallExitCode !== 0) {
               if (terminalRef.current?.writeToTerminal) {
                 terminalRef.current.writeToTerminal(
-                  `⚠️ npm install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`
+                  `⚠️ ${pkgManager} install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`
                 );
               }
             } else {
@@ -217,12 +316,14 @@ const WebContainerPreview = ({
             setCurrentStep(4);
 
             // Now restart the server
+            const startCommand = await resolveStartCommand(instance, pkgManager, pkgContent);
+
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                "🚀 Restarting development server...\r\n"
+                `🚀 Restarting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`
               );
             }
-            const startProcess = await instance.spawn("npm", ["run", "start"]);
+            const startProcess = await instance.spawn(startCommand.cmd, startCommand.args);
             startProcess.output.pipeTo(
               new WritableStream({
                 write(data) {
@@ -389,22 +490,25 @@ const WebContainerPreview = ({
         setCurrentStep(3);
 
         // Step-3 Install dependencies
+        const pkgManager = await detectPackageManager(instance);
 
         // Count total dependencies for progress bar
         let totalDeps = 0;
+        let pckgContent = "";
         try {
-          const pkgContent = await instance.fs.readFile("package.json", "utf8");
-          totalDeps = countDependencies(pkgContent);
+          pckgContent = await instance.fs.readFile("package.json", "utf8");
+          totalDeps = countDependencies(pckgContent);
         } catch { }
         setInstallProgress({ totalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
 
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            `📦 Installing dependencies (${totalDeps} packages)...\r\n`
+            `📦 Installing dependencies using \x1b[33m${pkgManager}\x1b[0m (${totalDeps} packages)...\r\n`
           );
         }
 
-        const installProcess = await instance.spawn("npm", ["install", "--no-audit", "--no-fund"]);
+        const freshInstallArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund"] : ["install"];
+        const installProcess = await instance.spawn(pkgManager, freshInstallArgs);
 
         installProcess.output.pipeTo(createInstallOutputStream(totalDeps));
 
@@ -430,13 +534,15 @@ const WebContainerPreview = ({
 
         // STEP-4 Start The Server
 
+        const startCommand = await resolveStartCommand(instance, pkgManager, pckgContent);
+
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "🚀 Starting development server...\r\n"
+            `🚀 Starting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`
           );
         }
 
-        const startProcess = await instance.spawn("npm", ["run", "start"]);
+        const startProcess = await instance.spawn(startCommand.cmd, startCommand.args);
 
         instance.on("server-ready", (port: number, url: string) => {
           // todo: Terminal logic
