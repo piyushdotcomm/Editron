@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { GitBranch, Plus, Minus, Check, RefreshCw, Upload, Download, Loader2 } from "lucide-react";
+import { GitBranch, Plus, Minus, Check, RefreshCw, Upload, Download, Loader2, History } from "lucide-react";
 import { toast } from "sonner";
-import { initGitRepo, getGitStatus, stageGitFile, unstageGitFile, commitGitRepo, pushGitRepo, pullGitRepo } from "@/modules/playground/lib/git-utils";
+import { initGitRepo, getGitStatus, stageGitFile, unstageGitFile, commitGitRepo, pushGitRepo, pullGitRepo, getGitHistory } from "@/modules/playground/lib/git-utils";
 
 export function SourceControl({
     templateData,
@@ -20,6 +20,7 @@ export function SourceControl({
     instance: any;
 }) {
     const [status, setStatus] = useState<any[]>([]);
+    const [history, setHistory] = useState<any[]>([]);
     const [commitMessage, setCommitMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
@@ -46,7 +47,9 @@ export function SourceControl({
         setIsLoading(true);
         try {
             const gitStatus = await getGitStatus(instance, "/");
+            const gitHistory = await getGitHistory(instance, "/", 15);
             setStatus(gitStatus);
+            setHistory(gitHistory);
         } catch (err) {
             console.error("Failed to get git status:", err);
         } finally {
@@ -253,6 +256,30 @@ export function SourceControl({
                         </div>
                     )}
                 </div>
+
+                {/* Commit History */}
+                {history.length > 0 && (
+                    <div className="space-y-1 pt-2 border-t mt-4">
+                        <div className="flex items-center gap-1 px-1 mb-2">
+                            <History className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-[10px] font-semibold uppercase text-muted-foreground">Recent Commits</span>
+                        </div>
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto pb-4 custom-scrollbar">
+                            {history.map((commit) => (
+                                <div key={commit.oid} className="px-2 py-1.5 rounded-sm bg-muted/40 text-xs flex flex-col gap-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium truncate pr-2" title={commit.message}>{commit.message}</span>
+                                        <span className="text-[9px] text-muted-foreground font-mono shrink-0">{commit.oid.substring(0, 7)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                        <span className="truncate">{commit.author}</span>
+                                        <span className="shrink-0">{new Date(commit.timestamp * 1000).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
             </SidebarGroupContent>
         </SidebarGroup>

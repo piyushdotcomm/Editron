@@ -160,6 +160,21 @@ export async function commitGitRepo(instance: WebContainer, dir: string, message
     });
 }
 
+export async function getGitHistory(instance: WebContainer, dir: string = "/", depth: number = 10) {
+    const fs = createGitFS(instance);
+    try {
+        const commits = await git.log({ fs, dir, depth });
+        return commits.map(c => ({
+            oid: c.oid,
+            message: c.commit.message,
+            author: c.commit.author.name,
+            timestamp: c.commit.author.timestamp
+        }));
+    } catch {
+        return [];
+    }
+}
+
 export async function pushGitRepo(instance: WebContainer, dir: string, params: {
     githubToken: string;
     repoUrl: string; // e.g., https://github.com/owner/repo
@@ -178,12 +193,14 @@ export async function pushGitRepo(instance: WebContainer, dir: string, params: {
         // remote already exists, that's fine
     }
 
+    const currentBranch = await git.currentBranch({ fs, dir }) || 'main';
+
     return await git.push({
         fs,
         http,
         dir,
         remote: 'origin',
-        ref: 'main',
+        ref: currentBranch,
         corsProxy: 'https://cors.isomorphic-git.org',
         onAuth: () => ({ username: params.githubToken, password: '' }),
     });
@@ -207,11 +224,13 @@ export async function pullGitRepo(instance: WebContainer, dir: string, params: {
         // remote already exists, that's fine
     }
 
+    const currentBranch = await git.currentBranch({ fs, dir }) || 'main';
+
     return await git.pull({
         fs,
         http,
         dir,
-        ref: 'main',
+        ref: currentBranch,
         singleBranch: true,
         corsProxy: 'https://cors.isomorphic-git.org',
         author: {

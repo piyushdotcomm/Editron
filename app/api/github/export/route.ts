@@ -90,8 +90,18 @@ export async function POST(req: Request) {
         }
 
         // 2. We use the lower-level Git Data API to commit multiple files at once.
-        // First, get the reference to the main branch
-        const refRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/main`, {
+        // First, get the repository details to find the default branch
+        let defaultBranch = "main";
+        const repoDetailsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (repoDetailsRes.ok) {
+            const repoDetails = await repoDetailsRes.json();
+            defaultBranch = repoDetails.default_branch || "main";
+        }
+
+        // Get the reference to the default branch
+        const refRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${defaultBranch}`, {
             headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github.v3+json" }
         });
 
@@ -158,7 +168,7 @@ export async function POST(req: Request) {
         const newCommitData = await createCommitRes.json();
 
         // 5. Update the reference (push)
-        const updateRefRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/main`, {
+        const updateRefRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, {
             method: "PATCH",
             headers: {
                 Authorization: `Bearer ${token}`,
