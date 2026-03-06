@@ -80,12 +80,20 @@ import { StatusBar } from "@/modules/playground/components/status-bar";
 import { WelcomeScreen } from "@/modules/playground/components/welcome-screen";
 import { Breadcrumbs } from "@/modules/playground/components/breadcrumbs";
 import { CommandPalette } from "@/modules/playground/components/command-palette";
+import { PackageManager } from "@/modules/playground/components/package-manager";
+import { EnvManager } from "@/modules/playground/components/env-manager";
+import { SourceControl } from "@/modules/playground/components/source-control";
+import { DeployDialog } from "@/modules/playground/components/deploy-dialog";
+import { GithubExportDialog } from "@/modules/playground/components/github-export-dialog";
+import { Rocket, Github } from "lucide-react";
 
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
+  const [isGithubExportOpen, setIsGithubExportOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
@@ -468,6 +476,18 @@ const MainPlaygroundPage = () => {
           onRenameFile={wrappedHandleRenameFile}
           onRenameFolder={wrappedHandleRenameFolder}
         />
+        {/* We add PackageManager and EnvManager below the FileTree in the sidebar */}
+        <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] overflow-y-auto border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300">
+          <PackageManager
+            templateData={templateData}
+            instance={instance}
+          />
+          <EnvManager
+            templateData={templateData}
+            instance={instance}
+            writeFileSync={writeFileSync!}
+          />
+        </div>
         <SidebarInset>
           {/* ==== HEADER ==== */}
           <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
@@ -533,6 +553,44 @@ const MainPlaygroundPage = () => {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{isPreviewVisible ? "Hide" : "Show"} Preview (Ctrl+\)</TooltipContent>
+              </Tooltip>
+
+              <div className="mx-1 h-4 w-px bg-border" />
+
+              {/* Deploy */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="h-7 px-2.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                    onClick={() => setIsDeployDialogOpen(true)}
+                    aria-label="Deploy to Cloud"
+                  >
+                    <Rocket className="h-3.5 w-3.5 mr-1" />
+                    Deploy
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Deploy to Vercel/Netlify</TooltipContent>
+              </Tooltip>
+
+              <div className="mx-1 h-4 w-px bg-border" />
+
+              {/* GitHub Export */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 px-2.5 text-xs"
+                    onClick={() => setIsGithubExportOpen(true)}
+                    aria-label="Export to GitHub"
+                  >
+                    <Github className="h-3.5 w-3.5 mr-1" />
+                    Export
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create GitHub Repository</TooltipContent>
               </Tooltip>
 
               <div className="mx-1 h-4 w-px bg-border" />
@@ -750,6 +808,7 @@ const MainPlaygroundPage = () => {
         {/* Command Palette */}
         <CommandPalette
           open={isCommandPaletteOpen}
+          // ... existing props
           onOpenChange={setIsCommandPaletteOpen}
           templateData={templateData}
           onFileSelect={handleFileSelect}
@@ -762,6 +821,20 @@ const MainPlaygroundPage = () => {
           onOpenSettings={() => setShowAISettings(true)}
           onCloseAllFiles={closeAllFiles}
           isPreviewVisible={isPreviewVisible}
+        />
+
+        <DeployDialog
+          open={isDeployDialogOpen}
+          onOpenChange={setIsDeployDialogOpen}
+          templateData={templateData}
+          projectName={playgroundData?.title}
+        />
+
+        <GithubExportDialog
+          open={isGithubExportOpen}
+          onOpenChange={setIsGithubExportOpen}
+          templateData={templateData}
+          defaultRepoName={playgroundData?.title}
         />
       </>
     </TooltipProvider>
