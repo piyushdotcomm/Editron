@@ -477,20 +477,22 @@ const MainPlaygroundPage = () => {
           onRenameFolder={wrappedHandleRenameFolder}
         />
         {/* We add PackageManager, EnvManager, and SourceControl below the FileTree in the sidebar */}
-        <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] overflow-y-auto border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300 custom-scrollbar pb-8">
-          <SourceControl
-            templateData={templateData}
-            instance={instance}
-          />
-          <PackageManager
-            templateData={templateData}
-            instance={instance}
-          />
-          <EnvManager
-            templateData={templateData}
-            instance={instance}
-            writeFileSync={writeFileSync!}
-          />
+        <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] flex flex-col border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300">
+          <div className="flex-1 overflow-y-auto custom-scrollbar pb-8">
+            <SourceControl
+              templateData={templateData}
+              instance={instance}
+            />
+            <PackageManager
+              templateData={templateData}
+              instance={instance}
+            />
+            <EnvManager
+              templateData={templateData}
+              instance={instance}
+              writeFileSync={writeFileSync!}
+            />
+          </div>
         </div>
         <SidebarInset>
           {/* ==== HEADER ==== */}

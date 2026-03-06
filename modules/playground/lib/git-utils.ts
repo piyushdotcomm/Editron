@@ -64,7 +64,7 @@ async function mockStat(instance: WebContainer, filepath: string) {
             isDirectory: () => false,
             isSymbolicLink: () => false,
             size: content.length,
-            mtimeMs: Date.now(),
+            mtimeMs: 1672531200000, // Static stable timestamp to avoid unnecessary re-hashing
             ino: 0,
             dev: 0,
             mode: 0o100644,
@@ -111,7 +111,11 @@ export async function getGitStatus(instance: WebContainer, dir: string = "/") {
         return [];
     }
 
-    const matrix = await git.statusMatrix({ fs, dir });
+    const matrix = await git.statusMatrix({
+        fs,
+        dir,
+        filter: (f) => !f.startsWith('node_modules/') && !f.startsWith('.next/') && f !== '.git'
+    });
 
     // Matrix format: [filepath, HEAD, WORKDIR, STAGE]
     // 0 = absent, 1 = present, 2 = present in index but diff in workdir
