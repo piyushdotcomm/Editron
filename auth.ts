@@ -78,6 +78,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               sessionState: account.session_state,
             },
           });
+        } else {
+          // Update the access token and other details for existing accounts
+          await db.account.update({
+            where: { id: existingAccount.id },
+            data: {
+              accessToken: account.access_token,
+              refreshToken: account.refresh_token,
+              expiresAt: account.expires_at,
+              scope: account.scope,
+              idToken: account.id_token,
+              // @ts-ignore
+              sessionState: account.session_state,
+            }
+          });
         }
       }
 
