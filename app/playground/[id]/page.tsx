@@ -476,8 +476,12 @@ const MainPlaygroundPage = () => {
           onRenameFile={wrappedHandleRenameFile}
           onRenameFolder={wrappedHandleRenameFolder}
         />
-        {/* We add PackageManager and EnvManager below the FileTree in the sidebar */}
-        <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] overflow-y-auto border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300">
+        {/* We add PackageManager, EnvManager, and SourceControl below the FileTree in the sidebar */}
+        <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] overflow-y-auto border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300 custom-scrollbar pb-8">
+          <SourceControl
+            templateData={templateData}
+            instance={instance}
+          />
           <PackageManager
             templateData={templateData}
             instance={instance}
