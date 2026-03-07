@@ -124,12 +124,16 @@ export async function getGitStatus(instance: WebContainer, dir: string = "/") {
         const [filepath, head, workdir, stage] = row;
 
         let status = "unmodified";
-        if (head === 0 && workdir === 1 && stage === 0) status = "added, unstaged"; // new, untracked
-        if (head === 0 && workdir === 1 && stage === 1) status = "added, staged";
-        if (head === 1 && workdir === 1 && stage === 0) status = "modified, unstaged";
-        if (head === 1 && workdir === 1 && stage === 1) status = "modified, staged";
-        if (head === 1 && workdir === 0 && stage === 1) status = "deleted, unstaged";
-        if (head === 1 && workdir === 0 && stage === 0) status = "deleted, staged";
+        const state = `${head},${workdir},${stage}`;
+
+        if (state === "0,2,0") status = "added, unstaged";
+        else if (state === "0,2,2") status = "added, staged";
+        else if (state === "0,2,3") status = "added, unstaged";
+        else if (state === "1,2,1") status = "modified, unstaged";
+        else if (state === "1,2,2") status = "modified, staged";
+        else if (state === "1,2,3") status = "modified, unstaged";
+        else if (state === "1,0,1") status = "deleted, unstaged";
+        else if (state === "1,0,0") status = "deleted, staged";
 
         return {
             filepath,
