@@ -157,7 +157,7 @@ export const templates: TemplateOption[] = [
         name: "Next.js",
         description:
             "The React framework for production with server-side rendering and static site generation",
-        icon: "/next.svg",
+        icon: "/nextjs-icon.svg",
         color: "#000000",
         popularity: 5,
         tags: ["React", "SSR", "Fullstack"],
@@ -169,7 +169,7 @@ export const templates: TemplateOption[] = [
         name: "Next.js + shadcn/ui",
         description:
             "Next.js with shadcn/ui component library pre-configured for beautiful, accessible UIs",
-        icon: "/next.svg",
+        icon: "/nextjs-icon.svg",
         color: "#000000",
         popularity: 4,
         tags: ["React", "shadcn", "Fullstack"],
@@ -415,7 +415,7 @@ export const templates: TemplateOption[] = [
         name: "Blank Canvas",
         description:
             "A completely empty project with just an index.html - start from absolute zero",
-        icon: "/file.svg", // Using a generic file icon or similar if available
+        icon: "/add-new.svg", // Using a generic file icon or similar if available
         color: "#888888",
         popularity: 5,
         tags: ["HTML", "Blank", "Clean"],
