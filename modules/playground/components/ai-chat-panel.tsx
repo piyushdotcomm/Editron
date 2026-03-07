@@ -221,71 +221,71 @@ export default function AIChatPanel({
     return (
         <Sheet open={isChatOpen} onOpenChange={(open) => !open && closeChat()}>
             <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
-                <SheetHeader className="p-4 pb-3 border-b">
+                <SheetHeader className="p-4 pb-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
                     <div className="flex items-center justify-between pr-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
-                                <Bot className="h-4 w-4 text-white" />
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-sm">
+                                <Bot className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <SheetTitle className="text-sm">AI Agent</SheetTitle>
-                                <SheetDescription className="text-xs">
-                                    Can read & edit your files
+                                <SheetTitle className="text-sm font-semibold tracking-tight">AI Assistant</SheetTitle>
+                                <SheetDescription className="text-[11px] font-medium opacity-80">
+                                    Project Context Enabled
                                 </SheetDescription>
                             </div>
                         </div>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={clearChat} title="Clear chat">
-                            <Trash2 className="h-3.5 w-3.5" />
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" onClick={clearChat} title="Clear chat">
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
                 </SheetHeader>
 
-                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
                     {messages.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-3">
-                            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-blue-600/20 flex items-center justify-center">
-                                <Bot className="h-6 w-6 text-violet-500" />
+                        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-4 animate-in fade-in duration-700">
+                            <div className="h-16 w-16 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center justify-center border border-primary/10 shadow-sm">
+                                <Sparkles className="h-8 w-8 text-purple-500" />
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-foreground">AI Agent</p>
-                                <p className="text-xs mt-1 leading-relaxed">
-                                    I can read and edit files in your project.
-                                    <br />
-                                    Try: &quot;Create a login page&quot;
+                            <div className="max-w-[80%]">
+                                <p className="text-sm font-semibold text-foreground tracking-tight">How can I help you code?</p>
+                                <p className="text-xs mt-2 leading-relaxed opacity-80">
+                                    I can read your configuration, scaffold new components, or debug existing files.
                                 </p>
                             </div>
                         </div>
                     )}
 
                     {messages.map((msg: any) => (
-                        <div key={msg.id}>
+                        <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-300">
                             {msg.role === "user" && (
-                                <div className="flex gap-2 justify-end">
-                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-3 py-2 max-w-[85%] text-sm whitespace-pre-wrap">
+                                <div className="flex gap-2 justify-end mb-4">
+                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap">
                                         {(msg as any).content}
                                     </div>
-                                    <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center shrink-0 mt-1">
-                                        <User className="h-3 w-3" />
+                                    <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                                        <User className="h-3.5 w-3.5 text-primary" />
                                     </div>
                                 </div>
                             )}
                             {msg.role === "assistant" && (
-                                <div className="flex gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center shrink-0 mt-1">
-                                        <Bot className="h-3 w-3 text-white" />
+                                <div className="flex gap-3 mb-6">
+                                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                        <Bot className="h-3.5 w-3.5 text-white" />
                                     </div>
-                                    <div className="flex-1 space-y-2">
+                                    <div className="flex-1 space-y-2 min-w-0">
                                         {(msg as any).content && (
-                                            <div className="bg-muted rounded-2xl rounded-tl-sm px-3 py-2 max-w-[100%] text-sm whitespace-pre-wrap break-words">
+                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground shadow-sm">
                                                 {(msg as any).content}
                                             </div>
                                         )}
                                         {/* @ts-ignore - Vercel AI SDK types sometimes conflict on toolInvocations */}
                                         {(msg as any).toolInvocations?.map((ti: any) => (
-                                            <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground border rounded-lg bg-muted/30">
-                                                <Wrench className="h-3 w-3 shrink-0" />
-                                                <span className="font-mono truncate">
-                                                    {ti.toolName}({ti.args && (ti.args as any).path ? (ti.args as any).path : ''}) {ti.state === 'result' ? '✓' : '...'}
+                                            <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border rounded-xl bg-muted/30 shadow-sm max-w-[90%]">
+                                                <div className="h-5 w-5 rounded-full bg-background flex items-center justify-center shrink-0 border shadow-sm">
+                                                    <Wrench className="h-2.5 w-2.5" />
+                                                </div>
+                                                <span className="font-mono truncate tracking-tight">
+                                                    {ti.toolName}({ti.args && (ti.args as any).path ? (ti.args as any).path.split('/').pop() : ''}) {ti.state === 'result' ? '✓' : <Loader2 className="h-3 w-3 inline animate-spin ml-1" />}
                                                 </span>
                                             </div>
                                         ))}
@@ -304,54 +304,61 @@ export default function AIChatPanel({
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="border-t bg-background">
-                    <form className="p-3 pb-2" onSubmit={(e) => { e.preventDefault(); if (input.trim() && !isLoading) handleSubmit(e); }}>
-                        <div className="flex gap-2 items-end">
-                            <textarea
-                                ref={inputRef}
-                                className="flex-1 text-sm bg-muted rounded-xl px-3 py-2.5 resize-none outline-none min-h-[40px] max-h-[120px] placeholder:text-muted-foreground"
-                                placeholder="Ask AI to edit your code..."
-                                value={input}
-                                onChange={handleInputChange}
-                                onKeyDown={handleKeyDown}
-                                rows={1}
-                                disabled={isLoading}
-                                onInput={(e) => {
-                                    const t = e.target as HTMLTextAreaElement;
-                                    t.style.height = "auto";
-                                    t.style.height = Math.min(t.scrollHeight, 120) + "px";
-                                }}
-                            />
+                <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 sticky bottom-0 z-10">
+                    <form className="relative flex items-end gap-2 bg-muted/40 border rounded-2xl p-1.5 shadow-sm focus-within:ring-1 focus-within:ring-primary/30 focus-within:border-primary/50 transition-all" onSubmit={(e) => { e.preventDefault(); if (input.trim() && !isLoading) handleSubmit(e); }}>
+                        <textarea
+                            ref={inputRef}
+                            className="flex-1 text-[13px] bg-transparent px-3 py-2.5 resize-none outline-none min-h-[40px] max-h-[160px] placeholder:text-muted-foreground/70 custom-scrollbar"
+                            placeholder="Message AI Assistant..."
+                            value={input}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            rows={1}
+                            disabled={isLoading}
+                            onInput={(e) => {
+                                const t = e.target as HTMLTextAreaElement;
+                                t.style.height = "auto";
+                                t.style.height = Math.min(t.scrollHeight, 160) + "px";
+                            }}
+                        />
+                        <div className="flex flex-col justify-end pb-1 pr-1 shrink-0">
                             <Button
                                 type="submit"
                                 size="icon"
-                                className="h-10 w-10 rounded-xl shrink-0"
+                                className={`h-8 w-8 rounded-xl shrink-0 transition-all ${(input ?? "").trim() && !isLoading
+                                        ? "bg-primary text-primary-foreground shadow-md hover:scale-105 active:scale-95"
+                                        : "bg-muted text-muted-foreground"
+                                    }`}
                                 disabled={!(input ?? "").trim() || isLoading}
                             >
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                             </Button>
                         </div>
                     </form>
 
-                    <div className="px-3 pb-3 relative" ref={pickerRef}>
+                    <div className="mt-3 flex items-center justify-between px-1 relative" ref={pickerRef}>
                         <button
                             type="button"
-                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded-md hover:bg-muted"
+                            className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-all py-1 px-2 rounded-lg hover:bg-muted/50 border border-transparent hover:border-border"
                             onClick={() => setShowProviderPicker(!showProviderPicker)}
                         >
-                            {currentProvider.icon}
-                            <span className="font-medium">{currentProvider.label}</span>
-                            <ChevronDown className="h-3 w-3" />
+                            <span className="opacity-70">{currentProvider.icon}</span>
+                            <span>{currentProvider.label}</span>
+                            <ChevronDown className="h-3 w-3 opacity-50" />
                         </button>
 
+                        <span className="text-[10px] text-muted-foreground/60 mr-2 font-mono tracking-tight">
+                            ⏎ to send
+                        </span>
+
                         {showProviderPicker && (
-                            <div className="absolute bottom-full left-3 mb-1 bg-popover border rounded-lg shadow-lg p-1 min-w-[140px] z-50">
+                            <div className="absolute bottom-full left-0 mb-2 bg-background border rounded-xl shadow-lg shadow-black/5 p-1 min-w-[140px] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
                                 {PROVIDERS.map((p) => (
                                     <button
                                         key={p.id}
                                         type="button"
-                                        className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs rounded-md transition-colors ${provider === p.id
-                                            ? "bg-accent text-accent-foreground font-medium"
+                                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg transition-colors ${provider === p.id
+                                            ? "bg-primary/10 text-primary font-medium"
                                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                             }`}
                                         onClick={() => {
@@ -359,7 +366,7 @@ export default function AIChatPanel({
                                             setShowProviderPicker(false);
                                         }}
                                     >
-                                        {p.icon}
+                                        <span className={provider === p.id ? "opacity-100" : "opacity-60"}>{p.icon}</span>
                                         {p.label}
                                     </button>
                                 ))}

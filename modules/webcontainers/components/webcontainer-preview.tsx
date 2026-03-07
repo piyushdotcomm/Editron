@@ -725,93 +725,107 @@ const WebContainerPreview = ({
         </div>
       ) : (
         <div className="h-full flex flex-col min-h-0 bg-background">
-          {/* Browser-like preview bar */}
-          <div className="flex items-center gap-2 px-3 h-10 border-b bg-muted/30">
-            {/* Traffic lights */}
-            <div className="flex items-center gap-1 shrink-0">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
+          {/* Top Bar (Browser Controls) */}
+          <div className="flex items-center justify-between px-3 py-2 bg-[#f8f9fa] dark:bg-[#18181a] border-b border-border/40 drag-handle">
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] hover:bg-[#ff5f56]/80 cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:bg-[#ffbd2e]/80 cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] hover:bg-[#27c93f]/80 cursor-pointer shadow-sm" />
+              </div>
+
+              <div className="flex items-center gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-md hover:bg-muted/60 text-muted-foreground transition-colors"
+                  onClick={() => setRefreshKey((k) => k + 1)}
+                  title="Refresh preview"
+                >
+                  <RefreshCw size={13} className={status === "starting" ? "animate-spin text-primary" : ""} />
+                </Button>
+              </div>
             </div>
 
-            {/* Refresh */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 shrink-0"
-              onClick={() => setRefreshKey((k) => k + 1)}
-              aria-label="Refresh preview"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-
-            {/* URL bar */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 bg-background/80 border rounded-md px-2 h-6">
-                <Globe className="h-3 w-3 text-muted-foreground/60 shrink-0" />
-                <span className="text-[11px] text-muted-foreground truncate font-mono select-all">
-                  {previewUrl}
+            {/* URL Bar (Safari/Chrome style) */}
+            <div className="flex-1 max-w-md mx-4">
+              <div className="flex items-center justify-center gap-1.5 bg-background shadow-sm border rounded-lg px-3 h-7 mx-auto transition-all focus-within:ring-1 focus-within:ring-primary/20 hover:border-border cursor-text group">
+                <Globe className="h-3 w-3 text-muted-foreground/50 group-hover:text-muted-foreground shrink-0 transition-colors" />
+                <span className="text-[11px] font-medium text-foreground/80 truncate font-mono select-all">
+                  {previewUrl || "starting preview..."}
                 </span>
               </div>
             </div>
 
-            {/* Viewport toggles */}
-            <div className="flex items-center border rounded-md overflow-hidden shrink-0">
-              <button
-                onClick={() => setViewport("desktop")}
-                className={`h-6 w-7 flex items-center justify-center transition-colors ${viewport === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                aria-label="Desktop viewport"
-              >
-                <Monitor className="h-3 w-3" />
-              </button>
-              <button
-                onClick={() => setViewport("tablet")}
-                className={`h-6 w-7 flex items-center justify-center transition-colors border-x ${viewport === "tablet" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                aria-label="Tablet viewport"
-              >
-                <Tablet className="h-3 w-3" />
-              </button>
-              <button
-                onClick={() => setViewport("mobile")}
-                className={`h-6 w-7 flex items-center justify-center transition-colors ${viewport === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                aria-label="Mobile viewport"
-              >
-                <Smartphone className="h-3 w-3" />
-              </button>
-            </div>
+            {/* Viewport Toggles & External Link (Right aligned) */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center p-0.5 bg-muted/30 border rounded-lg overflow-hidden shadow-sm">
+                <button
+                  onClick={() => setViewport("desktop")}
+                  className={`h-6 w-7 flex items-center justify-center rounded-md transition-all ${viewport === "desktop" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-label="Desktop viewport"
+                >
+                  <Monitor className="h-3.5 w-3.5" />
+                </button>
+                <div className="w-px h-3 bg-border/50 mx-0.5" />
+                <button
+                  onClick={() => setViewport("tablet")}
+                  className={`h-6 w-7 flex items-center justify-center rounded-md transition-all ${viewport === "tablet" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-label="Tablet viewport"
+                >
+                  <Tablet className="h-3.5 w-3.5" />
+                </button>
+                <div className="w-px h-3 bg-border/50 mx-0.5" />
+                <button
+                  onClick={() => setViewport("mobile")}
+                  className={`h-6 w-7 flex items-center justify-center rounded-md transition-all ${viewport === "mobile" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-label="Mobile viewport"
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                </button>
+              </div>
 
-            {/* Open in new tab */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs flex items-center gap-1 shrink-0"
-              onClick={() => {
-                const url = `/preview?url=${encodeURIComponent(previewUrl)}`;
-                window.open(url, '_blank');
-              }}
-              aria-label="Open preview in new tab"
-            >
-              <ExternalLink size={12} />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 rounded-md hover:bg-muted/60 text-muted-foreground transition-colors"
+                onClick={() => {
+                  const url = `/preview?url=${encodeURIComponent(previewUrl)}`;
+                  window.open(url, '_blank');
+                }}
+                title="Open preview in new tab"
+              >
+                <ExternalLink size={13} />
+              </Button>
+            </div>
           </div>
 
-          {/* Preview iframe */}
-          <div className="flex-1 min-h-0 flex justify-center bg-muted/10">
-            <iframe
-              key={refreshKey}
-              src={previewUrl}
-              className="h-full border-none bg-white transition-all duration-300"
+          {/* Preview Iframe Container */}
+          <div className="flex-1 min-h-0 flex items-center justify-center bg-[#f0f0f0] dark:bg-[#0c0c0e] overflow-hidden relative">
+            <div
+              className="h-full relative transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] bg-background flex flex-col shadow-xl"
               style={{
                 width: viewport === "mobile" ? "375px" : viewport === "tablet" ? "768px" : "100%",
                 maxWidth: "100%",
               }}
-              title="WebContainer Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-            />
+            >
+              {viewport !== "desktop" && (
+                <div className="h-6 bg-muted/50 border-b flex items-center justify-center shrink-0">
+                  <div className="w-16 h-1 rounded-full bg-border" />
+                </div>
+              )}
+              <iframe
+                key={refreshKey}
+                src={previewUrl}
+                className="w-full h-full border-none bg-white block flex-1"
+                title="WebContainer Preview"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+              />
+            </div>
           </div>
 
-          {/* Terminal */}
-          <div className="h-64 border-t shrink-0">
+          {/* Terminal Section */}
+          <div className="h-[30vh] min-h-[150px] max-h-[80vh] border-t border-border/40 shrink-0 relative bg-background">
             <TerminalComponent
               ref={terminalRef}
               webContainerInstance={instance}
