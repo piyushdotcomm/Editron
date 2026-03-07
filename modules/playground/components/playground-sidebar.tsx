@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FolderOpen, Package, Server, Search, ChevronRight, ChevronDown } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
@@ -32,9 +33,15 @@ export const PlaygroundSidebar = ({
     wrappedHandleRenameFolder
 }: PlaygroundSidebarProps) => {
     const [activeTab, setActiveTab] = useState<"explorer" | "packages" | "env">("explorer");
+    const { state } = useSidebar();
 
     return (
-        <div className="absolute top-0 bottom-0 left-0 w-[var(--sidebar-width)] flex border-r bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300">
+        <div
+            data-state={state}
+            className="w-[18rem] shrink-0 flex h-screen border-r bg-sidebar z-10
+                       data-[state=collapsed]:w-0 data-[state=collapsed]:overflow-hidden
+                       transition-[width] duration-300 ease-linear"
+        >
             {/* Activity Bar (VS Code style) */}
             <div className="w-12 border-r flex flex-col items-center py-4 gap-4 bg-background">
                 <button
@@ -61,8 +68,8 @@ export const PlaygroundSidebar = ({
             </div>
 
             {/* Primary Sidebar Content */}
-            <div className="flex-1 flex flex-col pt-3 min-w-0 bg-[#f8f9fa] dark:bg-[#18181a]">
-                <div className="px-4 pb-2 mb-2 border-b">
+            <div className="flex-1 flex flex-col pt-3 min-w-0 bg-transparent">
+                <div className="px-4 pb-2 mb-2 border-b border-border/50">
                     <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {activeTab === "explorer" && "Explorer"}
                         {activeTab === "packages" && "Dependencies"}

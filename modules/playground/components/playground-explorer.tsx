@@ -21,8 +21,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Sidebar,
-  SidebarContent,
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
@@ -31,7 +29,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -152,8 +149,8 @@ export function TemplateFileTree({
   const filteredItems = isRootFolder ? filterItems((data as TemplateFolder).items, searchQuery) : [];
 
   return (
-    <Sidebar>
-      <SidebarContent>
+    <div className="flex flex-col w-full h-full">
+      <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
         <SidebarGroup>
           <SidebarGroupLabel>{title}</SidebarGroupLabel>
           <DropdownMenu>
@@ -235,8 +232,7 @@ export function TemplateFileTree({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
-      <SidebarRail />
+      </div>
 
       <NewFileDialog
         isOpen={isNewFileDialogOpen}
@@ -249,7 +245,7 @@ export function TemplateFileTree({
         onClose={() => setIsNewFolderDialogOpen(false)}
         onCreateFolder={handleCreateFolder}
       />
-    </Sidebar>
+    </div>
   );
 }
 

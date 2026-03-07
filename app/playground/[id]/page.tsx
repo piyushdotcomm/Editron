@@ -479,7 +479,10 @@ const MainPlaygroundPage = () => {
           wrappedHandleRenameFolder={wrappedHandleRenameFolder}
         />
 
-        <SidebarInset className="ml-[var(--sidebar-width)] md:ml-[var(--sidebar-width)] transition-[margin] ease-linear duration-200">
+        <SidebarInset
+          data-state={sidebar.state}
+          className="flex-1 w-auto min-w-0 transition-all ease-linear duration-300 relative bg-background"
+        >
           {/* ==== HEADER ==== */}
           <PlaygroundHeader
             id={id as string}
