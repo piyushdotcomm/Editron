@@ -82,10 +82,8 @@ import { Breadcrumbs } from "@/modules/playground/components/breadcrumbs";
 import { CommandPalette } from "@/modules/playground/components/command-palette";
 import { PackageManager } from "@/modules/playground/components/package-manager";
 import { EnvManager } from "@/modules/playground/components/env-manager";
-import { SourceControl } from "@/modules/playground/components/source-control";
 import { DeployDialog } from "@/modules/playground/components/deploy-dialog";
-import { GithubExportDialog } from "@/modules/playground/components/github-export-dialog";
-import { Rocket, Github } from "lucide-react";
+import { Rocket } from "lucide-react";
 
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -93,7 +91,6 @@ const MainPlaygroundPage = () => {
   const [showAISettings, setShowAISettings] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
-  const [isGithubExportOpen, setIsGithubExportOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
@@ -476,13 +473,9 @@ const MainPlaygroundPage = () => {
           onRenameFile={wrappedHandleRenameFile}
           onRenameFolder={wrappedHandleRenameFolder}
         />
-        {/* We add PackageManager, EnvManager, and SourceControl below the FileTree in the sidebar */}
+        {/* We add PackageManager, and EnvManager below the FileTree in the sidebar */}
         <div className="absolute top-[50%] bottom-0 w-[var(--sidebar-width)] flex flex-col border-t bg-sidebar group-data-[state=collapsed]:hidden z-10 transition-all duration-300">
           <div className="flex-1 overflow-y-auto custom-scrollbar pb-8">
-            <SourceControl
-              templateData={templateData}
-              instance={instance}
-            />
             <PackageManager
               templateData={templateData}
               instance={instance}
@@ -581,23 +574,6 @@ const MainPlaygroundPage = () => {
               </Tooltip>
 
               <div className="mx-1 h-4 w-px bg-border" />
-
-              {/* GitHub Export */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 px-2.5 text-xs"
-                    onClick={() => setIsGithubExportOpen(true)}
-                    aria-label="Export to GitHub"
-                  >
-                    <Github className="h-3.5 w-3.5 mr-1" />
-                    Export
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Create GitHub Repository</TooltipContent>
-              </Tooltip>
 
               <div className="mx-1 h-4 w-px bg-border" />
 
@@ -834,13 +810,6 @@ const MainPlaygroundPage = () => {
           onOpenChange={setIsDeployDialogOpen}
           templateData={templateData}
           projectName={playgroundData?.title}
-        />
-
-        <GithubExportDialog
-          open={isGithubExportOpen}
-          onOpenChange={setIsGithubExportOpen}
-          templateData={templateData}
-          defaultRepoName={playgroundData?.title}
         />
       </>
     </TooltipProvider>
