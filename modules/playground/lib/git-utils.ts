@@ -59,12 +59,16 @@ async function mockStat(instance: WebContainer, filepath: string) {
     try {
         // We can check if it's a directory by trying to read it
         const content = await instance.fs.readFile(filepath);
+        let hash = 0;
+        for (let i = 0; i < content.length; i++) {
+            hash = Math.imul(31, hash) + content[i] | 0;
+        }
         return {
             isFile: () => true,
             isDirectory: () => false,
             isSymbolicLink: () => false,
             size: content.length,
-            mtimeMs: 1672531200000, // Static stable timestamp to avoid unnecessary re-hashing
+            mtimeMs: Math.abs(hash) * 1000, // Dynamic timestamp based on content hash
             ino: 0,
             dev: 0,
             mode: 0o100644,
@@ -209,6 +213,7 @@ export async function pushGitRepo(instance: WebContainer, dir: string, params: {
         dir,
         remote: 'origin',
         ref: currentBranch,
+        force: true, // Allow force push since Export creates an unrelated commit history
         corsProxy: 'https://cors.isomorphic-git.org',
         onAuth: () => ({ username: params.githubToken, password: '' }),
     });
