@@ -36,7 +36,7 @@ export const PlaygroundTabBar = ({
                       relative h-9 px-4 text-[13px] border-r border-t rounded-t-lg rounded-b-none 
                       group transition-all duration-200 ease-in-out min-w-[120px] justify-start
                       ${isActive
-                                                ? "bg-background shadow-sm border-t-primary/30 text-foreground font-medium z-10 before:absolute before:inset-x-0 before:-top-px before:h-[2px] before:bg-primary before:rounded-t-lg"
+                                                ? "bg-background shadow-sm border-t-primary text-primary font-medium z-10 before:absolute before:inset-x-0 before:-top-px before:h-[2px] before:bg-primary before:rounded-t-lg"
                                                 : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                                             }
                     `}

@@ -152,43 +152,49 @@ export function TemplateFileTree({
     <div className="flex flex-col w-full h-full">
       <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
         <SidebarGroup>
-          <SidebarGroupLabel>{title}</SidebarGroupLabel>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarGroupAction>
-                <Plus className="h-4 w-4" />
-              </SidebarGroupAction>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleAddRootFile}>
-                <FilePlus className="h-4 w-4 mr-2" />
-                New File
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleAddRootFolder}>
-                <FolderPlus className="h-4 w-4 mr-2" />
-                New Folder
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-between px-2 cursor-default group/root-actions">
+            <SidebarGroupLabel className="px-1 font-semibold text-xs tracking-wider text-muted-foreground uppercase">{title}</SidebarGroupLabel>
 
-          {/* Search filter */}
-          <div className="px-2 pb-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/60" />
+            <div className="flex items-center gap-0.5 opacity-0 group-hover/root-actions:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                onClick={handleAddRootFile}
+                title="New File"
+              >
+                <FilePlus className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                onClick={handleAddRootFolder}
+                title="New Folder"
+              >
+                <FolderPlus className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Premium Search filter */}
+          <div className="px-3 pb-3 pt-1">
+            <div className="relative group/search">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 transition-colors group-focus-within/search:text-primary" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Filter files..."
-                className="h-7 text-xs pl-7 pr-7 bg-muted/30 border-border/50"
+                placeholder="Find in files..."
+                className="h-8 text-xs pl-9 pr-8 bg-black/5 dark:bg-white/5 border-transparent focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:bg-background rounded-full transition-all shadow-inner"
                 aria-label="Filter files"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
                   aria-label="Clear filter"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
@@ -327,11 +333,27 @@ function TemplateNode({
 
     return (
       <SidebarMenuItem>
-        <div className="flex items-center group">
+        <div
+          className="flex items-center group relative w-full h-8"
+          style={{ paddingLeft: `${level * 12}px` }}
+        >
+          {/* Tree Indentation Guide */}
+          {level > 0 && (
+            <div
+              className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
+              style={{ left: `${(level * 12) - 8}px` }}
+            />
+          )}
+
+          {/* Active File Line Indicator */}
+          {isSelected && (
+            <div className="absolute left-1 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary z-10" />
+          )}
+
           <SidebarMenuButton
             isActive={isSelected}
             onClick={() => onFileSelect?.(file)}
-            className="flex-1"
+            className={`flex-1 ${isSelected ? "bg-primary/10 text-primary font-medium" : ""}`}
           >
             <FileIcon extension={file.fileExtension} className="h-4 w-4 mr-2" />
             <span>{fileName}</span>
@@ -445,14 +467,46 @@ function TemplateNode({
           onOpenChange={setIsOpen}
           className="group/collapsible [&[data-state=open]>div>button>svg:first-child]:rotate-90"
         >
-          <div className="flex items-center group">
+          <div
+            className="flex items-center group/folder-actions relative w-full"
+            style={{ paddingLeft: `${level * 12}px` }}
+          >
+            {/* Tree Indentation Guide */}
+            {level > 0 && (
+              <div
+                className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
+                style={{ left: `${(level * 12) - 8}px` }}
+              />
+            )}
+
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton className="flex-1">
-                <ChevronRight className="transition-transform" />
-                <FolderIcon isOpen={isOpen} className="h-4 w-4 mr-2" />
-                <span>{folderName}</span>
+              <SidebarMenuButton className="flex-1 pr-16 group-data-[state=open]/collapsible:text-foreground">
+                <ChevronRight className="transition-transform h-4 w-4 -ml-1 text-muted-foreground/60" />
+                <FolderIcon isOpen={isOpen} className="h-4 w-4 mr-1.5" />
+                <span className="truncate">{folderName}</span>
               </SidebarMenuButton>
             </CollapsibleTrigger>
+
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/folder-actions:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm px-1 rounded-md">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                onClick={(e) => { e.stopPropagation(); handleAddFile(); }}
+                title="New File"
+              >
+                <FilePlus className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                onClick={(e) => { e.stopPropagation(); handleAddFolder(); }}
+                title="New Folder"
+              >
+                <FolderPlus className="h-3.5 w-3.5" />
+              </Button>
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
