@@ -13,7 +13,7 @@ export default function PlaygroundSkeleton() {
               <div
                 className="h-3 rounded bg-muted animate-shimmer"
                 style={{
-                  width: `${60 + Math.random() * 60}px`,
+                  width: `${60 + ((i * 7) % 60)}px`,
                   animationDelay: `${i * 0.1}s`,
                 }}
               />
@@ -26,7 +26,7 @@ export default function PlaygroundSkeleton() {
                 <div
                   className="h-3 rounded bg-muted animate-shimmer"
                   style={{
-                    width: `${40 + Math.random() * 50}px`,
+                    width: `${40 + ((i * 13) % 50)}px`,
                     animationDelay: `${(i + 6) * 0.1}s`,
                   }}
                 />
@@ -45,7 +45,7 @@ export default function PlaygroundSkeleton() {
               key={i}
               className="h-6 rounded-md bg-muted animate-shimmer"
               style={{
-                width: `${70 + Math.random() * 30}px`,
+                width: `${70 + ((i * 11) % 30)}px`,
                 animationDelay: `${i * 0.15}s`,
               }}
             />
@@ -73,7 +73,7 @@ export default function PlaygroundSkeleton() {
               <div
                 className="h-3 rounded bg-muted animate-shimmer"
                 style={{
-                  width: `${30 + Math.random() * 300}px`,
+                  width: `${30 + ((i * 23) % 300)}px`,
                   animationDelay: `${i * 0.05}s`,
                   marginLeft: i > 2 && i < 12 ? `${(i % 4) * 16}px` : "0px",
                 }}

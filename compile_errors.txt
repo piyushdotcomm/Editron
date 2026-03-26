@@ -1,0 +1,337 @@
+﻿.next/types/app/api/github/export/route.ts(2,24): error TS2307: Cannot find module '../../../../../../app/api/github/export/route.js' or its corresponding type declarations.
+.next/types/app/api/github/export/route.ts(5,29): error TS2307: Cannot find module '../../../../../../app/api/github/export/route.js' or its corresponding type declarations.
+.next/types/app/api/github/import/route.ts(2,24): error TS2307: Cannot find module '../../../../../../app/api/github/import/route.js' or its corresponding type declarations.
+.next/types/app/api/github/import/route.ts(5,29): error TS2307: Cannot find module '../../../../../../app/api/github/import/route.js' or its corresponding type declarations.
+app/api/chat/route.ts(30,9): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'parameters' does not exist in type 'Tool<never, never>'.
+app/api/chat/route.ts(36,9): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'parameters' does not exist in type 'Tool<never, never>'.
+app/api/chat/route.ts(43,9): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'parameters' does not exist in type 'Tool<never, never>'.
+app/api/chat/route.ts(52,9): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'parameters' does not exist in type 'Tool<never, never>'.
+app/api/chat/route.ts(144,13): error TS2353: Object literal may only specify known properties, and 'maxSteps' does not exist in type 'CallSettings & { system?: string | SystemModelMessage | SystemModelMessage[] | undefined; } & { messages: ModelMessage[]; prompt?: undefined; } & { ...; }'.
+app/api/chat/route.ts(147,29): error TS2551: Property 'toDataStreamResponse' does not exist on type 'StreamTextResult<{ read_file: Tool<unknown, unknown>; edit_file: Tool<unknown, unknown>; edit_multiple_files: Tool<unknown, unknown>; delete_file: Tool<unknown, unknown>; }, Output<string, string, never>>'. Did you mean 'toTextStreamResponse'?
+app/api/completion/route.ts(97,13): error TS2353: Object literal may only specify known properties, and 'maxTokens' does not exist in type 'CallSettings & { system?: string | SystemModelMessage | SystemModelMessage[] | undefined; } & { prompt: string | ModelMessage[]; messages?: undefined; } & { ...; }'.
+editron-starters/angular/src/main.ts(1,27): error TS2307: Cannot find module '@angular/core' or its corresponding type declarations.
+editron-starters/angular/src/main.ts(2,38): error TS2307: Cannot find module '@angular/platform-browser' or its corresponding type declarations.
+editron-starters/astro-shadcn/src/components/ui/calendar.tsx(55,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+editron-starters/astro-shadcn/src/components/ui/pagination.tsx(5,10): error TS2305: Module '"@/components/ui/button"' has no exported member 'ButtonProps'.
+editron-starters/astro-shadcn/src/components/ui/pagination.tsx(68,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/astro-shadcn/src/components/ui/pagination.tsx(84,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/astro-shadcn/src/components/ui/toast.tsx(2,34): error TS2307: Cannot find module '@radix-ui/react-toast' or its corresponding type declarations.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(1,26): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(9,8): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(16,31): error TS7031: Binding element 'id' implicitly has an 'any' type.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(16,35): error TS7031: Binding element 'title' implicitly has an 'any' type.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(16,42): error TS7031: Binding element 'description' implicitly has an 'any' type.
+editron-starters/astro-shadcn/src/components/ui/toaster.tsx(16,55): error TS7031: Binding element 'action' implicitly has an 'any' type.
+editron-starters/astro-shadcn/src/hooks/use-toast.ts(3,53): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/astro-shadcn/src/hooks/use-toast.ts(155,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+editron-starters/bolt-expo/app/+not-found.tsx(1,29): error TS2307: Cannot find module 'expo-router' or its corresponding type declarations.
+editron-starters/bolt-expo/app/+not-found.tsx(2,40): error TS2307: Cannot find module 'react-native' or its corresponding type declarations.
+editron-starters/bolt-expo/app/_layout.tsx(2,23): error TS2307: Cannot find module 'expo-router' or its corresponding type declarations.
+editron-starters/bolt-expo/app/_layout.tsx(3,27): error TS2307: Cannot find module 'expo-status-bar' or its corresponding type declarations.
+editron-starters/bolt-expo/app/_layout.tsx(4,35): error TS2307: Cannot find module '@/hooks/useFrameworkReady' or its corresponding type declarations.
+editron-starters/bolt-qwik/adapters/static/vite.config.ts(1,31): error TS2307: Cannot find module '@builder.io/qwik-city/adapters/static/vite' or its corresponding type declarations.
+editron-starters/bolt-qwik/adapters/static/vite.config.ts(2,30): error TS2307: Cannot find module '@builder.io/qwik-city/vite' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(1,46): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(3,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(20,23): error TS7006: Parameter 'm' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(24,24): error TS7006: Parameter 'l' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(28,25): error TS7006: Parameter 's' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/components/router-head/router-head.tsx(38,26): error TS7006: Parameter 's' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/components/starter/counter/counter.tsx(1,42): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/counter/counter.tsx(16,10): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/counter/counter.tsx(18,9): error TS2322: Type '{ children: string; class: string; onClick$: () => any; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/counter/counter.tsx(25,9): error TS2322: Type '{ children: string; class: string; onClick$: () => any; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/footer/footer.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/footer/footer.tsx(10,12): error TS2322: Type '{ children: Element; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/footer/footer.tsx(11,59): error TS2322: Type '{ children: Element[]; href: string; target: "_blank"; class: string; }' is not assignable to type 'DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/footer/footer.tsx(13,17): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(8,10): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(9,34): error TS2322: Type '{ children: Element[]; viewBox: string; class: string; }' is not assignable to type 'SVGProps<SVGSVGElement>'.
+  Property 'class' does not exist on type 'SVGProps<SVGSVGElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(22,11): error TS2559: Type 'string' has no properties in common with type 'Properties<string | number, string & {}>'.
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(30,11): error TS2559: Type 'string' has no properties in common with type 'Properties<string | number, string & {}>'.
+editron-starters/bolt-qwik/src/components/starter/gauge/index.tsx(35,13): error TS2322: Type '{ children: number; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/header/header.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/header/header.tsx(7,13): error TS2322: Type '{ children: Element; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/header/header.tsx(8,12): error TS2322: Type '{ children: Element[]; class: string[]; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/header/header.tsx(9,14): error TS2322: Type '{ children: Element; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(3,24): error TS2307: Cannot find module '../../../media/thunder.png?jsx' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(7,10): error TS2322: Type '{ children: Element[]; class: string[]; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(10,18): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(12,23): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(15,12): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(17,11): error TS2322: Type '{ children: string; onClick$: () => Promise<void>; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'onClick$' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'onClick'?
+editron-starters/bolt-qwik/src/components/starter/hero/hero.tsx(75,11): error TS2322: Type '{ children: string; href: string; target: "_blank"; class: string; }' is not assignable to type 'DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/infobox/infobox.tsx(1,34): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/infobox/infobox.tsx(6,10): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(1,55): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(38,8): error TS7006: Parameter 'e' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(46,10): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(50,15): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(52,12): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(55,11): error TS2322: Type 'string' is not assignable to type '{ __html: string | TrustedHTML; }'.
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(61,11): error TS2322: Type 'string | undefined' is not assignable to type '{ __html: string | TrustedHTML; } | undefined'.
+  Type 'string' is not assignable to type '{ __html: string | TrustedHTML; }'.
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(67,17): error TS2322: Type '{ children: any[]; class: string; onClick$: () => number; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/components/starter/next-steps/next-steps.tsx(73,11): error TS2322: Type '{ children: string; class: string; onClick$: () => number; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/entry.dev.tsx(12,44): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/entry.preview.tsx(13,32): error TS2307: Cannot find module '@builder.io/qwik-city/middleware/node' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/entry.preview.tsx(14,26): error TS2307: Cannot find module '@qwik-city-plan' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/entry.ssr.tsx(16,8): error TS2307: Cannot find module '@builder.io/qwik/server' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/entry.ssr.tsx(17,26): error TS2307: Cannot find module '@qwik-client-manifest' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/root.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/root.tsx(2,23): error TS2307: Cannot find module '@builder.io/qwik/build' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/root.tsx(7,8): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/root.tsx(23,15): error TS2322: Type '{ charset: string; }' is not assignable to type 'DetailedHTMLProps<MetaHTMLAttributes<HTMLMetaElement>, HTMLMetaElement>'.
+  Property 'charset' does not exist on type 'DetailedHTMLProps<MetaHTMLAttributes<HTMLMetaElement>, HTMLMetaElement>'. Did you mean 'charSet'?
+editron-starters/bolt-qwik/src/root.tsx(27,34): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(6,8): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(7,48): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(8,20): error TS2307: Cannot find module './flower.css?inline' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(19,22): error TS7031: Binding element 'cleanup' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(28,10): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(29,32): error TS2322: Type '{ role: "presentation"; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(31,15): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(35,9): error TS2322: Type '{ class: string; type: "range"; value: any; max: number; onInput$: (ev: any, el: any) => void; }' is not assignable to type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(39,20): error TS7006: Parameter 'ev' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(39,24): error TS7006: Parameter 'el' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(45,11): error TS2353: Object literal may only specify known properties, and ''--state'' does not exist in type 'Properties<string | number, string & {}>'.
+editron-starters/bolt-qwik/src/routes/demo/flower/index.tsx(59,22): error TS2353: Object literal may only specify known properties, and ''--index'' does not exist in type 'Properties<string | number, string & {}>'.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(9,8): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(23,4): error TS7006: Parameter 'item' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(40,12): error TS2322: Type '{ children: Element; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(42,17): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(46,32): error TS2322: Type '{ role: "presentation"; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(48,12): error TS2322: Type '{ children: Element; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(50,17): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(52,15): error TS2322: Type '{ children: any; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLUListElement>, HTMLUListElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLUListElement>, HTMLUListElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(53,30): error TS7006: Parameter 'item' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(53,36): error TS7006: Parameter 'index' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(60,12): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(62,51): error TS2322: Type '{ type: "text"; name: string; required: true; class: string; }' is not assignable to type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(63,33): error TS2322: Type '{ children: string; type: "submit"; class: string; }' is not assignable to type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/demo/todolist/index.tsx(68,12): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(1,28): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/index.tsx(2,35): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/index.tsx(15,32): error TS2322: Type '{ role: "presentation"; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(16,32): error TS2322: Type '{ role: "presentation"; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(18,12): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(20,25): error TS2322: Type '{ children: string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(26,12): error TS2322: Type '{ children: Element[]; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'class' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'className'?
+editron-starters/bolt-qwik/src/routes/index.tsx(28,16): error TS2322: Type '{ children: string; "q:slot": string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'q:slot' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'slot'?
+editron-starters/bolt-qwik/src/routes/index.tsx(57,18): error TS2322: Type '{ children: string; "q:slot": string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'q:slot' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'slot'?
+editron-starters/bolt-qwik/src/routes/index.tsx(67,18): error TS2322: Type '{ children: string; "q:slot": string; class: string; }' is not assignable to type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'.
+  Property 'q:slot' does not exist on type 'DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>'. Did you mean 'slot'?
+editron-starters/bolt-qwik/src/routes/layout.tsx(1,46): error TS2307: Cannot find module '@builder.io/qwik' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/layout.tsx(2,30): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/layout.tsx(3,37): error TS2307: Cannot find module '@builder.io/qwik-city' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/layout.tsx(8,20): error TS2307: Cannot find module './styles.css?inline' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/layout.tsx(10,47): error TS7031: Binding element 'cacheControl' implicitly has an 'any' type.
+editron-starters/bolt-qwik/src/routes/service-worker.ts(10,36): error TS2307: Cannot find module '@builder.io/qwik-city/service-worker' or its corresponding type declarations.
+editron-starters/bolt-qwik/src/routes/service-worker.ts(18,21): error TS2304: Cannot find name 'ServiceWorkerGlobalScope'.
+editron-starters/bolt-qwik/vite.config.ts(5,47): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+editron-starters/bolt-qwik/vite.config.ts(6,26): error TS2307: Cannot find module '@builder.io/qwik/optimizer' or its corresponding type declarations.
+editron-starters/bolt-qwik/vite.config.ts(7,26): error TS2307: Cannot find module '@builder.io/qwik-city/vite' or its corresponding type declarations.
+editron-starters/bolt-qwik/vite.config.ts(8,27): error TS2307: Cannot find module 'vite-tsconfig-paths' or its corresponding type declarations.
+editron-starters/bolt-qwik/vite.config.ts(22,32): error TS7031: Binding element 'command' implicitly has an 'any' type.
+editron-starters/bolt-qwik/vite.config.ts(22,41): error TS7031: Binding element 'mode' implicitly has an 'any' type.
+editron-starters/bolt-remotion/remotion.config.ts(1,24): error TS2307: Cannot find module '@remotion/cli/config' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld.tsx(1,24): error TS2307: Cannot find module '@remotion/zod-types' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld.tsx(9,8): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Arc.tsx(2,40): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Atom.tsx(2,40): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Logo.tsx(1,24): error TS2307: Cannot find module '@remotion/zod-types' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Logo.tsx(8,8): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Subtitle.tsx(2,46): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/HelloWorld/Title.tsx(2,57): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/index.ts(1,30): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-remotion/src/Root.tsx(1,29): error TS2307: Cannot find module 'remotion' or its corresponding type declarations.
+editron-starters/bolt-vite-react-ts/src/main.tsx(3,17): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+editron-starters/bolt-vite-react-ts/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+editron-starters/bolt-vite-react-ts/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+editron-starters/gsap-nuxt/nuxt.config.ts(2,16): error TS2304: Cannot find name 'defineNuxtConfig'.
+editron-starters/hono-nodejs-starter/src/index.ts(1,23): error TS2307: Cannot find module '@hono/node-server' or its corresponding type declarations.
+editron-starters/hono-nodejs-starter/src/index.ts(2,22): error TS2307: Cannot find module 'hono' or its corresponding type declarations.
+editron-starters/hono-nodejs-starter/src/index.ts(6,15): error TS7006: Parameter 'c' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/components/ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+editron-starters/nextjs-shadcn/components/ui/pagination.tsx(5,10): error TS2305: Module '"@/components/ui/button"' has no exported member 'ButtonProps'.
+editron-starters/nextjs-shadcn/components/ui/pagination.tsx(68,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/nextjs-shadcn/components/ui/pagination.tsx(84,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/nextjs-shadcn/components/ui/toast.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-toast' or its corresponding type declarations.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(3,26): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(11,8): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(18,31): error TS7031: Binding element 'id' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(18,35): error TS7031: Binding element 'title' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(18,42): error TS7031: Binding element 'description' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/components/ui/toaster.tsx(18,55): error TS7031: Binding element 'action' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/hooks/use-toast.ts(6,53): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/nextjs-shadcn/hooks/use-toast.ts(158,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+editron-starters/nextjs-shadcn/tailwind.config.ts(4,3): error TS2322: Type '["class"]' is not assignable to type 'DarkModeStrategy | undefined'.
+  Type '["class"]' is not assignable to type '["class", string]'.
+    Source has 1 element(s) but target requires 2.
+editron-starters/react-ts/src/index.tsx(6,25): error TS2345: Argument of type 'HTMLElement | null' is not assignable to parameter of type 'Container'.
+  Type 'null' is not assignable to type 'Container'.
+editron-starters/test/angular.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/angular.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/angular.test.ts(4,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/angular.test.ts(4,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/angular.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/angular.test.ts(41,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/angular.test.ts(42,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/astro-shadcn.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/astro-shadcn.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/astro-shadcn.test.ts(4,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/astro-shadcn.test.ts(4,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/astro-shadcn.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/astro-shadcn.test.ts(32,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/astro-shadcn.test.ts(33,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/bolt-expo.test.ts(2,44): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/bolt-expo.test.ts(4,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(4,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(11,55): error TS7031: Binding element 'expect' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(35,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/bolt-expo.test.ts(36,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-vite-react-ts.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/bolt-vite-react-ts.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/bolt-vite-react-ts.test.ts(6,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/bolt-vite-react-ts.test.ts(6,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-vite-react-ts.test.ts(13,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/bolt-vite-react-ts.test.ts(33,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/bolt-vite-react-ts.test.ts(34,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/nextjs.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/nextjs.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/nextjs.test.ts(4,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/nextjs.test.ts(4,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/nextjs.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/nextjs.test.ts(60,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/nextjs.test.ts(61,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/slidev.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/slidev.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/slidev.test.ts(4,34): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/slidev.test.ts(4,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/slidev.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/slidev.test.ts(25,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/slidev.test.ts(26,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/sveltekit.test.ts(1,40): error TS2307: Cannot find module '@webcontainer/test' or its corresponding type declarations.
+editron-starters/test/sveltekit.test.ts(2,52): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+editron-starters/test/sveltekit.test.ts(4,34): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/sveltekit.test.ts(4,48): error TS7031: Binding element 'setup' implicitly has an 'any' type.
+editron-starters/test/sveltekit.test.ts(11,41): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/test/sveltekit.test.ts(59,3): error TS7031: Binding element 'preview' implicitly has an 'any' type.
+editron-starters/test/sveltekit.test.ts(60,3): error TS7031: Binding element 'webcontainer' implicitly has an 'any' type.
+editron-starters/tres/src/main.ts(1,27): error TS2307: Cannot find module 'vue' or its corresponding type declarations.
+editron-starters/tres/src/main.ts(3,17): error TS2307: Cannot find module './App.vue' or its corresponding type declarations.
+editron-starters/tres/vite.config.ts(1,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+editron-starters/tres/vite.config.ts(2,17): error TS2307: Cannot find module '@vitejs/plugin-vue' or its corresponding type declarations.
+editron-starters/tres/vite.config.ts(3,18): error TS2307: Cannot find module 'vite-plugin-glsl' or its corresponding type declarations.
+editron-starters/tres/vite.config.ts(11,29): error TS7006: Parameter 'tag' implicitly has an 'any' type.
+editron-starters/tutorialkit/astro.config.ts(1,25): error TS2307: Cannot find module '@tutorialkit/astro' or its corresponding type declarations.
+editron-starters/tutorialkit/astro.config.ts(2,30): error TS2307: Cannot find module 'astro/config' or its corresponding type declarations.
+editron-starters/tutorialkit/src/content/config.ts(6,8): error TS2307: Cannot find module '@tutorialkit/types' or its corresponding type declarations.
+editron-starters/tutorialkit/src/content/config.ts(7,34): error TS2307: Cannot find module 'astro:content' or its corresponding type declarations.
+editron-starters/tutorialkit/uno.config.ts(1,23): error TS2307: Cannot find module '@tutorialkit/astro' or its corresponding type declarations.
+editron-starters/tutorialkit/uno.config.ts(2,35): error TS2307: Cannot find module '@unocss/transformer-directives' or its corresponding type declarations.
+editron-starters/tutorialkit/uno.config.ts(6,54): error TS2307: Cannot find module 'unocss' or its corresponding type declarations.
+editron-starters/typescript/index.ts(5,7): error TS2322: Type 'HTMLElement | null' is not assignable to type 'HTMLElement'.
+  Type 'null' is not assignable to type 'HTMLElement'.
+editron-starters/vite-shadcn/src/components/ui/accordion.tsx(3,33): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/breadcrumb.tsx(2,54): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/calendar.tsx(1,51): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/calendar.tsx(61,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+editron-starters/vite-shadcn/src/components/ui/carousel.tsx(2,47): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/checkbox.tsx(3,27): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/command.tsx(3,37): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/context-menu.tsx(7,8): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/dialog.tsx(3,28): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/dropdown-menu.tsx(7,8): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/input-otp.tsx(2,26): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/menubar.tsx(6,8): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/navigation-menu.tsx(2,33): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/pagination.tsx(6,8): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/pagination.tsx(9,10): error TS2305: Module '"@/components/ui/button"' has no exported member 'ButtonProps'.
+editron-starters/vite-shadcn/src/components/ui/pagination.tsx(72,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/vite-shadcn/src/components/ui/pagination.tsx(88,5): error TS2783: 'size' is specified more than once, so this usage will be overwritten.
+editron-starters/vite-shadcn/src/components/ui/radio-group.tsx(2,27): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/resizable.tsx(1,37): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/select.tsx(7,8): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/sheet.tsx(3,28): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/toast.tsx(2,28): error TS2307: Cannot find module '@radix-ui/react-icons' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/toast.tsx(3,34): error TS2307: Cannot find module '@radix-ui/react-toast' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(1,26): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(9,8): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(16,31): error TS7031: Binding element 'id' implicitly has an 'any' type.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(16,35): error TS7031: Binding element 'title' implicitly has an 'any' type.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(16,42): error TS7031: Binding element 'description' implicitly has an 'any' type.
+editron-starters/vite-shadcn/src/components/ui/toaster.tsx(16,55): error TS7031: Binding element 'action' implicitly has an 'any' type.
+editron-starters/vite-shadcn/src/hooks/use-toast.ts(3,53): error TS2307: Cannot find module '@/components/ui/toast' or its corresponding type declarations.
+editron-starters/vite-shadcn/src/hooks/use-toast.ts(155,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+editron-starters/vite-shadcn/src/main.tsx(3,17): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+editron-starters/vite-shadcn/vite.config.ts(2,19): error TS2307: Cannot find module '@vitejs/plugin-react' or its corresponding type declarations.
+editron-starters/vite-shadcn/vite.config.ts(3,30): error TS2307: Cannot find module 'vite' or its corresponding type declarations.
+editron-starters/vitest.config.ts(1,30): error TS2307: Cannot find module 'vitest/config' or its corresponding type declarations.
+editron-starters/vitest.config.ts(2,37): error TS2307: Cannot find module '@webcontainer/test/plugin' or its corresponding type declarations.
+env.ts(1,27): error TS2307: Cannot find module '@t3-oss/env-nextjs' or its corresponding type declarations.
+lib/api-utils.ts(30,74): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+lib/yjs.ts(2,35): error TS7016: Could not find a declaration file for module 'y-websocket'. 'E:/Editron new/Editron/node_modules/y-websocket/src/y-websocket.js' implicitly has an 'any' type.
+  There are types at 'E:/Editron new/Editron/node_modules/y-websocket/dist/src/y-websocket.d.ts', but this result could not be resolved when respecting package.json "exports". The 'y-websocket' library may need to update its package.json or typings.
+modules/dashboard/actions/index.ts(91,9): error TS2322: Type 'TemplateKey' is not assignable to type 'Templates | undefined'.
+  Type '"BLANK"' is not assignable to type 'Templates | undefined'.
+modules/playground/components/collaboration-avatars.tsx(15,52): error TS18046: 's' is of type 'unknown'.
+modules/playground/components/collaboration-avatars.tsx(15,69): error TS18046: 's' is of type 'unknown'.

@@ -63,8 +63,6 @@ export async function scanTemplateDirectory(
   // Set default options
   const defaultOptions: ScanOptions = {
     ignoreFiles: [
-      'package-lock.json',
-      'yarn.lock',
       '.DS_Store',
       'thumbs.db',
       '.gitignore',

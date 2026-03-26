@@ -67,14 +67,22 @@ const WebContainerPreview = ({
     }
   };
 
-  // Helper to create a writable stream that parses npm output for install progress
   const createInstallOutputStream = (totalDeps: number) => {
     let estimatedProgress = 0;
+    let lastUpdateTime = Date.now();
+    
     return new WritableStream({
       write(data: string) {
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(data);
+        } else {
+          console.log("[WebContainer Install] ", data.trim());
         }
+        
+        const now = Date.now();
+        // Throttle state updates to at most once every 100ms
+        const shouldUpdate = now - lastUpdateTime > 100;
+        
         // Parse npm output for progress signals
         const addedMatch = data.match(/added (\d+) packages?/i);
         if (addedMatch) {
@@ -85,8 +93,12 @@ const WebContainerPreview = ({
             progressPercent: 100,
             statusText: `Installed ${added} packages`,
           }));
+          lastUpdateTime = now;
           return;
         }
+        
+        if (!shouldUpdate) return;
+        
         // Detect resolution / reify / etc. phases
         if (data.includes("reify:") || data.includes("idealTree")) {
           estimatedProgress = Math.min(estimatedProgress + 2, 85);
@@ -95,6 +107,7 @@ const WebContainerPreview = ({
             progressPercent: estimatedProgress,
             statusText: "Resolving dependency tree...",
           }));
+          lastUpdateTime = now;
         } else if (data.includes("http fetch") || data.includes("GET ")) {
           estimatedProgress = Math.min(estimatedProgress + 1, 70);
           setInstallProgress((prev) => ({
@@ -102,6 +115,7 @@ const WebContainerPreview = ({
             progressPercent: estimatedProgress,
             statusText: "Fetching packages...",
           }));
+          lastUpdateTime = now;
         } else if (data.includes("WARN") || data.includes("warn")) {
           // Don't update progress on warnings
         } else if (data.trim().length > 0 && estimatedProgress < 90) {
@@ -110,6 +124,7 @@ const WebContainerPreview = ({
             ...prev,
             progressPercent: Math.round(estimatedProgress),
           }));
+          lastUpdateTime = now;
         }
       },
     });
@@ -294,7 +309,7 @@ const WebContainerPreview = ({
               );
             }
 
-            const installArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund"] : ["install"];
+            const installArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"] : ["install"];
             const reinstallProcess = await instance.spawn(pkgManager, installArgs);
             reinstallProcess.output.pipeTo(createInstallOutputStream(reconnectTotalDeps));
             const reinstallExitCode = await reinstallProcess.exit;
@@ -507,7 +522,22 @@ const WebContainerPreview = ({
           );
         }
 
-        const freshInstallArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund"] : ["install"];
+        // Prefer npm ci (reads lockfile, skips registry metadata = no JSON truncation in WebContainer)
+        // Fall back to npm install if no lockfile is present
+        let freshInstallArgs: string[];
+        if (pkgManager === "npm") {
+          const hasLockfile = await instance.fs.readFile("package-lock.json", "utf8").catch(() => null);
+          if (hasLockfile) {
+            freshInstallArgs = ["ci", "--no-audit", "--no-fund"];
+            if (terminalRef.current?.writeToTerminal) {
+              terminalRef.current.writeToTerminal("🔒 Lockfile found — using \x1b[32mnpm ci\x1b[0m for faster, reliable install...\r\n");
+            }
+          } else {
+            freshInstallArgs = ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"];
+          }
+        } else {
+          freshInstallArgs = ["install"];
+        }
         const installProcess = await instance.spawn(pkgManager, freshInstallArgs);
 
         installProcess.output.pipeTo(createInstallOutputStream(totalDeps));
@@ -515,14 +545,18 @@ const WebContainerPreview = ({
         const installExitCode = await installProcess.exit;
 
         if (installExitCode !== 0) {
-          throw new Error(
-            `Failed to install dependencies. Exit code: ${installExitCode}`
-          );
-        }
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            "✅ Dependencies installed successfully\r\n"
-          );
+          if (terminalRef.current?.writeToTerminal) {
+            terminalRef.current.writeToTerminal(
+              `⚠️ Dependencies install exited with code ${installExitCode}, attempting to start anyway...\r\n`
+            );
+          }
+          console.warn(`npm install exited with code ${installExitCode}`);
+        } else {
+          if (terminalRef.current?.writeToTerminal) {
+            terminalRef.current.writeToTerminal(
+              "✅ Dependencies installed successfully\r\n"
+            );
+          }
         }
 
         setLoadingState((prev) => ({
