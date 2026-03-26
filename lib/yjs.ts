@@ -12,12 +12,23 @@ export function getOrCreateYDoc(roomId: string) {
     const doc = new Y.Doc();
 
     // Connect to the collaboration server
-    let serverUrl = "ws://localhost:1234";
-    if (process.env.NEXT_PUBLIC_COLLAB_SERVER_URL) {
-        serverUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL;
+    const explicitUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL;
+    let serverUrl: string;
+
+    if (explicitUrl) {
+        serverUrl = explicitUrl;
     } else if (typeof window !== "undefined") {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        serverUrl = `${protocol}//${window.location.host}/api/collab`;
+        const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        if (isLocalhost) {
+            serverUrl = "ws://localhost:1234";
+        } else {
+            // On deployment, NEXT_PUBLIC_COLLAB_SERVER_URL MUST be set (e.g. wss://editron-collab.onrender.com)
+            console.warn("[Yjs] ⚠️ NEXT_PUBLIC_COLLAB_SERVER_URL is not set. Real-time collaboration will not work on deployment. Set this in your Vercel environment variables.");
+            const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            serverUrl = `${protocol}//${window.location.host}/api/collab`; // fallback, likely won't work
+        }
+    } else {
+        serverUrl = "ws://localhost:1234";
     }
 
     const provider = new WebsocketProvider(serverUrl, roomId, doc);
