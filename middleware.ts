@@ -16,11 +16,16 @@ export default auth((req) => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 
+  // Allow all /api/* routes (except the auth redirects) to pass through without
+  // redirecting to the sign-in page. This is critical for /api/chat to work
+  // even when the user's session token is missing or expired.
+  const isApiRoute = nextUrl.pathname.startsWith("/api/");
+
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  if (isApiAuthRoute) {
+  if (isApiAuthRoute || isApiRoute) {
     return null;
   }
 

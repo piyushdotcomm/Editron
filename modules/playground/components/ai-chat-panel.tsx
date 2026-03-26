@@ -70,26 +70,54 @@ export default function AIChatPanel({
         [templateData]
     );
 
+    const [inputValue, setInputValue] = useState("");
+
     const {
         messages,
-        input,
-        handleInputChange,
-        handleSubmit,
-        isLoading,
+        status,
         setMessages,
         addToolResult,
+        sendMessage: chatSendMessage,
     } = useChat({
-        api: "/api/chat",
-        body: {
-            provider,
-            fileTree,
-            userApiKey: getUserApiKey(provider) || undefined,
-        },
         onError: (err: Error) => {
             console.error("AI Chat Error:", err);
             toast.error(err.message || "An error occurred");
         }
-    } as any) as any;
+    });
+
+    // v3 uses status instead of isLoading
+    const isLoading = status === "submitted" || status === "streaming";
+
+    // Prevent the user from sending a message if the MOST RECENT tool hasn't finished, 
+    // to avoid the SDK "Tool result is missing" crash on the active chat stream.
+    // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
+    const lastMessage = messages[messages.length - 1];
+    const hasUnresolvedTools = lastMessage?.role === "assistant" &&
+        ((lastMessage as unknown) as Record<string, unknown>).parts && 
+        (((lastMessage as unknown) as { parts: Array<{ type: string; toolInvocation?: { state: string }, state?: string }> }).parts).some(
+            p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
+                 (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
+                 p.toolInvocation?.state === "call"
+        );
+
+    const sendMessage = useCallback(() => {
+        const trimmed = inputValue.trim();
+        if (!trimmed || isLoading || hasUnresolvedTools) return;
+        chatSendMessage(
+            { text: trimmed },
+            {
+                body: {
+                    provider,
+                    fileTree,
+                    userApiKey: getUserApiKey(provider) || undefined,
+                },
+            }
+        );
+        setInputValue("");
+        if (inputRef.current) {
+            inputRef.current.style.height = "auto";
+        }
+    }, [inputValue, isLoading, hasUnresolvedTools, chatSendMessage, provider, fileTree, getUserApiKey]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -110,27 +138,71 @@ export default function AIChatPanel({
         return () => document.removeEventListener("mousedown", handleClick);
     }, [showProviderPicker]);
 
+    // Track which tool calls we've already executed to prevent double-execution
+    const processedToolCallIds = useRef(new Set<string>());
+
     // Handle incoming client-side tool calls
+    // In AI SDK v3, static tool parts use type: "tool-{toolName}" with:
+    //   part.toolCallId, part.toolName, part.input, part.state
     useEffect(() => {
         const lastMessage = messages[messages.length - 1];
-        if (lastMessage?.role !== "assistant" || !(lastMessage as any).toolInvocations) return;
+        if (lastMessage?.role !== "assistant") return;
 
-        for (const toolInvocation of (lastMessage as any).toolInvocations) {
-            if (toolInvocation.state === "call") {
-                const { toolName, args, toolCallId } = toolInvocation;
+        const rawParts: unknown[] = (lastMessage as unknown as { parts?: unknown[] }).parts ?? [];
 
-                let result: any = null;
+        // Debug: log all parts to see what v3 sends
+        if (rawParts.length > 0) {
+            const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));
+            if (toolParts.length > 0) {
+                console.log("[AIChatPanel] Tool parts in last message:", JSON.stringify(toolParts, null, 2));
+            }
+        }
 
-                try {
-                    if (toolName === "read_file") {
-                        const { path } = args as { path: string };
+        for (const rawPart of rawParts) {
+            const part = rawPart as Record<string, unknown>;
+            const partType = part.type as string | undefined;
+
+            // v3 static tool parts: type starts with "tool-" (e.g. "tool-read_file")
+            if (!partType?.startsWith("tool-")) continue;
+
+            // Guard against re-execution: skip if already processed
+            const toolCallId = part.toolCallId as string | undefined;
+            if (!toolCallId) continue;
+            if (processedToolCallIds.current.has(toolCallId)) continue;
+
+            // Only execute when input is fully available (not still streaming)
+            const state = part.state as string | undefined;
+            // Skip if output already provided, or if input is still streaming in
+            if (state === "output-available" || state === "output-streaming") continue;
+            // Skip if input hasn't arrived yet
+            if (state === "input-streaming") continue;
+            const toolName = (part.toolName as string | undefined) ?? partType.split("-").slice(1).join("-");
+            // In v3, args live in part.input; fall back to part.args for compatibility
+            const args = (part.input as Record<string, unknown> | undefined) ?? (part.args as Record<string, unknown> | undefined) ?? {};
+
+            if (!toolCallId || !toolName) continue;
+
+            let result: string;
+
+            try {
+                if (toolName === "read_file") {
+                    const { path } = args as { path?: string };
+                    if (!path || typeof path !== "string") {
+                        result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
+                    } else {
                         const file = findFileByPath(templateData?.items || [], path);
                         result = file ? file.content : `Error: File "${path}" not found`;
-                    } else if (toolName === "edit_file") {
-                        const { path, content } = args as { path: string; content: string };
-                        if (!templateData) throw new Error("Template data not loaded");
-
-                        const updatedItems = addOrUpdateFile(templateData.items, path, content);
+                    }
+                } else if (toolName === "edit_file") {
+                    const { path, content } = args as { path?: string; content?: string };
+                    if (!path || typeof path !== "string") {
+                        result = `Error: edit_file requires a "path" argument (e.g. "README.md")`;
+                    } else if (content === undefined || content === null) {
+                        result = `Error: edit_file requires a "content" argument with the full file contents`;
+                    } else if (!templateData) {
+                        result = `Error: Template data not loaded`;
+                    } else {
+                        const updatedItems = addOrUpdateFile(templateData.items, path, content as string);
                         const updatedTemplate = { ...templateData, items: updatedItems };
                         setTemplateData(updatedTemplate);
 
@@ -138,7 +210,7 @@ export default function AIChatPanel({
                             const ext = f.fileExtension ? `.${f.fileExtension}` : "";
                             const fullName = `${f.filename}${ext}`;
                             if (path.endsWith(fullName)) {
-                                return { ...f, content, hasUnsavedChanges: true };
+                                return { ...f, content: content as string, hasUnsavedChanges: true };
                             }
                             return f;
                         });
@@ -147,17 +219,19 @@ export default function AIChatPanel({
                         saveTemplateData(updatedTemplate).catch(console.error);
                         toast.success(`AI updated ${path}`);
                         result = `Successfully updated ${path}`;
-                    } else if (toolName === "edit_multiple_files") {
-                        const { changes } = args as { changes: { path: string; content: string }[] };
-                        if (!templateData) throw new Error("Template data not loaded");
-
+                    }
+                } else if (toolName === "edit_multiple_files") {
+                    const { changes } = args as { changes?: { path: string; content: string }[] };
+                    if (!changes || !Array.isArray(changes) || changes.length === 0) {
+                        result = `Error: edit_multiple_files requires a "changes" array with at least one {path, content} entry`;
+                    } else if (!templateData) {
+                        result = `Error: Template data not loaded`;
+                    } else {
                         let currentItems = templateData.items;
                         let currentOpenFiles = [...openFiles];
 
-                        // Process all file changes in the batch transaction
                         for (const change of changes) {
                             currentItems = addOrUpdateFile(currentItems, change.path, change.content);
-
                             currentOpenFiles = currentOpenFiles.map((f) => {
                                 const ext = f.fileExtension ? `.${f.fileExtension}` : "";
                                 const fullName = `${f.filename}${ext}`;
@@ -172,13 +246,16 @@ export default function AIChatPanel({
                         setTemplateData(updatedTemplate);
                         setOpenFiles(currentOpenFiles);
                         saveTemplateData(updatedTemplate).catch(console.error);
-
-                        toast.success(`AI rapidly scaffolded ${changes.length} files`);
+                        toast.success(`AI scaffolded ${changes.length} files`);
                         result = `Successfully updated ${changes.length} files`;
-                    } else if (toolName === "delete_file") {
-                        const { path } = args as { path: string };
-                        if (!templateData) throw new Error("Template data not loaded");
-
+                    }
+                } else if (toolName === "delete_file") {
+                    const { path } = args as { path?: string };
+                    if (!path || typeof path !== "string") {
+                        result = `Error: delete_file requires a "path" argument`;
+                    } else if (!templateData) {
+                        result = `Error: Template data not loaded`;
+                    } else {
                         const updatedItems = deleteFileByPath(templateData.items, path);
                         const updatedTemplate = { ...templateData, items: updatedItems };
                         setTemplateData(updatedTemplate);
@@ -193,25 +270,30 @@ export default function AIChatPanel({
                         saveTemplateData(updatedTemplate).catch(console.error);
                         toast.success(`AI deleted ${path}`);
                         result = `Successfully deleted ${path}`;
-                    } else {
-                        result = `Error: Unknown tool ${toolName}`;
                     }
-                } catch (err: any) {
-                    result = `Error: ${err.message}`;
+                } else {
+                    result = `Error: Unknown tool ${toolName}`;
                 }
-
-                // Append the result back to the chat stream
-                addToolResult({ toolCallId, result: result as any });
+            } catch (err: unknown) {
+                result = `Error: ${err instanceof Error ? err.message : String(err)}`;
             }
+
+            // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
+            processedToolCallIds.current.add(toolCallId);
+            console.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`, result.slice(0, 100));
+
+            addToolResult({
+                toolCallId,
+                tool: toolName,
+                output: result,
+            } as Parameters<typeof addToolResult>[0]);
         }
     }, [messages, templateData, openFiles, setTemplateData, setOpenFiles, saveTemplateData, addToolResult]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            if (input.trim() && !isLoading) {
-                handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
-            }
+            sendMessage();
         }
     };
 
@@ -255,12 +337,32 @@ export default function AIChatPanel({
                         </div>
                     )}
 
-                    {messages.map((msg: any) => (
+                    {messages.map((msg: any) => {
+                        const rawParts: any[] = (msg as any).parts ?? [];
+
+                        // AI SDK v3 stores user text in parts[].type=="text"
+                        // Only genuine user messages have text parts
+                        const textParts = rawParts.filter((p: any) => p.type === "text");
+                        const textContent: string = (
+                            textParts.map((p: any) => p.text).join("") ||
+                            (msg as any).content ||
+                            ""
+                        );
+
+                        // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
+                        const toolParts: any[] = rawParts.filter(
+                            (p: any) => typeof p.type === "string" && p.type.startsWith("tool-")
+                        );
+
+                        // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
+                        const isGenuineUser = msg.role === "user" && textParts.length > 0;
+
+                        return (
                         <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-                            {msg.role === "user" && (
+                            {isGenuineUser && (
                                 <div className="flex gap-2 justify-end mb-4">
                                     <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap">
-                                        {(msg as any).content}
+                                        {textContent}
                                     </div>
                                     <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
                                         <User className="h-3.5 w-3.5 text-primary" />
@@ -273,27 +375,34 @@ export default function AIChatPanel({
                                         <Bot className="h-3.5 w-3.5 text-white" />
                                     </div>
                                     <div className="flex-1 space-y-2 min-w-0">
-                                        {(msg as any).content && (
+                                        {textContent && (
                                             <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground shadow-sm">
-                                                {(msg as any).content}
+                                                {textContent}
                                             </div>
                                         )}
-                                        {/* @ts-ignore - Vercel AI SDK types sometimes conflict on toolInvocations */}
-                                        {(msg as any).toolInvocations?.map((ti: any) => (
+                                        {toolParts.map((ti: any) => {
+                                            // In v3, tool name comes from the type suffix or toolName property
+                                            const tiName = (ti.toolName as string | undefined) ?? (ti.type as string)?.split("-").slice(1).join("-") ?? "tool";
+                                            // Path arg lives in ti.input.path in v3
+                                            const tiPath = (ti.input as Record<string,unknown> | undefined)?.path as string | undefined;
+                                            const tiDone = ti.state === "output-available" || ti.state === "result";
+                                            return (
                                             <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border rounded-xl bg-muted/30 shadow-sm max-w-[90%]">
                                                 <div className="h-5 w-5 rounded-full bg-background flex items-center justify-center shrink-0 border shadow-sm">
                                                     <Wrench className="h-2.5 w-2.5" />
                                                 </div>
                                                 <span className="font-mono truncate tracking-tight">
-                                                    {ti.toolName}({ti.args && (ti.args as any).path ? (ti.args as any).path.split('/').pop() : ''}) {ti.state === 'result' ? '✓' : <Loader2 className="h-3 w-3 inline animate-spin ml-1" />}
+                                                    {tiName}({tiPath ? tiPath.split("/").pop() : ""}) {tiDone ? "✓" : <Loader2 className="h-3 w-3 inline animate-spin ml-1" />}
                                                 </span>
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
-                    ))}
+                        );
+                    })}
 
                     {isLoading && messages.length > 0 && messages[messages.length - 1].role !== "assistant" && (
                         <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
@@ -305,13 +414,13 @@ export default function AIChatPanel({
                 </div>
 
                 <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 sticky bottom-0 z-10">
-                    <form className="relative flex items-end gap-2 bg-muted/40 border rounded-2xl p-1.5 shadow-sm focus-within:ring-1 focus-within:ring-primary/30 focus-within:border-primary/50 transition-all" onSubmit={(e) => { e.preventDefault(); if (input.trim() && !isLoading) handleSubmit(e); }}>
+                    <div className="relative flex items-end gap-2 bg-muted/40 border rounded-2xl p-1.5 shadow-sm focus-within:ring-1 focus-within:ring-primary/30 focus-within:border-primary/50 transition-all">
                         <textarea
                             ref={inputRef}
                             className="flex-1 text-[13px] bg-transparent px-3 py-2.5 resize-none outline-none min-h-[40px] max-h-[160px] placeholder:text-muted-foreground/70 custom-scrollbar"
                             placeholder="Message AI Assistant..."
-                            value={input}
-                            onChange={handleInputChange}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             rows={1}
                             disabled={isLoading}
@@ -323,18 +432,19 @@ export default function AIChatPanel({
                         />
                         <div className="flex flex-col justify-end pb-1 pr-1 shrink-0">
                             <Button
-                                type="submit"
+                                type="button"
                                 size="icon"
-                                className={`h-8 w-8 rounded-xl shrink-0 transition-all ${(input ?? "").trim() && !isLoading
+                                className={`h-8 w-8 rounded-xl shrink-0 transition-all ${inputValue.trim() && !isLoading
                                         ? "bg-primary text-primary-foreground shadow-md hover:scale-105 active:scale-95"
                                         : "bg-muted text-muted-foreground"
                                     }`}
-                                disabled={!(input ?? "").trim() || isLoading}
+                                disabled={!inputValue.trim() || isLoading}
+                                onClick={sendMessage}
                             >
                                 {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                             </Button>
                         </div>
-                    </form>
+                    </div>
 
                     <div className="mt-3 flex items-center justify-between px-1 relative" ref={pickerRef}>
                         <button
