@@ -17,7 +17,7 @@ import prettierPluginPostcss from "prettier/plugins/postcss";
 import prettierPluginTypeScript from "prettier/plugins/typescript";
 
 import { MonacoBinding } from "y-monaco";
-import { getOrCreateYDoc, destroyYDoc } from "@/lib/yjs";
+import { fetchCollabToken, getOrCreateYDoc, destroyYDoc } from "@/lib/yjs";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 
@@ -264,100 +264,114 @@ const PlaygroundEditor = ({
     const model = editorRef.current.getModel();
     if (!model) return;
 
-    const { doc, provider } = getOrCreateYDoc(playgroundId);
-    // Use file id if available (contains full path), otherwise fallback to filename+ext
-    const fileId = (activeFile as any)?.id;
-    const ext = activeFile.fileExtension ? `.${activeFile.fileExtension}` : "";
-    const fileKey = fileId || `${activeFile.filename}${ext}`;
+    let disposed = false;
+    let awarenessCleanup = () => {};
 
-    const yText = doc.getText(fileKey);
+    void (async () => {
+      try {
+        const token = await fetchCollabToken(playgroundId);
+        if (disposed) return;
 
-    // Initial content population if empty
-    if (yText.length === 0 && content) {
-      yText.insert(0, content);
-    }
+        const { doc, provider } = getOrCreateYDoc(playgroundId, token);
+        // Use file id if available (contains full path), otherwise fallback to filename+ext
+        const fileId = (activeFile as any)?.id;
+        const ext = activeFile.fileExtension ? `.${activeFile.fileExtension}` : "";
+        const fileKey = fileId || `${activeFile.filename}${ext}`;
 
-    if (bindingRef.current) {
-      bindingRef.current.destroy();
-    }
+        const yText = doc.getText(fileKey);
 
-    try {
-      const binding = new MonacoBinding(
-        yText,
-        model,
-        new Set([editorRef.current]),
-        provider.awareness
-      );
-
-      const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
-
-      provider.awareness.setLocalStateField('user', {
-        name: session?.user?.name || "Anonymous",
-        color: userColor
-      });
-
-      // Dynamically inject CSS for remote cursors based on awareness state
-      provider.awareness.on("update", () => {
-        const styleId = "yjs-awareness-styles";
-        let styleEl = document.getElementById(styleId);
-        if (!styleEl) {
-          styleEl = document.createElement("style");
-          styleEl.id = styleId;
-          document.head.appendChild(styleEl);
+        // Initial content population if empty
+        if (yText.length === 0 && content) {
+          yText.insert(0, content);
         }
 
-        const states = Array.from(provider.awareness.getStates().entries() as any);
-        let css = "";
+        if (bindingRef.current) {
+          bindingRef.current.destroy();
+        }
 
-        for (const [clientId, state] of states as [number, any][]) {
-          if (state.user) {
-            const color = state.user.color || "orange";
-            const name = state.user.name || "Anonymous";
+        const binding = new MonacoBinding(
+          yText,
+          model,
+          new Set([editorRef.current]),
+          provider.awareness
+        );
 
-            css += `
-              .yRemoteSelection-${clientId} {
-                background-color: ${color}40; /* 40 hex is 25% opacity */
-              }
-              .yRemoteSelectionHead-${clientId} {
-                border-left: 2px solid ${color};
-                border-top: 2px solid ${color};
-                border-bottom: 2px solid ${color};
-              }
-              .yRemoteSelectionHead-${clientId}::after {
-                border-color: ${color};
-              }
-              .yRemoteSelectionHead-${clientId}::before {
-                content: "${name}";
-                position: absolute;
-                top: -18px;
-                left: -2px;
-                font-size: 11px;
-                background-color: ${color};
-                color: white;
-                padding: 1px 4px;
-                border-radius: 2px;
-                white-space: nowrap;
-                pointer-events: none;
-                z-index: 10;
-                font-family: var(--font-inter), sans-serif;
-                opacity: 0;
-                transition: opacity 0.2s ease-in-out;
-              }
-              .yRemoteSelectionHead-${clientId}:hover::before {
-                opacity: 1;
-              }
-            `;
+        const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+
+        provider.awareness.setLocalStateField('user', {
+          name: session?.user?.name || "Anonymous",
+          color: userColor
+        });
+
+        const handleAwarenessUpdate = () => {
+          const styleId = "yjs-awareness-styles";
+          let styleEl = document.getElementById(styleId);
+          if (!styleEl) {
+            styleEl = document.createElement("style");
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
           }
-        }
-        styleEl.innerHTML = css;
-      });
 
-      bindingRef.current = binding;
-    } catch (e) {
-      console.error("Yjs binding error:", e);
-    }
+          const states = Array.from(provider.awareness.getStates().entries() as any);
+          let css = "";
+
+          for (const [clientId, state] of states as [number, any][]) {
+            if (state.user) {
+              const color = state.user.color || "orange";
+              const name = state.user.name || "Anonymous";
+
+              css += `
+                .yRemoteSelection-${clientId} {
+                  background-color: ${color}40; /* 40 hex is 25% opacity */
+                }
+                .yRemoteSelectionHead-${clientId} {
+                  border-left: 2px solid ${color};
+                  border-top: 2px solid ${color};
+                  border-bottom: 2px solid ${color};
+                }
+                .yRemoteSelectionHead-${clientId}::after {
+                  border-color: ${color};
+                }
+                .yRemoteSelectionHead-${clientId}::before {
+                  content: "${name}";
+                  position: absolute;
+                  top: -18px;
+                  left: -2px;
+                  font-size: 11px;
+                  background-color: ${color};
+                  color: white;
+                  padding: 1px 4px;
+                  border-radius: 2px;
+                  white-space: nowrap;
+                  pointer-events: none;
+                  z-index: 10;
+                  font-family: var(--font-inter), sans-serif;
+                  opacity: 0;
+                  transition: opacity 0.2s ease-in-out;
+                }
+                .yRemoteSelectionHead-${clientId}:hover::before {
+                  opacity: 1;
+                }
+              `;
+            }
+          }
+          styleEl.innerHTML = css;
+        };
+
+        provider.awareness.on("update", handleAwarenessUpdate);
+        awarenessCleanup = () => {
+          provider.awareness.off("update", handleAwarenessUpdate);
+        };
+
+        bindingRef.current = binding;
+      } catch (e) {
+        console.error("Yjs binding error:", e);
+      }
+    })();
 
     return () => {
+      disposed = true;
+      awarenessCleanup();
       if (bindingRef.current) {
         bindingRef.current.destroy();
         bindingRef.current = null;

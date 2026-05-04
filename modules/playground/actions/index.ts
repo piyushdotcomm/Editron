@@ -1,6 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
+import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
 import { TemplateFolder } from "../lib/path-to-json";
 import { revalidatePath } from "next/cache";
 import { currentUser } from "@/modules/auth/actions";
@@ -50,14 +51,14 @@ export const createPlayground = async (data:{
   })=>{
     const {template , title , description} = data;
 
-    const user = await currentUser();
+    const userId = await requireCurrentUserId();
     try {
         const playground = await db.playground.create({
             data:{
                 title:title,
                 description:description,
                 template:template,
-                userId:user?.id!
+                userId
             }
         })
 
@@ -97,9 +98,11 @@ export const getAllPlaygroundForUser = async ()=>{
 
 export const getPlaygroundById = async (id:string)=>{
     try {
-        const playground = await db.playground.findUnique({
-            where:{id},
+        const userId = await requireCurrentUserId();
+        const playground = await db.playground.findFirst({
+            where:{id, userId},
             select:{
+                id: true,
                 title:true,
               templateFiles:{
                 select:{
@@ -115,8 +118,7 @@ export const getPlaygroundById = async (id:string)=>{
 }
 
 export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder) => {
-  const user = await currentUser();
-  if (!user) return null;
+  await assertPlaygroundOwnership(playgroundId);
 
   try {
     const updatedPlayground = await db.templateFile.upsert({
@@ -135,12 +137,13 @@ export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder
     return updatedPlayground;
   } catch (error) {
     console.log("SaveUpdatedCode error:", error);
-    return null;
+    throw error;
   }
 };
 
 export const deleteProjectById = async (id:string)=>{
     try {
+        await assertPlaygroundOwnership(id);
         await db.playground.delete({
             where:{id}
         })
@@ -153,6 +156,7 @@ export const deleteProjectById = async (id:string)=>{
 
 export const editProjectById = async (id:string,data:{title:string , description:string})=>{
     try {
+        await assertPlaygroundOwnership(id);
         await db.playground.update({
             where:{id},
             data:data
@@ -165,9 +169,10 @@ export const editProjectById = async (id:string,data:{title:string , description
 
 export const duplicateProjectById = async (id: string) => {
     try {
+        const userId = await requireCurrentUserId();
         // Fetch the original playground data
-        const originalPlayground = await db.playground.findUnique({
-            where: { id },
+        const originalPlayground = await db.playground.findFirst({
+            where: { id, userId },
             include: {
                 templateFiles: true, // Include related template files
             },
@@ -183,7 +188,7 @@ export const duplicateProjectById = async (id: string) => {
                 title: `${originalPlayground.title} (Copy)`,
                 description: originalPlayground.description,
                 template: originalPlayground.template,
-                userId: originalPlayground.userId,
+                userId,
                 templateFiles: {
                   // @ts-ignore
                     create: originalPlayground.templateFiles.map((file) => ({

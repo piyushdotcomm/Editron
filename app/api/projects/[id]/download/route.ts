@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { requireCurrentUserId } from "@/lib/playground-auth";
 import JSZip from "jszip";
 
 export async function GET(
@@ -10,15 +10,17 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const session = await auth();
-        if (!session || !session.user) {
+        let userId: string;
+        try {
+            userId = await requireCurrentUserId();
+        } catch {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const project = await db.playground.findUnique({
+        const project = await db.playground.findFirst({
             where: {
                 id,
-                userId: session.user.id,
+                userId,
             },
             include: {
                 templateFiles: true,

@@ -4,7 +4,25 @@ import { WebsocketProvider } from "y-websocket";
 // Maintain a cache of Y.Doc instances to avoid creating multiple providers for the same room
 const yDocs = new Map<string, { doc: Y.Doc; provider: WebsocketProvider }>();
 
-export function getOrCreateYDoc(roomId: string) {
+export async function fetchCollabToken(roomId: string): Promise<string> {
+    const response = await fetch(`/api/collab-token/${roomId}`, {
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to get collaboration token");
+    }
+
+    const payload = await response.json();
+
+    if (!payload?.token || typeof payload.token !== "string") {
+        throw new Error("Collaboration token missing from response");
+    }
+
+    return payload.token;
+}
+
+export function getOrCreateYDoc(roomId: string, token: string) {
     if (yDocs.has(roomId)) {
         return yDocs.get(roomId)!;
     }
@@ -31,7 +49,11 @@ export function getOrCreateYDoc(roomId: string) {
         serverUrl = "ws://localhost:1234";
     }
 
-    const provider = new WebsocketProvider(serverUrl, roomId, doc);
+    const provider = new WebsocketProvider(serverUrl, roomId, doc, {
+        params: {
+            token,
+        },
+    } as any);
 
     yDocs.set(roomId, { doc, provider });
 

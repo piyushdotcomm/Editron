@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getOrCreateYDoc } from "@/lib/yjs";
+import { fetchCollabToken, getOrCreateYDoc } from "@/lib/yjs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function CollaborationAvatars({ playgroundId }: { playgroundId: string }) {
@@ -8,22 +8,37 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
 
     useEffect(() => {
         if (!playgroundId) return;
-        const { provider } = getOrCreateYDoc(playgroundId);
+        let disposed = false;
+        let cleanup = () => {};
 
-        const updateUsers = () => {
-            const states = Array.from(provider.awareness.getStates().values());
-            const activeUsers = states.filter(s => s.user).map(s => s.user);
+        void (async () => {
+            try {
+                const token = await fetchCollabToken(playgroundId);
+                if (disposed) return;
 
-            // Deduplicate by name just in case a user has multiple tabs
-            const uniqueUsers = Array.from(new Map(activeUsers.map(u => [u.name, u])).values());
-            setUsers(uniqueUsers);
-        };
+                const { provider } = getOrCreateYDoc(playgroundId, token);
+                const updateUsers = () => {
+                    const states = Array.from(provider.awareness.getStates().values());
+                    const activeUsers = states.filter(s => s.user).map(s => s.user);
 
-        provider.awareness.on("change", updateUsers);
-        updateUsers();
+                    // Deduplicate by name just in case a user has multiple tabs
+                    const uniqueUsers = Array.from(new Map(activeUsers.map(u => [u.name, u])).values());
+                    setUsers(uniqueUsers);
+                };
+
+                provider.awareness.on("change", updateUsers);
+                updateUsers();
+                cleanup = () => {
+                    provider.awareness.off("change", updateUsers);
+                };
+            } catch (error) {
+                console.error("Failed to initialize collaboration presence:", error);
+            }
+        })();
 
         return () => {
-            provider.awareness.off("change", updateUsers);
+            disposed = true;
+            cleanup();
         };
     }, [playgroundId]);
 

@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { scanTemplateDirectory } from "@/modules/playground/lib/path-to-json";
 import { db } from "@/lib/db";
 import { templatePaths } from "@/lib/template";
@@ -26,8 +27,15 @@ export async function GET(
     return Response.json({ error: "Missing playground ID" }, { status: 400 });
   }
 
-  const playground = await db.playground.findUnique({
-    where: { id },
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const playground = await db.playground.findFirst({
+    where: { id, userId },
   });
 
   if (!playground) {
@@ -43,8 +51,6 @@ export async function GET(
 
   try {
     const inputPath = path.join(process.cwd(), templatePath);
-
-    console.log("Input Path:", inputPath);
 
     // Read the template structure directly from memory
     const result = await scanTemplateDirectory(inputPath);
