@@ -49,3 +49,10 @@ next-env.d.ts
 # unexpected/unnecessary files
 install_skills.ps1
 server/collab.js
+build_log.txt
+compile_errors.txt
+dev_error_log.txt
+test1.txt
+test-yjs.js
+research_ideas.md
+skills-lock.json
