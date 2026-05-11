@@ -42,24 +42,46 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a local `.env` file. At minimum, you will usually need:
+Copy the example file and then fill in the values:
 
-```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
+```bash
+cp .env.example .env
 ```
 
-If your work touches AI features, you may also need one or more of:
+If you are on PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Use the full variable set below so your local environment matches the supported app configuration:
 
 ```env
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
+NEXT_PUBLIC_COLLAB_SERVER_URL=
+AUTH_TRUST_HOST=
+
+GEMINI_API_KEY=
+GROQ_API_KEY=
+MISTRAL_API_KEY=
+
+DATABASE_URL=
+AUTH_SECRET=
+AUTH_URL=
+
+AUTH_GITHUB_ID=
+AUTH_GITHUB_SECRET=
+
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
 ```
+
+Typical local defaults:
+
+- `DATABASE_URL`: your local or hosted MongoDB connection string
+- `AUTH_SECRET`: any strong random secret for local auth
+- `AUTH_URL`: usually `http://localhost:3000`
+- `AUTH_TRUST_HOST`: often `true` behind proxies, otherwise leave based on your setup
+- `NEXT_PUBLIC_COLLAB_SERVER_URL`: leave empty for default local behavior unless you run a separate hosted collaboration server
 
 ### 4. Prepare the database
 
