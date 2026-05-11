@@ -213,3 +213,10 @@ Good first areas to understand:
 - `lib/template.ts` and `lib/constants/templates.ts` for starter-template mapping
 
 For contributor workflow, standards, and pull request expectations, read [CONTRIBUTING.md](./CONTRIBUTING.md). For security reporting, read [SECURITY.md](./SECURITY.md).
+
+For project planning and maintainer operations, also see:
+
+- [docs/ROADMAP.md](./docs/ROADMAP.md)
+- [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)
+- [docs/MAINTAINER_LABELS.md](./docs/MAINTAINER_LABELS.md)
+- [docs/ISSUE_DRAFTS.md](./docs/ISSUE_DRAFTS.md)
