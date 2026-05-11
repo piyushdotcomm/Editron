@@ -199,24 +199,86 @@ Acceptance criteria:
 
 - test fails if the empty-state contract breaks in the covered scenario
 
-## 10. Document Starter Template Contribution Rules
+## 11. Clean Up `package.json` Dependencies
 
 Suggested labels:
 
-- `documentation`
-- `area: templates`
+- `maintenance`
 - `good first issue`
 
 Problem:
 
-- contributors need a clear rule set before modifying or adding starter templates
+- `prettier` and `@types/prettier` are listed in `dependencies` but should be in `devDependencies`.
+- There are duplicate or redundant xterm-related packages (`xterm` vs `@xterm/xterm`).
 
 Expected work:
 
-- document where starter templates live
-- document expectations for naming, metadata, and scope
-- explain when a starter-template change belongs in a separate PR
+- Move `prettier` and its types to `devDependencies`.
+- Consolidate xterm dependencies if possible (ensure `@xterm/xterm` is used if migrating to v6).
 
 Acceptance criteria:
 
-- contributors can understand the starter-template workflow without maintainer back-and-forth
+- `package.json` reflects proper dependency categories.
+- App still builds and terminal still functions correctly.
+
+## 12. Add `aria-label` To Icon-Only Buttons In Playground Header
+
+Suggested labels:
+
+- `accessibility`
+- `area: playground`
+- `good first issue`
+
+Problem:
+
+- Several buttons in `modules/playground/components/playground-header.tsx` only contain icons and lack descriptive `aria-label` attributes for screen readers.
+
+Expected work:
+
+- Add `aria-label` to the "Back to Dashboard", "Copy Collab Link", and "AI Assistant" buttons.
+- Ensure the labels match the intent (e.g., "Back to Dashboard").
+
+Acceptance criteria:
+
+- Buttons are accessible to screen readers with clear descriptive names.
+
+## 13. Fix Unused Imports In `app/playground/[id]/page.tsx`
+
+Suggested labels:
+
+- `maintenance`
+- `area: playground`
+- `good first issue`
+
+Problem:
+
+- `app/playground/[id]/page.tsx` has numerous unused imports (e.g., `DropdownMenu`, `ArrowLeft`, `Separator`) that were likely moved to sub-components.
+
+Expected work:
+
+- Remove unused imports and variables identified by the linter.
+- Verify the page still compiles and functions.
+
+Acceptance criteria:
+
+- Lint warnings for this file are significantly reduced.
+
+## 14. Standardize `aria-label` in File Explorer Actions
+
+Suggested labels:
+
+- `accessibility`
+- `area: playground`
+- `good first issue`
+
+Problem:
+
+- "More actions" buttons in `modules/playground/components/playground-explorer.tsx` lack `aria-label`.
+
+Expected work:
+
+- Add `aria-label="More actions"` to the `MoreHorizontal` dropdown triggers in the file explorer.
+
+Acceptance criteria:
+
+- Each file/folder action menu is accessible via screen reader.

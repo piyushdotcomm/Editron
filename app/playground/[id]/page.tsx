@@ -3,29 +3,16 @@ import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
 import JSZip from "jszip";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import PlaygroundSkeleton from "@/modules/playground/components/loader";
 import dynamic from "next/dynamic";
@@ -37,18 +24,7 @@ const PlaygroundEditor = dynamic(
 
 import {
   AlertCircle,
-  ArrowLeft,
-  Bot,
-  Download,
-  Eye,
-  EyeOff,
   FolderOpen,
-  MoreHorizontal,
-  Save,
-  Settings,
-  Users,
-  X,
-  XCircle,
 } from "lucide-react";
 import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
@@ -56,7 +32,6 @@ import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
-import { ThemeSelector } from "@/modules/playground/components/theme-selector";
 import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
@@ -75,15 +50,11 @@ import React, {
 import { toast } from "sonner";
 
 // New components
-import { FileIcon } from "@/modules/playground/components/file-icon";
 import { StatusBar } from "@/modules/playground/components/status-bar";
 import { WelcomeScreen } from "@/modules/playground/components/welcome-screen";
 import { Breadcrumbs } from "@/modules/playground/components/breadcrumbs";
 import { CommandPalette } from "@/modules/playground/components/command-palette";
-import { PackageManager } from "@/modules/playground/components/package-manager";
-import { EnvManager } from "@/modules/playground/components/env-manager";
 import { DeployDialog } from "@/modules/playground/components/deploy-dialog";
-import { Rocket } from "lucide-react";
 import { PlaygroundHeader } from "@/modules/playground/components/playground-header";
 import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab-bar";
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";

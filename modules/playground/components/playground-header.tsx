@@ -67,6 +67,7 @@ export const PlaygroundHeader = ({
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={() => window.location.href = '/dashboard'}
+                            aria-label="Back to Dashboard"
                         >
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
@@ -157,6 +158,7 @@ export const PlaygroundHeader = ({
                                 const url = `${window.location.origin}/playground/${id}?collab=true`;
                                 navigator.clipboard.writeText(url);
                             }}
+                            aria-label="Copy Collaboration Link"
                         >
                             <Users className="h-4 w-4" />
                         </Button>
@@ -173,6 +175,7 @@ export const PlaygroundHeader = ({
                             size="icon"
                             className="h-8 w-8 text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
                             onClick={toggleAIChat}
+                            aria-label="AI Assistant"
                         >
                             <Bot className="h-4 w-4" />
                         </Button>
@@ -186,6 +189,7 @@ export const PlaygroundHeader = ({
                             size="icon"
                             variant="outline"
                             className="h-8 w-8 shadow-sm"
+                            aria-label="More options"
                         >
                             <Menu className="h-4 w-4" />
                         </Button>

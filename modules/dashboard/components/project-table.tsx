@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { format, set } from "date-fns"
+import { format } from "date-fns"
 import type { Project } from "../types"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -46,7 +46,6 @@ interface ProjectTableProps {
   onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
   onDeleteProject?: (id: string) => Promise<void>
   onDuplicateProject?: (id: string) => Promise<any>
-  onMarkasFavorite?: (id: string) => Promise<void>
 }
 
 interface EditProjectData {
@@ -59,14 +58,12 @@ export default function ProjectTable({
   onUpdateProject,
   onDeleteProject,
   onDuplicateProject,
-  onMarkasFavorite,
 }: ProjectTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [editData, setEditData] = useState<EditProjectData>({ title: "", description: "" })
   const [isLoading, setIsLoading] = useState(false)
-  const [favoutrie, setFavourite] = useState(false)
 
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
@@ -96,10 +93,6 @@ export default function ProjectTable({
     finally {
       setIsLoading(false)
     }
-  }
-
-  const handleMarkasFavorite = async (project: Project) => {
-    //    Write your logic here
   }
 
   const handleDeleteProject = async () => {
