@@ -420,3 +420,27 @@ Acceptance criteria:
 
 - WebContainer boot logic and instance storage are handled safely in a global Zustand store.
 - Components consuming the WebContainer avoid race conditions during simultaneous mounts.
+
+## 22. Expand Component and Utility Test Coverage with Vitest
+
+Suggested labels:
+
+- `testing`
+- `area: ui`
+- `good first issue`
+
+Problem:
+
+- The repository now has a modern Vitest and React Testing Library setup configured, but most UI components and utility functions still lack unit tests. Missing tests make PR reviews harder and increase the risk of regressions.
+
+Expected work:
+
+- Choose 2-3 core UI components (e.g., from `components/ui/`) or utility functions.
+- Write unit tests for them using Vitest and `@testing-library/react`. 
+- Follow the pattern established in `components/ui/button.test.tsx` and `lib/utils.test.ts`.
+
+Acceptance criteria:
+
+- New `.test.tsx` or `.test.ts` files are created.
+- Running `npm test` executes the new tests successfully.
+- Tests verify core functionality, state changes, and accessibility properties (where applicable).
