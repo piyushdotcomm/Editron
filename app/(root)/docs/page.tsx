@@ -1,9 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { ChevronRight, FileText, Settings, Code, Zap, HelpCircle } from "lucide-react";
+import { FileText, Settings, Code, Zap, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -140,7 +139,7 @@ export default function DocsPage() {
                                 The Editron Manual
                             </h1>
                             <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed">
-                                Everything you need to know about building, deploying, and scaling your applications with Editron's intelligent environment.
+                                Everything you need to know about building, deploying, and scaling your applications with Editron&apos;s intelligent environment.
                             </p>
                         </div>
 
@@ -164,7 +163,7 @@ export default function DocsPage() {
                                     <h3 className="text-2xl font-semibold">Quick Start</h3>
                                     <p className="leading-relaxed text-muted-foreground">
                                         Get up and running in seconds. Just navigate to the <Link href="/templates" className="text-red-500 underline underline-offset-4">Templates</Link> page,
-                                        select your preferred framework, and click "Use Template". Editron will instantly provision a containerized environment for you.
+                                        select your preferred framework, and click &ldquo;Use Template&rdquo;. Editron will instantly provision a containerized environment for you.
                                     </p>
                                     <div className="p-4 bg-muted/30 rounded-lg border border-border/50 font-mono text-sm text-muted-foreground">
                                         <span className="text-red-500">$</span> npx create-editron-app my-new-project
@@ -174,7 +173,7 @@ export default function DocsPage() {
                                 <section id="installation" className="space-y-4">
                                     <h3 className="text-2xl font-semibold">Installation</h3>
                                     <p className="leading-relaxed text-muted-foreground">
-                                        Editron runs entirely in your browser, so there's nothing to install! However, you can install it as a PWA (Progressive Web App)
+                                        Editron runs entirely in your browser, so there&apos;s nothing to install! However, you can install it as a PWA (Progressive Web App)
                                         for a native-like experience on your desktop or tablet.
                                     </p>
                                 </section>
