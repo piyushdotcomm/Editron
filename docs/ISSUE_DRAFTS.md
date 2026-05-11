@@ -444,3 +444,97 @@ Acceptance criteria:
 - New `.test.tsx` or `.test.ts` files are created.
 - Running `npm test` executes the new tests successfully.
 - Tests verify core functionality, state changes, and accessibility properties (where applicable).
+
+## 25. Fix TypeScript Errors in AI SDK Tools
+
+Suggested labels:
+
+- `bug`
+- `typescript`
+- `area: ai`
+- `good first issue`
+
+Problem:
+
+- Running `npx tsc --noEmit` reveals several TypeScript errors in `app/api/chat/route.ts` related to the `tool()` function from the Vercel AI SDK.
+- The error `Object literal may only specify known properties, and 'parameters' does not exist in type 'Tool<never, never>'` occurs because the API for creating tools has likely updated, or the import needs to be adjusted.
+
+Expected work:
+
+- Review the `tools` object in `app/api/chat/route.ts`.
+- Check the official Vercel AI SDK documentation for the correct way to define tools and their parameters.
+- Update the type definitions or method calls so that TypeScript no longer throws errors.
+
+Acceptance criteria:
+
+- Running `npx tsc --noEmit app/api/chat/route.ts` succeeds with no errors.
+
+## 26. Fix ZodError Property Access in `lib/api-utils.ts`
+
+Suggested labels:
+
+- `bug`
+- `typescript`
+- `area: api`
+- `good first issue`
+
+Problem:
+
+- In `lib/api-utils.ts` line 30, there is a TypeScript error: `Property 'errors' does not exist on type 'ZodError<unknown>'`.
+- According to Zod's API, the correct property to access validation details is `.issues`, not `.errors`.
+
+Expected work:
+
+- Change `error.errors` to `error.issues` in the `handleApiError` function inside `lib/api-utils.ts`.
+
+Acceptance criteria:
+
+- Running `npx tsc --noEmit lib/api-utils.ts` passes without the `ZodError` property error.
+- The API continues to return properly formatted validation errors.
+
+## 27. Add Missing Type Definitions for `y-websocket`
+
+Suggested labels:
+
+- `maintenance`
+- `typescript`
+- `good first issue`
+
+Problem:
+
+- In `lib/yjs.ts`, the import `import { WebsocketProvider } from "y-websocket"` throws a TypeScript error: `Could not find a declaration file for module 'y-websocket'`. 
+- This results in an implicit `any` type, which degrades type safety in the collaboration modules.
+
+Expected work:
+
+- Install the community type definitions for `y-websocket` as a development dependency.
+- Run `npm install -D @types/y-websocket`.
+
+Acceptance criteria:
+
+- The implicit `any` error in `lib/yjs.ts` is resolved.
+- `package.json` correctly reflects the new devDependency.
+
+## 28. Add Global Error Boundary (`app/error.tsx`)
+
+Suggested labels:
+
+- `enhancement`
+- `area: ui`
+- `good first issue`
+
+Problem:
+
+- Next.js 13+ App Router recommends having a global `error.tsx` file to catch unexpected runtime errors and prevent the entire application from crashing to an unstyled browser error page.
+- Currently, there is no global `app/error.tsx` file in the project.
+
+Expected work:
+
+- Create `app/error.tsx`.
+- Implement a user-friendly error UI using the existing Tailwind/Shadcn UI components (e.g., using a stylized card with a "Try again" button).
+- Follow the Next.js documentation for Error Boundaries (`"use client"` directive, accepting `error` and `reset` props).
+
+Acceptance criteria:
+
+- `app/error.tsx` is implemented.
+- Forcing a crash inside a client or server component successfully renders the custom error UI instead of breaking the app.
