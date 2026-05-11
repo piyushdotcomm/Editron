@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible bug in Editron
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough detail for maintainers to reproduce the issue without guessing.
+  - type: input
+    id: summary
+    attributes:
+      label: Short summary
+      description: What is broken?
+      placeholder: Playground preview stops updating after file rename
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps needed to reproduce the issue.
+      placeholder: |
+        1. Open an existing playground
+        2. Rename a file in the explorer
+        3. Save the file
+        4. Observe the preview panel
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: The preview should rebuild with the renamed file.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: The preview stays stale and the browser console logs an error.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Playground editor
+        - AI chat or completion
+        - Dashboard
+        - Authentication
+        - Collaboration
+        - Starter templates
+        - CI or repository tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include browser, OS, local or deployed setup, and any relevant env differences.
+      placeholder: Chrome 136 on Windows 11, local dev with MongoDB running locally
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots, logs, or recordings
+      description: Paste stack traces or attach screenshots if available.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues before opening this report.
+          required: true
+        - label: I included enough detail for reproduction.
+          required: true
