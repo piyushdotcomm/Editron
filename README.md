@@ -98,23 +98,37 @@ npm install
 
 ### Environment variables
 
-Create a `.env` file in the repository root.
+Copy the example file first:
+
+```bash
+cp .env.example .env
+```
+
+If you are on PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then fill in the values in `.env`.
 
 ```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
+NEXT_PUBLIC_COLLAB_SERVER_URL=
+AUTH_TRUST_HOST=
 
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
+GEMINI_API_KEY=
+GROQ_API_KEY=
+MISTRAL_API_KEY=
 
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
+DATABASE_URL=
+AUTH_SECRET=
+AUTH_URL=
 
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
+AUTH_GITHUB_ID=
+AUTH_GITHUB_SECRET=
 
-NEXT_PUBLIC_COLLAB_SERVER_URL=""
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
 ```
 
 ### What each variable is for
@@ -123,6 +137,8 @@ NEXT_PUBLIC_COLLAB_SERVER_URL=""
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | Prisma MongoDB datasource |
 | `AUTH_SECRET` | Yes for auth flows | NextAuth session and token signing |
+| `AUTH_URL` | Recommended | Base application URL, usually `http://localhost:3000` in local development |
+| `AUTH_TRUST_HOST` | Optional | Host trust toggle for auth deployments and proxy setups |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Optional locally | GitHub OAuth login |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional locally | Google OAuth login |
 | `GEMINI_API_KEY` | Optional | Server fallback for Gemini |
@@ -132,6 +148,9 @@ NEXT_PUBLIC_COLLAB_SERVER_URL=""
 
 > [!IMPORTANT]
 > Do not commit `.env` files, secrets, access tokens, or provider credentials. Use GitHub repository secrets for CI or deployment environments.
+
+> [!TIP]
+> `.env.example` is the canonical reference for local setup. When a new environment variable is introduced in the app, update `.env.example` and the setup docs in the same pull request.
 
 ### Start the app
 
