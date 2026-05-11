@@ -1,0 +1,70 @@
+name: Feature request
+description: Propose an enhancement for Editron
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please focus on the problem first, then the proposed solution. This helps maintainers judge fit and scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user or maintainer problem does this solve?
+      placeholder: Contributors cannot easily verify collaboration flows locally.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or change you want.
+      placeholder: Add a small local collaboration demo route with seeded fake users.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider?
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Estimated scope
+      options:
+        - Small
+        - Medium
+        - Large
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Playground editor
+        - AI chat or completion
+        - Dashboard
+        - Authentication
+        - Collaboration
+        - Starter templates
+        - CI or repository tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Add mockups, examples, or related links if helpful.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues before opening this request.
+          required: true
