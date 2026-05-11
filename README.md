@@ -214,9 +214,14 @@ Good first areas to understand:
 
 For contributor workflow, standards, and pull request expectations, read [CONTRIBUTING.md](./CONTRIBUTING.md). For security reporting, read [SECURITY.md](./SECURITY.md).
 
-For project planning and maintainer operations, also see:
+## Community & Contact
 
-- [docs/ROADMAP.md](./docs/ROADMAP.md)
-- [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)
-- [docs/MAINTAINER_LABELS.md](./docs/MAINTAINER_LABELS.md)
-- [docs/ISSUE_DRAFTS.md](./docs/ISSUE_DRAFTS.md)
+We use **Element (Matrix)** for real-time communication and contributor support.
+
+- **Join our Element Channel:** [Click here to join](#) *(Replace with your actual link)*
+- **GitHub Discussions:** For non-urgent questions and architectural ideas.
+- **Issues:** For bug reports and feature requests.
+
+## License
+
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
