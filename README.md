@@ -13,7 +13,7 @@ Editron is a browser-based development environment built with Next.js, WebContai
 [![Prisma](https://img.shields.io/badge/Prisma-MongoDB-2d3748?logo=prisma)](https://www.prisma.io/)
 
 > [!NOTE]
-> Editron is being maintained as an open-source project for GSSoC 2026. Contributor-friendly docs, issue templates, PR templates, and repository checks are included so first-time and returning contributors can work with a predictable workflow.
+> Editron is being maintained as an open-source project. Contributor-friendly docs, issue templates, PR templates, and repository checks are included so first-time and returning contributors can work with a predictable workflow.
 
 ## What Editron Does
 
@@ -218,7 +218,7 @@ For contributor workflow, standards, and pull request expectations, read [CONTRI
 
 We use **Element (Matrix)** for real-time communication and contributor support.
 
-- **Join our Element Channel:** [Click here to join](#) *(Replace with your actual link)*
+- **Join our Element Channel:** [Click here to join](https://matrix.to/#/#editron:matrix.org)
 - **GitHub Discussions:** For non-urgent questions and architectural ideas.
 - **Issues:** For bug reports and feature requests.
 
