@@ -71,17 +71,18 @@ export const createPlayground = async (data:{
 
 export const getAllPlaygroundForUser = async ()=>{
     const user = await currentUser();
+    const userId = user?.id;
+
     try {
-        const user  = await currentUser();
         const playground = await db.playground.findMany({
             where:{
-                userId:user?.id!
+                userId,
             },
             include:{
                 user:true,
                 Starmark:{
                     where:{
-                        userId:user?.id!
+                        userId,
                     },
                     select:{
                         isMarked:true
