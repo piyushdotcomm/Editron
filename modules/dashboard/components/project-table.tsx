@@ -45,7 +45,7 @@ interface ProjectTableProps {
   projects: Project[]
   onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
   onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<any>
+  onDuplicateProject?: (id: string) => Promise<void>
 }
 
 interface EditProjectData {
@@ -74,7 +74,7 @@ export default function ProjectTable({
     setEditDialogOpen(true)
   }
 
-  const handleDeleteClick = async (project: Project) => {
+  const handleDeleteClick = (project: Project) => {
     setSelectedProject(project)
     setDeleteDialogOpen(true)
   }
