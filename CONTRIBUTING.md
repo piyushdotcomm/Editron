@@ -9,6 +9,7 @@ Please read:
 - [README.md](./README.md) for project overview and setup
 - [SECURITY.md](./SECURITY.md) before reporting sensitive issues
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) for expected community behavior
+- [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) if local setup or runtime behavior fails
 
 ## Contribution Types
 
@@ -267,3 +268,9 @@ The most helpful contributions are the ones that:
 - include enough explanation for maintainers to review quickly
 
 If you are unsure, open a draft PR early and ask for feedback.
+
+For maintainers and frequent contributors, additional planning and triage docs live in:
+
+- [docs/ROADMAP.md](./docs/ROADMAP.md)
+- [docs/MAINTAINER_LABELS.md](./docs/MAINTAINER_LABELS.md)
+- [docs/ISSUE_DRAFTS.md](./docs/ISSUE_DRAFTS.md)
