@@ -348,3 +348,75 @@ Expected work:
 Acceptance criteria:
 
 - Keyboard navigation (Tab key) clearly shows focus rings on all interactive elements previously hiding them.
+
+## 18. Secure Unauthenticated AI and Deployment API Routes
+
+Suggested labels:
+
+- `security`
+- `area: api`
+- `area: ai`
+- `priority: high`
+
+Problem:
+
+- According to Vercel React Best Practices (`server-auth-actions`), server actions and API routes must verify user authentication before performing privileged operations.
+- Currently, endpoints like `app/api/chat/route.ts`, `app/api/completion/route.ts`, and `app/api/deploy/vercel/route.ts` rely solely on IP-based rate limiting. If a user does not provide a custom `userApiKey`, the server blindly falls back to environment variables like `process.env.GEMINI_API_KEY` or `process.env.VERCEL_MASTER_TOKEN`.
+- This leaves the maintainer's paid API limits completely exposed to the public internet.
+
+Expected work:
+
+- Import `auth` from `auth.ts` inside these API routes.
+- Add an authentication check (e.g., `const session = await auth(); if (!session) return new NextResponse(...)`) before allowing the fallback to `process.env` tokens.
+- Ensure legitimate unauthenticated users (if intended) are strictly limited to using their own provided `userApiKey`.
+
+Acceptance criteria:
+
+- The API routes throw a `401 Unauthorized` if a user without a valid session attempts to use the server's fallback API keys.
+- Rate limiting is still maintained as a secondary defense.
+
+## 19. Optimize Bundle Size by Decoupling `templates.ts` Metadata
+
+Suggested labels:
+
+- `performance`
+- `area: templates`
+- `technical debt`
+
+Problem:
+
+- The `lib/constants/templates.ts` file contains a massive static array of project templates, including long descriptions, IDs, and metadata.
+- This file is directly imported into client components and server components across the landing page (`app/(root)/page.tsx`) and the dashboard. According to Vercel React Best Practices (`bundle-dynamic-imports` and `server-serialization`), bundling large static data structures directly into page components heavily bloats the initial JavaScript bundle.
+
+Expected work:
+
+- Refactor how template metadata is consumed. Instead of directly importing the massive array everywhere, load the templates using a Server Component fetch or a targeted Server Action.
+- Ensure the client only receives the exact data it needs (e.g., stripping out unnecessary metadata if only the ID and name are required).
+
+Acceptance criteria:
+
+- `templates.ts` is removed from direct client bundle imports.
+- Next.js build analyzer shows a reduction in the initial chunk size for the root and templates pages.
+
+## 20. Centralize WebContainer Boot State with Zustand
+
+Suggested labels:
+
+- `architecture`
+- `area: webcontainers`
+- `help wanted`
+
+Problem:
+
+- The `modules/webcontainers/hooks/useWebContainer.ts` file manages the WebContainer initialization using a module-level singleton (`let webContainerInstance: WebContainer | null = null;`) and complex internal hook state.
+- As defined in advanced React patterns (`advanced-init-once`), managing global initialization state inside a localized hook can lead to race conditions, hydration issues during hot-reloads, and makes it very difficult for other disparate components (like the terminal and the preview window) to predictably listen to boot status without prop drilling.
+
+Expected work:
+
+- The project already has `zustand` installed. Create a global Zustand store (e.g., `useWebContainerStore`) to manage the booting status, the instance itself, and the error state.
+- Refactor `useWebContainer.ts` to sync with and read from this global store.
+
+Acceptance criteria:
+
+- WebContainer boot logic and instance storage are handled safely in a global Zustand store.
+- Components consuming the WebContainer avoid race conditions during simultaneous mounts.
