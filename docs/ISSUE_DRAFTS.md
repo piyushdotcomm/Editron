@@ -282,3 +282,69 @@ Expected work:
 Acceptance criteria:
 
 - Each file/folder action menu is accessible via screen reader.
+
+## 15. Refactor `usePlayground.tsx` to use `@tanstack/react-query`
+
+Suggested labels:
+
+- `performance`
+- `area: playground`
+- `technical debt`
+
+Problem:
+
+- The core `usePlayground` hook manually fetches data inside a `useEffect` and manages its own loading/error state. This creates a client-side waterfall and adds unnecessary complexity. The project already has `@tanstack/react-query` installed.
+
+Expected work:
+
+- Refactor `loadPlayground` in `modules/playground/hooks/usePlayground.tsx` to use the `useQuery` hook from React Query.
+- Remove manual `isLoading` and `error` state variables from the hook.
+
+Acceptance criteria:
+
+- The playground loads data successfully using `useQuery`.
+- State management inside `usePlayground.tsx` is simplified.
+
+## 16. Implement React `<Suspense>` Boundaries for Playground Loading
+
+Suggested labels:
+
+- `performance`
+- `area: playground`
+
+Problem:
+
+- The main playground page (`app/playground/[id]/page.tsx`) relies on a manual `if (isLoading)` block to render the `PlaygroundSkeleton`. Next.js and React 18+ recommend using `<Suspense>` boundaries for better streaming and rendering performance.
+
+Expected work:
+
+- Remove the manual `isLoading` check in `MainPlaygroundPage`.
+- Wrap the async/heavy components inside a `<Suspense fallback={<PlaygroundSkeleton />}>` boundary.
+- Or, utilize Next.js `loading.tsx` file for the route.
+
+Acceptance criteria:
+
+- The UI gracefully shows the skeleton loader via Suspense or `loading.tsx`.
+- The `isLoading` state is no longer manually threaded through the main page component.
+
+## 17. Fix `outline-none` Accessibility Violations
+
+Suggested labels:
+
+- `accessibility`
+- `area: ui`
+- `good first issue`
+
+Problem:
+
+- According to the Web Interface Guidelines, `outline-none` should never be used without a visible `focus-visible` replacement to ensure keyboard accessibility. 
+- Several components (e.g., `components/ui/tabs.tsx`, `components/ui/input-group.tsx`, `modules/dashboard/components/template-selecting-modal.tsx`) use `outline-none` without providing focus styles.
+
+Expected work:
+
+- Search the codebase for `outline-none(?!.*focus-visible)` (using regex).
+- Add `focus-visible:ring-1 focus-visible:ring-primary` (or similar appropriate styles) alongside the `outline-none` classes.
+
+Acceptance criteria:
+
+- Keyboard navigation (Tab key) clearly shows focus rings on all interactive elements previously hiding them.
