@@ -6,7 +6,7 @@ import { transformToWebContainerFormat } from "../hooks/transformer";
 import { CheckCircle, Loader2, XCircle, ExternalLink, RefreshCw, Monitor, Tablet, Smartphone, Globe } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 
 const TerminalComponent = dynamic(() => import("./terminal"), { ssr: false });
 
@@ -45,7 +45,7 @@ const WebContainerPreview = ({
   const totalSteps = 4;
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-  const [isSetupInProgress, setIsSetupInProgress] = useState(false);
+  const [_isSetupInProgress, setIsSetupInProgress] = useState(false);
   const [installProgress, setInstallProgress] = useState({
     totalDeps: 0,
     installedPackages: 0,
@@ -67,7 +67,7 @@ const WebContainerPreview = ({
     }
   };
 
-  const createInstallOutputStream = (totalDeps: number) => {
+  const createInstallOutputStream = (totalDeps : number) => {
     let estimatedProgress = 0;
     let lastUpdateTime = Date.now();
     
@@ -172,7 +172,7 @@ const WebContainerPreview = ({
         }
 
         // Find the most likely frontend workspace (client, web, app, frontend)
-        const frontendKeywords = ["client", "web", "app", "ui", "frontend", "docs"];
+        // const frontendKeywords = ["client", "web", "app", "ui", "frontend", "docs"];
         let bestWorkspaceDir = "";
         let bestScript = "";
         let bestWorkspaceName = "";
@@ -192,7 +192,7 @@ const WebContainerPreview = ({
               bestScript = childScripts.dev ? "dev" : (childScripts.start ? "start" : "serve");
               break;
             }
-          } catch (e) { }
+          } catch  { }
         }
 
         if (bestWorkspaceDir && bestScript) {
@@ -218,7 +218,7 @@ const WebContainerPreview = ({
       if (scripts.serve) return { cmd: pkgManager, args: ["run", "serve"] };
 
       return { cmd: pkgManager, args: ["run", "start"] }; // Fallback
-    } catch (e) {
+    } catch  {
       return { cmd: pkgManager, args: ["run", "start"] };
     }
   };
@@ -350,7 +350,7 @@ const WebContainerPreview = ({
             );
             return;
           }
-        } catch (error) { }
+        } catch  { }
 
         // Step-1 transform data
         setLoadingState((prev) => ({ ...prev, transforming: true }));
@@ -421,7 +421,7 @@ const WebContainerPreview = ({
                       entryFile = entry;
                       break;
                     }
-                  } catch (e) { }
+                  } catch  { }
                 }
 
                 if (entryFile) {

@@ -2,7 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { getAllPlaygroundForUser } from "@/modules/dashboard/actions";
 import { DashboardSidebar } from "@/modules/dashboard/components/dashboard-sidebar";
 
-export default async function ({
+export default async function DashboardLayout({
     children
 }: {
     children: React.ReactNode
@@ -28,7 +28,7 @@ export default async function ({
     return (<SidebarProvider>
         <div className="flex min-h-screen w-full overflow-x-hidden">
             {/*Dashboard Sidebar */}
-            {/* @ts-ignore */}
+            {/* @ts-expect-ignore - Todo: align formattedplaygrounddata type with dashboard sidebar props */}
             <DashboardSidebar initialPlaygroundData={formattedPlaygroundData} />
             <main className="flex-1">
                 {children}
