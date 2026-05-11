@@ -444,3 +444,100 @@ Acceptance criteria:
 - New `.test.tsx` or `.test.ts` files are created.
 - Running `npm test` executes the new tests successfully.
 - Tests verify core functionality, state changes, and accessibility properties (where applicable).
+
+## 29. Decompose Monolithic `MainPlaygroundPage` Component
+
+Suggested labels:
+
+- `maintenance`
+- `architecture`
+- `area: playground`
+- `help wanted`
+
+Problem:
+
+- `app/playground/[id]/page.tsx` is approximately 600 lines long. It acts as a massive orchestrator, bridging state from multiple hooks (`usePlayground`, `useFileExplorer`, `useAI`) and prop-drilling handlers to almost every child component.
+- This monolithic structure makes the file hard to read, hard to test, and prone to merge conflicts.
+
+Expected work:
+
+- Extract logical groups of UI (e.g., the top-level layout wrappers, the modal orchestrations) into separate smaller components.
+- Reduce prop-drilling by having child components consume the Zustand/Context hooks directly where appropriate, rather than receiving everything from the parent.
+
+Acceptance criteria:
+
+- `app/playground/[id]/page.tsx` line count is significantly reduced.
+- The playground functionality remains completely unchanged.
+
+## 30. Extract Dialogs from `TemplateFileTree`
+
+Suggested labels:
+
+- `maintenance`
+- `area: playground`
+- `good first issue`
+
+Problem:
+
+- `modules/playground/components/playground-explorer.tsx` mixes complex recursive tree rendering logic with the UI for multiple dialogs (Rename File, Delete File, New File/Folder).
+- This bloats the component size (over 20KB) and mixes concerns.
+
+Expected work:
+
+- Create a new directory: `modules/playground/components/explorer-dialogs/`.
+- Extract the `RenameDialog`, `DeleteDialog`, and any other inline modals from `playground-explorer.tsx` into separate files in this new directory.
+- Import and use them in the explorer.
+
+Acceptance criteria:
+
+- The dialogs are successfully extracted into their own files.
+- The file explorer continues to function correctly (creating, renaming, and deleting files).
+
+## 31. Refactor `AIChatPanel` to Separate UI and Tool Logic
+
+Suggested labels:
+
+- `maintenance`
+- `architecture`
+- `area: ai`
+- `help wanted`
+
+Problem:
+
+- `modules/playground/components/ai-chat-panel.tsx` is a massive 26KB file. It tightly couples the chat UI (rendering messages, input boxes, markdown) with highly complex client-side tool execution logic (e.g., handling `edit_file`, `delete_file` tool calls from the AI).
+
+Expected work:
+
+- Extract the tool execution logic into a custom hook (e.g., `useAITools.ts`).
+- Extract the markdown rendering and message bubble UI into a separate `ChatMessage` component.
+- The `AIChatPanel` should only serve as the layout wrapper for the chat interface.
+
+Acceptance criteria:
+
+- The logic for executing AI tool calls is decoupled from the UI.
+- The chat panel remains fully functional.
+
+## 32. Extract Hardcoded API URLs and Magic Strings to Constants
+
+Suggested labels:
+
+- `maintenance`
+- `good first issue`
+
+Problem:
+
+- The codebase contains scattered hardcoded values that should be centralized:
+  - Netlify and Vercel API endpoints are hardcoded in their respective API routes (`app/api/deploy/netlify/route.ts` and `vercel/route.ts`).
+  - LocalStorage keys (e.g., `editron_theme`, `editron_api_keys`) are hardcoded in hooks like `useAI.ts`.
+  - Magic numbers like debounce timeouts (1500ms) are hardcoded in `PlaygroundEditor`.
+
+Expected work:
+
+- Create or update a constants file (e.g., `lib/constants/config.ts` or `lib/constants/storage.ts`).
+- Move the hardcoded URLs, LocalStorage keys, and timeout values into this file as exported constants.
+- Replace the hardcoded instances in the codebase with the imported constants.
+
+Acceptance criteria:
+
+- Hardcoded URLs and storage keys are replaced with constants.
+- The application builds and deploys successfully.
