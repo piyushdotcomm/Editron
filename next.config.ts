@@ -88,6 +88,7 @@ const nextConfig: NextConfig = {
   },
 
   reactStrictMode: false,
+  outputFileTracingRoot: process.cwd(),
 
   eslint: {
     ignoreDuringBuilds: true,

@@ -8,6 +8,7 @@
     "start": "concurrently \"next start\" \"npm run start:collab\"",
     "start:collab": "npx tsx server/collab.ts",
     "lint": "eslint",
+    "test": "node tests/smoke/repository.test.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
