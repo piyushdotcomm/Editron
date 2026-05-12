@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         const { messages, provider, fileTree, userApiKey } = result.data;
 
         const session = await auth();
-        if (!session && !userApiKey) {
+        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
                 { status: 401 }
