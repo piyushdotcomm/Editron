@@ -1,4 +1,4 @@
-import { streamText, tool as createTool, convertToModelMessages } from "ai";
+import { streamText, tool as createTool, convertToModelMessages, jsonSchema } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -27,29 +27,29 @@ If the user asks you to create a new file, call the edit tool with the full cont
 const tools = {
     read_file: createTool({
         description: "Read the contents of a file in the project. Use this to understand existing code before making changes.",
-        parameters: z.object({
+        inputSchema: z.object({
             path: z.string().describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
         }),
     }),
     edit_file: createTool({
         description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
-        parameters: z.object({
+        inputSchema: z.object({
             path: z.string().describe("The file path relative to the project root"),
             content: z.string().describe("The complete new file content"),
         }),
     }),
     edit_multiple_files: createTool({
-        description: "Create or replace the content of MULTIPLE files at once. Use this for refactoring or scaffolding complete features. Provide COMPLETE file contents for EVERY file.",
-        parameters: z.object({
+        description: "Create or replace the content of MULTIPLE files at once.",
+        inputSchema: z.object({
             changes: z.array(z.object({
-                path: z.string().describe("The file path relative to the project root, e.g. components/Header.tsx"),
+                path: z.string().describe("The file path relative to the project root"),
                 content: z.string().describe("The complete new file content"),
-            })).describe("An array of file modifications to execute as a batch transaction"),
+            })).describe("An array of file modifications to execute as a batch"),
         }),
     }),
     delete_file: createTool({
         description: "Delete a file from the project.",
-        parameters: z.object({
+        inputSchema: z.object({
             path: z.string().describe("The file path relative to the project root"),
         }),
     }),
