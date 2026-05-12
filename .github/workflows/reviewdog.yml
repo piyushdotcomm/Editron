@@ -1,6 +1,12 @@
 name: Reviewdog Code Review
 
-on: [pull_request]
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   eslint:

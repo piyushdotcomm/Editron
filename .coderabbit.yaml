@@ -4,7 +4,7 @@
 language: "en-US"
 reviews:
   # Enable specific review profiles
-  profile: "nextjs"
+  profile: "chill"
   
   # Set to true to allow CodeRabbit to request changes or approve PRs
   request_changes_workflow: false
