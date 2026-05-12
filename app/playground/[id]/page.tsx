@@ -248,9 +248,7 @@ const PlaygroundPageContent = () => {
         if (writeFileSync) {
           await writeFileSync(filePath, fileToSave.content);
           lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-          if (instance && instance.fs) {
-            await instance.fs.writeFile(filePath, fileToSave.content);
-          }
+          
         }
 
         await saveTemplateData(updatedTemplateData);
