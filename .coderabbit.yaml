@@ -1,0 +1,22 @@
+# .coderabbit.yaml
+# Configuration for CodeRabbit AI PR reviewer
+
+language: "en-US"
+reviews:
+  # Enable specific review profiles
+  profile: "nextjs"
+  
+  # Set to true to allow CodeRabbit to request changes or approve PRs
+  request_changes_workflow: false
+  
+  # Enable high-level summary in the PR description
+  high_level_summary: true
+  
+  # Adds a fun little poem at the end of the review!
+  poem: true
+  
+  # Track the status of the review
+  review_status: true
+  
+  # Whether to collapse the walkthrough table
+  collapse_walkthrough: false

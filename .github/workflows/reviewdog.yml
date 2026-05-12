@@ -1,0 +1,31 @@
+name: Reviewdog Code Review
+
+on: [pull_request]
+
+jobs:
+  eslint:
+    name: runner / eslint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm ci
+        
+      - name: Run ESLint with Reviewdog
+        uses: reviewdog/action-eslint@v1
+        with:
+          # Automatically uses the GITHUB_TOKEN to comment on the PR
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Reports the errors directly as comments on the specific lines in the PR
+          reporter: github-pr-review
+          
+          # We specify the directory to lint. "." targets everything.
+          eslint_flags: '.'
