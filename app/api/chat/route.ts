@@ -64,12 +64,7 @@ const RequestBodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-    try {
-
-        const session = await auth();
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+    try {        
 
         // Rate limiting: 20 requests per minute per IP
         const ip = getClientIp(request);
@@ -88,6 +83,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const session = await auth();
+        const isAuthenticated = !!session?.user;
+        
         const body = await request.json();
         const result = RequestBodySchema.safeParse(body);
 
@@ -107,31 +105,46 @@ export async function POST(request: NextRequest) {
         let model;
 
         if (provider === "gemini") {
-            const apiKey = userApiKey || process.env.GEMINI_API_KEY;
+            const apiKey = userApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { success: false, error: "Gemini API key not configured. Add your key in AI settings." },
-                    { status: 400 }
+                    { 
+                        success: false, 
+                        error: isAuthenticated
+                            ? "Gemini API key not configured. Add your key in AI settings."
+                            : "Unauthorized",
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
                 );
             }
             const google = createGoogleGenerativeAI({ apiKey });
             model = google("gemini-2.0-flash");
         } else if (provider === "groq") {
-            const apiKey = userApiKey || process.env.GROQ_API_KEY;
+            const apiKey = userApiKey || (isAuthenticated ? process.env.GROQ_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { success: false, error: "Groq API key not configured. Add your key in AI settings." },
-                    { status: 400 }
+                    { 
+                        success: false, 
+                        error: isAuthenticated 
+                            ? "Groq API key not configured. Add your key in AI settings." 
+                            : "Unauthorized" 
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
                 );
             }
             const groq = createGroq({ apiKey });
             model = groq("llama-3.1-70b-versatile");
         } else if (provider === "mistral") {
-            const apiKey = userApiKey || process.env.MISTRAL_API_KEY;
+            const apiKey = userApiKey || (isAuthenticated ? process.env.MISTRAL_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { success: false, error: "Mistral API key not configured. Add your key in AI settings." },
-                    { status: 400 }
+                    { 
+                        success: false, 
+                        error: isAuthenticated
+                            ? "Mistral API key not configured. Add your key in AI settings." 
+                            : "Unauthorized"
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
                 );
             }
             const mistral = createMistral({ apiKey });
