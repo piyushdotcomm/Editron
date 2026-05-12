@@ -5,6 +5,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
+import { auth } from "@/auth";
 
 const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
 
@@ -64,6 +65,12 @@ const RequestBodySchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+
+        const session = await auth();
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         // Rate limiting: 20 requests per minute per IP
         const ip = getClientIp(request);
         const { allowed, remaining } = rateLimit(ip, 20, 60_000);
