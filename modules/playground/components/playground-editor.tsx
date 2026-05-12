@@ -28,8 +28,8 @@ export interface PlaygroundEditorProps {
   onCursorChange?: (line: number, col: number) => void;
 }
 
-let inlineProviderDisposable: any = null;
-let formatterDisposable: any = null;
+let inlineProviderDisposable: { dispose: () => void } | null = null;
+let formatterDisposable: { dispose: () => void } | null = null;
 
 const PlaygroundEditor = ({
   activeFile,
@@ -39,10 +39,10 @@ const PlaygroundEditor = ({
 }: PlaygroundEditorProps) => {
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<unknown>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<any>(null);
+  const bindingRef = useRef<unknown>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -444,7 +444,7 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // @ts-ignore
+        // @ts-expect-error - Monaco options typo
         options={{
           ...defaultEditorOptions,
           inlineSuggest: { enabled: true },
