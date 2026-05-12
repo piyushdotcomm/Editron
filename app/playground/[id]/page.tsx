@@ -96,7 +96,7 @@ const PlaygroundPageContent = () => {
     instance,
     writeFileSync,
     // @ts-ignore
-  } = useWebContainer({ templateData });
+  } = useWebContainer();
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
