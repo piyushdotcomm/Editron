@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Package, Trash2, Download, Loader2 } from "lucide-react";
-import { _useWebContainer } from "@/modules/webcontainers/hooks/_useWebContainer";
+import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 

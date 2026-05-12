@@ -8,7 +8,7 @@ import RecentActivity from "@/modules/profile/components/RecentActivity";
 import { QuickActions } from "@/modules/profile/components/SidebarWidgets";
 import HeaderNewProjectButton from "@/modules/profile/components/HeaderNewProjectButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { _Search, _Bell, _Settings, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import CompactProjectTable from "@/modules/profile/components/CompactProjectTable";

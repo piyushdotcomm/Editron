@@ -18,8 +18,7 @@ import {
     Bot,
     Settings,
     XCircle,
-    PanelLeftClose,
-    _Palette,
+    PanelLeftClose
 } from "lucide-react";
 import { FileIcon } from "./file-icon";
 import type {

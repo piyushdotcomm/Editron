@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   ChevronRight,
-  _Plus,
   FilePlus,
   FolderPlus,
   MoreHorizontal,
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
-  _SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,

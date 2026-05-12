@@ -933,7 +933,7 @@ const WebContainerPreview = ({
                   <RefreshCw
                     size={13}
                     className={
-                      status === "starting" ? "animate-spin text-primary" : ""
+                      isLoading ? "animate-spin text-primary" : ""
                     }
                   />
                 </Button>

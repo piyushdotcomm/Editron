@@ -1,5 +1,3 @@
-import { _TemplateKey } from "@/lib/template";
-
 export interface TemplateOption {
     id: string;
     name: string;
