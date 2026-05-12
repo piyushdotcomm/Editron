@@ -5,6 +5,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
+import { auth } from "@/auth";
 
 const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
 
@@ -92,6 +93,14 @@ export async function POST(request: NextRequest) {
         }
 
         const { messages, provider, fileTree, userApiKey } = result.data;
+
+        const session = await auth();
+        if (!session && !userApiKey) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
+                { status: 401 }
+            );
+        }
 
         const systemInstruction = fileTree
             ? `${SYSTEM_PROMPT}\n\nProject file tree:\n${fileTree}`
