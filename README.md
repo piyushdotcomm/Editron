@@ -98,23 +98,11 @@ npm install
 
 ### Environment variables
 
-Create a `.env` file in the repository root.
+Copy the example environment file, then replace placeholder values with local
+or provider-specific credentials.
 
-```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
-
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
-
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
-
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
-
-NEXT_PUBLIC_COLLAB_SERVER_URL=""
+```bash
+cp .env.example .env
 ```
 
 ### What each variable is for
@@ -123,11 +111,16 @@ NEXT_PUBLIC_COLLAB_SERVER_URL=""
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | Prisma MongoDB datasource |
 | `AUTH_SECRET` | Yes for auth flows | NextAuth session and token signing |
+| `AUTH_URL` | Recommended locally | Canonical app URL for auth callbacks |
+| `AUTH_TRUST_HOST` | Recommended for hosted deployments | Allows Auth.js to trust the deployment host header |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Optional locally | GitHub OAuth login |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional locally | Google OAuth login |
 | `GEMINI_API_KEY` | Optional | Server fallback for Gemini |
 | `GROQ_API_KEY` | Optional | Server fallback for Groq |
 | `MISTRAL_API_KEY` | Optional | Server fallback for Mistral |
+| `VERCEL_MASTER_TOKEN` | Optional | Server fallback token for Vercel deployment requests |
+| `NETLIFY_MASTER_TOKEN` | Optional | Server fallback token for Netlify deployment requests |
+| `COLLAB_PORT` | Optional | Port for the standalone collaboration server; defaults to `1234` |
 | `NEXT_PUBLIC_COLLAB_SERVER_URL` | Optional | Explicit collaboration server URL override |
 
 > [!IMPORTANT]

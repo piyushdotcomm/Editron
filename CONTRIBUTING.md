@@ -42,24 +42,15 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a local `.env` file. At minimum, you will usually need:
+Copy the example file, then replace placeholder values as needed:
 
-```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
+```bash
+cp .env.example .env
 ```
 
-If your work touches AI features, you may also need one or more of:
-
-```env
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
-```
+At minimum, local development usually needs `DATABASE_URL` and
+`AUTH_SECRET`. OAuth, AI provider, deployment provider, and collaboration
+server variables are documented in `.env.example`.
 
 ### 4. Prepare the database
 
