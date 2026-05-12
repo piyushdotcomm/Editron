@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Download, Eye, FileSearch, Keyboard, Command } from "lucide-react";
+import { Bot, Download, Eye, FileSearch, Command } from "lucide-react";
 
 interface WelcomeScreenProps {
     projectTitle?: string;
@@ -9,15 +9,6 @@ interface WelcomeScreenProps {
     onDownload: () => void;
     onOpenCommandPalette: () => void;
 }
-
-const SHORTCUTS = [
-    { keys: ["Ctrl", "S"], label: "Save file" },
-    { keys: ["Ctrl", "K"], label: "Command palette" },
-    { keys: ["Ctrl", "B"], label: "Toggle sidebar" },
-    { keys: ["Ctrl", "\\"], label: "Toggle preview" },
-    { keys: ["Ctrl", "Shift", "A"], label: "Toggle AI chat" },
-    { keys: ["Ctrl", "W"], label: "Close tab" },
-];
 
 export function WelcomeScreen({
     projectTitle,
@@ -75,34 +66,6 @@ export function WelcomeScreen({
                         onClick={onDownload}
                         delay="0.25s"
                     />
-                </div>
-
-                {/* Keyboard Shortcuts */}
-                <div
-                    className="space-y-3"
-                    style={{ animation: "fadeInUp 0.5s ease-out 0.3s both" }}
-                >
-                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
-                        <Keyboard className="h-3 w-3" />
-                        <span>Keyboard Shortcuts</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-                        {SHORTCUTS.map(({ keys, label }) => (
-                            <div key={label} className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground/70">{label}</span>
-                                <div className="flex items-center gap-0.5">
-                                    {keys.map((key) => (
-                                        <kbd
-                                            key={key}
-                                            className="px-1.5 py-0.5 rounded border bg-muted text-[10px] font-mono text-muted-foreground"
-                                        >
-                                            {key}
-                                        </kbd>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
         </div>
