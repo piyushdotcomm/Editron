@@ -22,39 +22,23 @@ import {
     Menu
 } from "lucide-react";
 
-interface PlaygroundHeaderProps {
-    id: string;
-    playgroundData: any;
-    openFilesLength: number;
-    hasUnsavedChanges: boolean;
-    activeFile: any;
-    isPreviewVisible: boolean;
-    setIsPreviewVisible: (v: boolean) => void;
-    handleSave: () => void;
-    handleSaveAll: () => void;
-    setIsDeployDialogOpen: (v: boolean) => void;
-    handleDownloadZip: () => void;
-    setShowAISettings: (v: boolean) => void;
-    closeAllFiles: () => void;
-    toggleAIChat: () => void;
-}
+import { usePlaygroundContext } from './playground-context';
+import { usePlaygroundActions } from '../hooks/usePlaygroundActions';
+import { useFileExplorer } from '../hooks/useFileExplorer';
+import { useModalStore } from '../hooks/useModalStore';
+import { useAI } from '../hooks/useAI';
 
-export const PlaygroundHeader = ({
-    id,
-    playgroundData,
-    openFilesLength,
-    hasUnsavedChanges,
-    activeFile,
-    isPreviewVisible,
-    setIsPreviewVisible,
-    handleSave,
-    handleSaveAll,
-    setIsDeployDialogOpen,
-    handleDownloadZip,
-    setShowAISettings,
-    closeAllFiles,
-    toggleAIChat
-}: PlaygroundHeaderProps) => {
+export const PlaygroundHeader = () => {
+    const { id, playgroundData } = usePlaygroundContext();
+    const { handleSave, handleSaveAll, handleDownloadZip } = usePlaygroundActions();
+    const { isPreviewVisible, togglePreview, setIsDeployDialogOpen, setShowAISettings } = useModalStore();
+    const { openFiles, activeFileId, closeAllFiles } = useFileExplorer();
+    const toggleAIChat = useAI(state => state.toggleChat);
+    
+    const openFilesLength = openFiles.length;
+    const hasUnsavedChanges = openFiles.some(f => f.hasUnsavedChanges);
+    const activeFile = openFiles.find(f => f.id === activeFileId);
+
     return (
         <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b px-3 bg-background/80 backdrop-blur-md sticky top-0 z-20">
             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -122,7 +106,7 @@ export const PlaygroundHeader = ({
                             <Button
                                 size="sm"
                                 variant={isPreviewVisible ? "secondary" : "ghost"}
-                                onClick={() => setIsPreviewVisible(!isPreviewVisible)}
+                                onClick={() => togglePreview()}
                                 className={`h-7 px-2.5 text-xs rounded-md ${isPreviewVisible ? "bg-secondary/80 shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {isPreviewVisible ? <EyeOff className="h-3.5 w-3.5 mr-1" /> : <Eye className="h-3.5 w-3.5 mr-1" />}
