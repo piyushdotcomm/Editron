@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { Terminal, Copy, Check, Circle } from "lucide-react";
 import { useState } from "react";
-import { _cn } from "@/lib/utils";
+import { cn as _cn } from "@/lib/utils";
 import { CodeLine } from "./code-line";
 
 const codeSnippet = `import { Editron } from '@editron/core';

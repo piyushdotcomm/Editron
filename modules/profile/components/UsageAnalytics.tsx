@@ -10,7 +10,7 @@ interface UsageAnalyticsProps {
 }
 
 export default function UsageAnalytics({ activityData, techStack }: UsageAnalyticsProps) {
-    const { _theme } = useTheme();
+    const { theme } = useTheme();
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -27,7 +27,7 @@ export interface TerminalRef {
 
 const
   TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
-    _webcontainerUrl,
+    webcontainerUrl: _webcontainerUrl,
     className,
     theme = "dark",
     webContainerInstance
