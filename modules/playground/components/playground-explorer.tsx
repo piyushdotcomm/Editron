@@ -160,6 +160,7 @@ export function TemplateFileTree({
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
                 onClick={handleAddRootFile}
                 title="New File"
+                aria-label="New File"
               >
                 <FilePlus className="h-3.5 w-3.5" />
               </Button>
@@ -169,6 +170,7 @@ export function TemplateFileTree({
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
                 onClick={handleAddRootFolder}
                 title="New Folder"
+                aria-label="New Folder"
               >
                 <FolderPlus className="h-3.5 w-3.5" />
               </Button>
@@ -363,6 +365,7 @@ function TemplateNode({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label="File actions"
               >
                 <MoreHorizontal className="h-3 w-3" />
               </Button>
@@ -492,6 +495,7 @@ function TemplateNode({
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
                 onClick={(e) => { e.stopPropagation(); handleAddFile(); }}
                 title="New File"
+                aria-label="New File"
               >
                 <FilePlus className="h-3.5 w-3.5" />
               </Button>
@@ -501,6 +505,7 @@ function TemplateNode({
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
                 onClick={(e) => { e.stopPropagation(); handleAddFolder(); }}
                 title="New Folder"
+                aria-label="New Folder"
               >
                 <FolderPlus className="h-3.5 w-3.5" />
               </Button>
@@ -512,6 +517,7 @@ function TemplateNode({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Folder actions"
                 >
                   <MoreHorizontal className="h-3 w-3" />
                 </Button>
