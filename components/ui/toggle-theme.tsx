@@ -3,11 +3,11 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, SunMoon } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 
 
 export function ThemeToggle() {
-    const { setTheme, theme, resolvedTheme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -19,8 +19,10 @@ export function ThemeToggle() {
     }
 
     return (
-        <div
-            className="cursor-pointer"
+        <button
+            type="button"
+            aria-label="Toggle theme"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={() => {
                 setTheme(resolvedTheme === "light" ? "dark" : "light");
             }}
@@ -32,7 +34,7 @@ export function ThemeToggle() {
                     <Sun className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
                 )
             }
-        </div>
+        </button>
     )
 }
 
