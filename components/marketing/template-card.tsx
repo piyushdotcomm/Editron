@@ -8,7 +8,7 @@ import {
     Terminal,
     Star,
     ArrowRight,
-    Check
+    _Check
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

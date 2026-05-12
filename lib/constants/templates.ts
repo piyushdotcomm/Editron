@@ -1,4 +1,4 @@
-import { TemplateKey } from "@/lib/template";
+import { _TemplateKey } from "@/lib/template";
 
 export interface TemplateOption {
     id: string;

@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Package, Trash2, Download, Loader2 } from "lucide-react";
-import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
+import { _useWebContainer } from "@/modules/webcontainers/hooks/_useWebContainer";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -61,7 +61,7 @@ export function PackageManager({
         const parsed = JSON.parse(pkgFile.content);
         setDependencies(parsed.dependencies || {});
         setDevDependencies(parsed.devDependencies || {});
-      } catch (e) {
+      } catch (_e) {
         console.error("Failed to parse package.json");
       }
     }
@@ -80,7 +80,7 @@ export function PackageManager({
       const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchQuery)}&size=10`);
       const data = await res.json();
       setSearchResults(data.objects);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to search NPM registry");
     } finally {
       setIsSearching(false);

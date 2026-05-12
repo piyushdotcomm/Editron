@@ -173,8 +173,8 @@ export function deleteFileByPath(items: any[], targetPath: string, prefix = ""):
 
 export function addOrUpdateFile(items: any[], targetPath: string, newContent: string, prefix = ""): any[] {
     // 1. Try to find and update existing file
-    let found = false;
-    const updated = items.map((item) => {
+    let _found = false;
+    const _updated = items.map((item) => {
         if ("folderName" in item) {
             const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
             // Only recurse if the target path starts with this folder's path
@@ -191,7 +191,7 @@ export function addOrUpdateFile(items: any[], targetPath: string, newContent: st
             const ext = item.fileExtension ? `.${item.fileExtension}` : "";
             const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
             if (filePath === targetPath) {
-                found = true;
+                _found = true;
                 return { ...item, content: newContent };
             }
             return item;

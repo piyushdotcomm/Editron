@@ -235,7 +235,7 @@ export async function saveTemplateStructureToJson(
     await fs.promises.mkdir(outputDir, { recursive: true });
     
     // Write the JSON file
-    const data = await fs.promises.writeFile(
+    const _data = await fs.promises.writeFile(
       outputPath, 
       JSON.stringify(templateStructure, null, 2),
       'utf8'

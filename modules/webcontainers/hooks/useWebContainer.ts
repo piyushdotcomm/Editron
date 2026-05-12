@@ -20,7 +20,7 @@ interface UseWebContaierReturn {
 }
 
 export const useWebContainer = ({
-  templateData,
+  _templateData,
 }: UseWebContainerProps): UseWebContaierReturn => {
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);

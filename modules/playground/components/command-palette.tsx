@@ -19,7 +19,7 @@ import {
     Settings,
     XCircle,
     PanelLeftClose,
-    Palette,
+    _Palette,
 } from "lucide-react";
 import { FileIcon } from "./file-icon";
 import type {

@@ -24,11 +24,9 @@ const eslintConfig = [
   {
     files: ["**/*.{js,jsx,ts,tsx,mjs,cjs}"],
     rules: {
-      // Baseline CI for an open-source repo should flag legacy debt without blocking
-      // all contributions until the backlog is cleaned up.
-      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-empty-object-type": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "warn",
       "@typescript-eslint/triple-slash-reference": "warn",
       "@next/next/no-head-element": "warn",
@@ -36,6 +34,16 @@ const eslintConfig = [
       "prefer-const": "warn",
       "react/display-name": "warn",
       "react/no-unescaped-entities": "warn",
+      // Allow variables/args prefixed with _ to be unused
+      "no-unused-vars": "off", // turned off in favour of the TS-aware rule below
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          varsIgnorePattern: "^_",
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 ];

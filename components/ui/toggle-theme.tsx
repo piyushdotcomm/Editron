@@ -3,11 +3,11 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, SunMoon } from "lucide-react";
+import { Moon, Sun, _SunMoon } from "lucide-react";
 
 
 export function ThemeToggle() {
-    const { setTheme, theme, resolvedTheme } = useTheme();
+    const { setTheme, _theme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

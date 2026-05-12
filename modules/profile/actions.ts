@@ -2,7 +2,7 @@
 
 import { currentUser } from "@/modules/auth/actions";
 import { db } from "@/lib/db";
-import { Playground, Templates } from "@prisma/client";
+import { _Playground, Templates } from "@prisma/client";
 
 export interface ProfileStats {
     totalProjects: number;

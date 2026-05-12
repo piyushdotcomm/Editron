@@ -42,6 +42,7 @@ interface CompactProjectTableProps {
     projects: Project[]
     onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
     onDeleteProject?: (id: string) => Promise<void>
+    onDuplicateProject?: (id: string) => Promise<any>
 }
 
 interface EditProjectData {
@@ -53,6 +54,7 @@ export default function CompactProjectTable({
     projects,
     onUpdateProject,
     onDeleteProject,
+    onDuplicateProject: _onDuplicateProject,
 }: CompactProjectTableProps) {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [editDialogOpen, setEditDialogOpen] = useState(false)

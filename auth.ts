@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 
 import authConfig from "./auth.config"
 import { db } from "./lib/db";
-import { getAccountByUserId, getUserById } from "./lib/user-data";
+import { getAccountByUserId as _getAccountByUserId, getUserById } from "./lib/user-data";
 
 
 
@@ -98,7 +98,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return true;
     },
 
-    async jwt({ token}) {
+    async jwt({ token,user: _user, account: _account }) {
       if (!token.sub) return token;
 
       // Optimization: If token already has role and picture, skip DB call

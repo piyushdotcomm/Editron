@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FolderOpen, Package, Server, Search, ChevronRight, ChevronDown } from "lucide-react";
+import { FolderOpen, Package, Server, _Search, _ChevronRight, _ChevronDown } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";

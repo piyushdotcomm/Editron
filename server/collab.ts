@@ -20,7 +20,7 @@ const server = http.createServer((request, response) => {
 const wss = new WebSocketServer({ noServer: true });
 
 // Setup MongoDB persistence
-const mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
+const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
     collectionName: 'yjs-transactions',
     flushSize: 100,
     multipleCollections: false,
@@ -30,7 +30,7 @@ wss.on('connection', (ws, req) => {
     const docName = req.url?.split('?')[0].slice(1) || 'default';
 
     // Persist to MongoDB binding logic
-    const persistCallback = async () => {
+    const _persistCallback = async () => {
         // y-mongodb-provider handles persistence automatically if bound properly
     };
 

@@ -28,8 +28,7 @@ export default async function DashboardLayout({
     return (<SidebarProvider>
         <div className="flex min-h-screen w-full overflow-x-hidden">
             {/*Dashboard Sidebar */}
-            {/* @ts-expect-ignore - Todo: align formattedplaygrounddata type with dashboard sidebar props */}
-            <DashboardSidebar initialPlaygroundData={formattedPlaygroundData} />
+            <DashboardSidebar initialPlaygroundData={formattedPlaygroundData || []} />
             <main className="flex-1">
                 {children}
             </main>

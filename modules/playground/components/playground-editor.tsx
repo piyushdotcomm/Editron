@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, _useCallback, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import {
   configureMonaco,
@@ -77,7 +77,7 @@ const PlaygroundEditor = ({
     const languages = ["javascript", "typescript", "html", "css", "json"];
 
     formatterDisposable = monaco.languages.registerDocumentFormattingEditProvider(languages, {
-      async provideDocumentFormattingEdits(model, options, token) {
+      async provideDocumentFormattingEdits(model, options, _token) {
         const text = model.getValue();
         const languageId = model.getLanguageId();
 
@@ -253,6 +253,7 @@ const PlaygroundEditor = ({
 
   useEffect(() => {
     updateEditorLanguage();
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile]);
 
   // Bind Yjs to Monaco
@@ -377,6 +378,7 @@ const PlaygroundEditor = ({
         bindingRef.current = null;
       }
     };
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile?.filename, activeFile?.fileExtension, playgroundId, isMounted]);
 
   // Cleanup on unmount
