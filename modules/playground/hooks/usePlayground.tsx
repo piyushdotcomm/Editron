@@ -22,60 +22,34 @@ interface UsePlaygroundReturn {
   playgroundData: PlaygroundData | null;
   templateData: TemplateFolder | null;
   isLoading: boolean;
+  isSuccess: boolean;
   error: string | null;
-  loadPlayground: () => void;
+  loadPlayground: () => Promise<unknown>;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
 export const usePlayground = (id: string): UsePlaygroundReturn => {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error: queryError, refetch } = useQuery<PlaygroundQueryResult | null>({
+  const { data, isLoading, isSuccess, error: queryError, refetch } = useQuery<PlaygroundQueryResult | null>({
     queryKey: ['playground', id],
     queryFn: async () => {
       if (!id) return null;
 
-      const data = await getPlaygroundById(id);
-      if (!data) throw new Error("Playground not found");
+      const result = await getPlaygroundById(id);
+      if (!result) throw new Error("Playground not found");
 
-      const playgroundData = data as unknown as PlaygroundData;
-      let templateData: TemplateFolder | null = null;
-
-      const rawContent = data?.templateFiles?.[0]?.content;
-      if (rawContent) {
-        // Content can be a JSON string or an already-parsed object (Prisma Json type)
-        templateData = typeof rawContent === "string"
-          ? JSON.parse(rawContent)
-          : rawContent;
-        toast.success("Playground loaded successfully");
-      } else {
-        // Load template from API if not in saved content
-        const res = await fetch(`/api/template/${id}`);
-        if (!res.ok) throw new Error(`Failed to load template: ${res.status}`);
-
-        const templateRes = await res.json();
-        if (templateRes.templateJson && Array.isArray(templateRes.templateJson)) {
-          templateData = {
-            folderName: "Root",
-            items: templateRes.templateJson,
-          };
-        } else {
-          templateData = templateRes.templateJson || {
-            folderName: "Root",
-            items: [],
-          };
-        }
-        toast.success("Template loaded successfully");
-      }
-
-      return { playgroundData, templateData };
+      return result as PlaygroundQueryResult;
     },
     enabled: !!id,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const saveMutation = useMutation({
-    mutationFn: (newData: TemplateFolder) => SaveUpdatedCode(id, newData),
+    mutationFn: (newData: TemplateFolder) => {
+      if (!id) throw new Error("Playground ID is required for saving");
+      return SaveUpdatedCode(id, newData);
+    },
     onSuccess: (_, newData) => {
       // Update the cache with the new template data
       queryClient.setQueryData<PlaygroundQueryResult | null>(['playground', id], (old) => {
@@ -101,8 +75,9 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
     playgroundData: data?.playgroundData ?? null,
     templateData: data?.templateData ?? null,
     isLoading,
+    isSuccess,
     error: queryError ? (queryError as Error).message : null,
-    loadPlayground: () => { refetch(); },
+    loadPlayground: () => refetch(),
     saveTemplateData,
   };
 };
