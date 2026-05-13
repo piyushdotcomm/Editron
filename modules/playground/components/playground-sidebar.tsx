@@ -5,33 +5,24 @@ import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
 
-interface PlaygroundSidebarProps {
-    templateData: any;
-    instance: any;
-    writeFileSync: any;
-    activeFile: any;
-    handleFileSelect: any;
-    wrappedHandleAddFile: any;
-    wrappedHandleAddFolder: any;
-    wrappedHandleDeleteFile: any;
-    wrappedHandleDeleteFolder: any;
-    wrappedHandleRenameFile: any;
-    wrappedHandleRenameFolder: any;
-}
+import { usePlaygroundContext } from './playground-context';
+import { usePlaygroundActions } from '../hooks/usePlaygroundActions';
+import { useFileExplorer } from '../hooks/useFileExplorer';
 
-export const PlaygroundSidebar = ({
-    templateData,
-    instance,
-    writeFileSync,
-    activeFile,
-    handleFileSelect,
-    wrappedHandleAddFile,
-    wrappedHandleAddFolder,
-    wrappedHandleDeleteFile,
-    wrappedHandleDeleteFolder,
-    wrappedHandleRenameFile,
-    wrappedHandleRenameFolder
-}: PlaygroundSidebarProps) => {
+export const PlaygroundSidebar = () => {
+    const { templateData, instance, writeFileSync } = usePlaygroundContext();
+    const {
+      wrappedHandleAddFile,
+      wrappedHandleAddFolder,
+      wrappedHandleDeleteFile,
+      wrappedHandleDeleteFolder,
+      wrappedHandleRenameFile,
+      wrappedHandleRenameFolder,
+    } = usePlaygroundActions();
+    
+    const { openFiles, activeFileId, openFile } = useFileExplorer();
+    const activeFile = openFiles.find(f => f.id === activeFileId);
+    const handleFileSelect = openFile;
     const [activeTab, setActiveTab] = useState<"explorer" | "packages" | "env">("explorer");
     const { state } = useSidebar();
 
@@ -81,7 +72,7 @@ export const PlaygroundSidebar = ({
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
                             <TemplateFileTree
-                                data={templateData}
+                                data={templateData!}
                                 onFileSelect={handleFileSelect}
                                 selectedFile={activeFile}
                                 title=""
@@ -97,14 +88,14 @@ export const PlaygroundSidebar = ({
 
                     {activeTab === "packages" && (
                         <PackageManager
-                            templateData={templateData}
+                            templateData={templateData!}
                             instance={instance}
                         />
                     )}
 
                     {activeTab === "env" && (
                         <EnvManager
-                            templateData={templateData}
+                            templateData={templateData!}
                             instance={instance}
                             writeFileSync={writeFileSync}
                         />
