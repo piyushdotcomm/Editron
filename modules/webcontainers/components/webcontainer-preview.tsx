@@ -47,7 +47,7 @@ const WebContainerPreview = ({
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">(
     "desktop",
   );
-  const [_loadingState, setLoadingState] = useState({
+  const [, setLoadingState] = useState({
     transforming: false,
     mounting: false,
     installing: false,
@@ -58,7 +58,7 @@ const WebContainerPreview = ({
   const totalSteps = 4;
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-  const [_isSetupInProgress, setIsSetupInProgress] = useState(false);
+  const [, setIsSetupInProgress] = useState(false);
   const [installProgress, setInstallProgress] = useState({
     totalDeps: 0,
     installedPackages: 0,

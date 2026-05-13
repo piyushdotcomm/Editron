@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 
 import authConfig from "./auth.config"
 import { db } from "./lib/db";
-import { getAccountByUserId as _getAccountByUserId, getUserById } from "./lib/user-data";
+import { getUserById } from "./lib/user-data";
 
 
 
