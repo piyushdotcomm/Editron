@@ -42,6 +42,7 @@ import {
   TemplateFolder,
 } from "@/modules/playground/lib/path-to-json";
 import React, {
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -59,7 +60,7 @@ import { PlaygroundHeader } from "@/modules/playground/components/playground-hea
 import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab-bar";
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
 
-const MainPlaygroundPage = () => {
+const PlaygroundPageContent = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
@@ -580,6 +581,14 @@ const MainPlaygroundPage = () => {
         />
       </>
     </TooltipProvider>
+  );
+};
+
+const MainPlaygroundPage = () => {
+  return (
+    <Suspense fallback={<PlaygroundSkeleton />}>
+      <PlaygroundPageContent />
+    </Suspense>
   );
 };
 
