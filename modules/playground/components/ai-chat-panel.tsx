@@ -417,7 +417,7 @@ export default function AIChatPanel({
                     <div className="relative flex items-end gap-2 bg-muted/40 border rounded-2xl p-1.5 shadow-sm focus-within:ring-1 focus-within:ring-primary/30 focus-within:border-primary/50 transition-all">
                         <textarea
                             ref={inputRef}
-                            className="flex-1 text-[13px] bg-transparent px-3 py-2.5 resize-none outline-none min-h-[40px] max-h-[160px] placeholder:text-muted-foreground/70 custom-scrollbar"
+                            className="flex-1 text-[13px] bg-transparent px-3 py-2.5 resize-none outline-none focus-visible:ring-1 focus-visible:ring-primary min-h-[40px] max-h-[160px] placeholder:text-muted-foreground/70 custom-scrollbar"
                             placeholder="Message AI Assistant..."
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}

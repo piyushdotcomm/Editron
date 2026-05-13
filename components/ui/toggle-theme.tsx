@@ -25,7 +25,7 @@ export function ThemeToggle() {
             type="button"
             aria-label={resolvedTheme === "light" ? "Switch to dark theme" : "Switch to light theme"}
             aria-pressed={resolvedTheme === "dark"}
-            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+            className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() => {
                 setTheme(resolvedTheme === "light" ? "dark" : "light");
             }}
