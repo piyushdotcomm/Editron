@@ -5,7 +5,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
-import { auth } from "@/auth";
+import { openai } from "@ai-sdk/openai";
 
 const COMPLETION_SYSTEM_PROMPT =
     "You are an inline code completion engine. Given the code context below, provide ONLY the next few tokens/lines that naturally continue the code. Do NOT include explanations, markdown, or the existing code. Output ONLY the completion text.";
@@ -47,14 +47,6 @@ export async function POST(request: NextRequest) {
         }
 
         const { prompt, language, provider, userApiKey } = result.data;
-
-        const session = await auth();
-        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
-                { status: 401 }
-            );
-        }
 
         const contextPrompt = language
             ? `Language: ${language}\n\n${prompt}`
@@ -99,14 +91,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { text } = await generateText({
-            model,
-            system: COMPLETION_SYSTEM_PROMPT,
-            prompt: contextPrompt,
-            maxTokens: 256,
-            temperature: 0.2,
-            topP: 0.8,
-        });
+    const { text } = await generateText({
+  model: openai("gpt-4o-mini"),
+  prompt,
+  maxOutputTokens: 256,
+});
 
         return NextResponse.json({ completion: text.trim() });
     } catch (error: unknown) {
