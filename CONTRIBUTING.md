@@ -42,24 +42,18 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a local `.env` file. At minimum, you will usually need:
+Copy the example environment file, then replace the local placeholders you need
+for the flow you are testing.
 
-```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
+```bash
+cp .env.example .env
 ```
 
-If your work touches AI features, you may also need one or more of:
-
-```env
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
-```
+At minimum, local setup usually needs `DATABASE_URL` and an `AUTH_SECRET`
+placeholder replaced with a long random value. OAuth credentials, AI provider
+keys, deploy tokens, `AUTH_URL`/`AUTH_TRUST_HOST`, and collaboration overrides
+are optional or context-specific; leave them blank unless your work touches
+those flows.
 
 ### 4. Prepare the database
 

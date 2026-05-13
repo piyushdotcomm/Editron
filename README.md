@@ -98,23 +98,11 @@ npm install
 
 ### Environment variables
 
-Create a `.env` file in the repository root.
+Copy the example environment file, then replace any placeholders needed for the
+flows you are testing.
 
-```env
-DATABASE_URL="mongodb://localhost:27017/editron"
-AUTH_SECRET="replace-with-a-random-secret"
-
-AUTH_GITHUB_ID=""
-AUTH_GITHUB_SECRET=""
-
-AUTH_GOOGLE_ID=""
-AUTH_GOOGLE_SECRET=""
-
-GEMINI_API_KEY=""
-GROQ_API_KEY=""
-MISTRAL_API_KEY=""
-
-NEXT_PUBLIC_COLLAB_SERVER_URL=""
+```bash
+cp .env.example .env
 ```
 
 ### What each variable is for
@@ -122,16 +110,21 @@ NEXT_PUBLIC_COLLAB_SERVER_URL=""
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | Prisma MongoDB datasource |
-| `AUTH_SECRET` | Yes for auth flows | NextAuth session and token signing |
+| `AUTH_SECRET` | Yes for auth and collaboration token flows | NextAuth session/token signing and collaboration token signing |
+| `AUTH_URL` | Optional/context-specific | NextAuth helper for the canonical local or deployed app URL |
+| `AUTH_TRUST_HOST` | Optional/context-specific | NextAuth helper for trusted host handling behind proxies or hosted environments |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Optional locally | GitHub OAuth login |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional locally | Google OAuth login |
-| `GEMINI_API_KEY` | Optional | Server fallback for Gemini |
-| `GROQ_API_KEY` | Optional | Server fallback for Groq |
-| `MISTRAL_API_KEY` | Optional | Server fallback for Mistral |
-| `NEXT_PUBLIC_COLLAB_SERVER_URL` | Optional | Explicit collaboration server URL override |
+| `GEMINI_API_KEY` | Optional/context-specific | Server fallback for Gemini when users do not provide a key in the UI |
+| `GROQ_API_KEY` | Optional/context-specific | Server fallback for Groq when users do not provide a key in the UI |
+| `MISTRAL_API_KEY` | Optional/context-specific | Server fallback for Mistral when users do not provide a key in the UI |
+| `NEXT_PUBLIC_COLLAB_SERVER_URL` | Optional/context-specific | Explicit collaboration WebSocket URL override; useful for deployed or custom local collaboration setups |
+| `COLLAB_PORT` | Optional locally | Port for the standalone collaboration server; defaults to `1234` |
+| `VERCEL_MASTER_TOKEN` | Optional/deploy-only | Server fallback token for Vercel deployments when users do not provide their own token |
+| `NETLIFY_MASTER_TOKEN` | Optional/deploy-only | Server fallback token for Netlify deployments when users do not provide their own token |
 
 > [!IMPORTANT]
-> Do not commit `.env` files, secrets, access tokens, or provider credentials. Use GitHub repository secrets for CI or deployment environments.
+> Do not commit `.env` files, secrets, access tokens, or provider credentials. `.env.example` must contain dummy values only. Use GitHub repository secrets for CI or deployment environments.
 
 ### Start the app
 
