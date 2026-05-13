@@ -1,5 +1,5 @@
 import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
+import { WebsocketProvider } from "y-websocket/dist/src/y-websocket";
 
 // Maintain a cache of Y.Doc instances to avoid creating multiple providers for the same room
 const yDocs = new Map<string, { doc: Y.Doc; provider: WebsocketProvider }>();
