@@ -12,6 +12,7 @@ const TerminalComponent = dynamic(() => import("./terminal"), { ssr: false });
 
 import { WebContainer } from "@webcontainer/api";
 import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
+import { useWebContainerStore } from "../hooks/useWebContainer";
 
 interface WebContainerPreviewProps {
   templateData: TemplateFolder;
@@ -276,6 +277,8 @@ const WebContainerPreview = ({
                 if (prevUrl && !isCommonFrontendPort) return prevUrl;
                 return url;
               });
+
+              useWebContainerStore.getState().setServerUrl(url);
 
               setLoadingState((prev) => ({
                 ...prev,
@@ -596,6 +599,8 @@ const WebContainerPreview = ({
             return url;
           });
 
+          useWebContainerStore.getState().setServerUrl(url);
+
           setLoadingState((prev) => ({
             ...prev,
             starting: false,
@@ -640,8 +645,10 @@ const WebContainerPreview = ({
   }, [instance, templateData, isSetupComplete]);
 
   useEffect(() => {
-    return () => { };
-  }, []);
+  return () => {
+    useWebContainerStore.getState().setServerUrl(null);
+  };
+}, []);
 
   if (isLoading) {
     return (
