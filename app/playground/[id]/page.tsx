@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { AlertCircle, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,13 @@ import { PlaygroundSidebar } from "@/modules/playground/components/playground-si
 import { PlaygroundMainArea } from "@/modules/playground/components/playground-main-area";
 import { PlaygroundModalOrchestrator } from "@/modules/playground/components/playground-modal-orchestrator";
 
-export default function MainPlaygroundPage() {
+function PlaygroundPageContent() {
   const { id } = useParams<{ id: string }>();
-  
+
   const { playgroundData, templateData, isLoading, error, saveTemplateData } = usePlayground(id);
-  
+
   const { setTemplateData, setPlaygroundId, openFiles } = useFileExplorer();
-  
+
   const {
     serverUrl,
     isLoading: containerLoading,
@@ -83,5 +83,13 @@ export default function MainPlaygroundPage() {
         <PlaygroundModalOrchestrator />
       </PlaygroundLayout>
     </PlaygroundContext.Provider>
+  );
+}
+
+export default function MainPlaygroundPage() {
+  return (
+    <Suspense fallback={<PlaygroundSkeleton />}>
+      <PlaygroundPageContent />
+    </Suspense>
   );
 }
