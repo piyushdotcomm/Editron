@@ -59,15 +59,23 @@ import { PlaygroundHeader } from "@/modules/playground/components/playground-hea
 import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab-bar";
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
 
-const MainPlaygroundPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const [showAISettings, setShowAISettings] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
-  const { playgroundData, templateData, error, saveTemplateData } =
-    usePlayground(id);
+interface MainPlaygroundPageProps {
+  initialData: any;
+  id: string;
+}
+
+const MainPlaygroundPage = ({ initialData, id }: MainPlaygroundPageProps) => {
+  const playgroundData = initialData;
+  const rawContent = initialData?.templateFiles?.[0]?.content;
+  const parsedTemplate = rawContent
+    ? typeof rawContent === "string"
+      ? JSON.parse(rawContent)
+      : rawContent
+    : null;
+
+  const [templateData, setTemplateDataState] = useState(parsedTemplate);
+  const [error] = useState<string | null>(null);
+  const { saveTemplateData } = usePlayground(id);
   const sidebar = useSidebar();
 
   const {
@@ -226,11 +234,11 @@ const MainPlaygroundPage = () => {
         );
 
         // @ts-ignore
-        const updateFileContent = (items: any[]) =>
+        const updateItemContent = (items: any[]) =>
           // @ts-ignore
           items.map((item) => {
             if ("folderName" in item) {
-              return { ...item, items: updateFileContent(item.items) };
+              return { ...item, items: updateItemContent(item.items) };
             } else if (
               item.filename === fileToSave.filename &&
               item.fileExtension === fileToSave.fileExtension
@@ -239,9 +247,7 @@ const MainPlaygroundPage = () => {
             }
             return item;
           });
-        updatedTemplateData.items = updateFileContent(
-          updatedTemplateData.items
-        );
+       updatedTemplateData.items = updateItemContent(updatedTemplateData.items);
 
         // Sync with WebContainer
         if (writeFileSync) {
