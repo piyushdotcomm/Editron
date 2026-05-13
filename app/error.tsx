@@ -8,6 +8,10 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
+/**
+ * Global error boundary UI for handling unexpected runtime errors.
+ */
+
 export default function Error({
     error,
     reset,
