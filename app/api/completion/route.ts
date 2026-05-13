@@ -5,7 +5,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
-import { openai } from "@ai-sdk/openai";
+
 
 const COMPLETION_SYSTEM_PROMPT =
     "You are an inline code completion engine. Given the code context below, provide ONLY the next few tokens/lines that naturally continue the code. Do NOT include explanations, markdown, or the existing code. Output ONLY the completion text.";
@@ -92,10 +92,11 @@ export async function POST(request: NextRequest) {
         }
 
     const { text } = await generateText({
-  model: openai("gpt-4o-mini"),
-  prompt,
-  maxOutputTokens: 256,
-});
+      model,
+      prompt: contextPrompt,
+      system: COMPLETION_SYSTEM_PROMPT,
+      maxOutputTokens: 256,
+    });
 
         return NextResponse.json({ completion: text.trim() });
     } catch (error: unknown) {
