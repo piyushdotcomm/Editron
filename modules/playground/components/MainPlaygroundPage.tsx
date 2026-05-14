@@ -76,6 +76,11 @@ const MainPlaygroundPage = ({ initialData, id }: MainPlaygroundPageProps) => {
   const [templateData, setTemplateDataState] = useState(parsedTemplate);
   const [error] = useState<string | null>(null);
   const { saveTemplateData } = usePlayground(id);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+const [showAISettings, setShowAISettings] = useState(false);
+const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
+const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const sidebar = useSidebar();
 
   const {
