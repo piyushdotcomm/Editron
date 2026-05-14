@@ -25,15 +25,7 @@ import {
   Clock,
   Check,
   Plus,
-  Layers,
-  Video,
-  Smartphone,
-  Presentation,
-  Box,
-  FileCode,
   Terminal,
-  Cpu,
-  Paintbrush,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -49,7 +41,7 @@ type TemplateSelectionModalProps = {
   }) => void;
 };
 
-import { templates, TemplateOption } from "@/lib/constants/templates";
+import { templates } from "@/lib/constants/templates";
 
 const TemplateSelectionModal = ({
   isOpen,
@@ -152,7 +144,7 @@ const TemplateSelectionModal = ({
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 outline-none"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <Input
@@ -166,7 +158,7 @@ const TemplateSelectionModal = ({
                 <Tabs
                   defaultValue="all"
                   className="w-full sm:w-auto"
-                  onValueChange={(value) => setCategory(value as any)}
+                  onValueChange={(value) => setCategory(value as "all" | "frontend" | "backend" | "fullstack" | "tooling")}
                 >
                   <TabsList className="grid grid-cols-5 w-full sm:w-[500px]">
                     <TabsTrigger value="all">All</TabsTrigger>

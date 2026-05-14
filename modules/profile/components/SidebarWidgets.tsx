@@ -37,7 +37,7 @@ export function QuickActions() {
             if (res?.id) {
                 router.push(`/playground/${res.id}`);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error("Failed to create project");
         }
     };

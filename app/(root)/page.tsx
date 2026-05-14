@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Terminal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";

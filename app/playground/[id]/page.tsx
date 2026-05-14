@@ -26,8 +26,6 @@ import {
   AlertCircle,
   FolderOpen,
 } from "lucide-react";
-import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
-import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
@@ -42,6 +40,7 @@ import {
   TemplateFolder,
 } from "@/modules/playground/lib/path-to-json";
 import React, {
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -59,7 +58,7 @@ import { PlaygroundHeader } from "@/modules/playground/components/playground-hea
 import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab-bar";
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
 
-const MainPlaygroundPage = () => {
+const PlaygroundPageContent = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
@@ -100,8 +99,8 @@ const MainPlaygroundPage = () => {
     error: containerError,
     instance,
     writeFileSync,
-    // @ts-ignore
   } = useWebContainer({ templateData });
+
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
@@ -114,7 +113,7 @@ const MainPlaygroundPage = () => {
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
-      const findDefaultFile = (items: any[]): TemplateFile | null => {
+      const findDefaultFile = (items: (TemplateFile | TemplateFolder)[]): TemplateFile | null => {
         for (const item of items) {
           if (!("folderName" in item)) {
             if (["App.tsx", "App.jsx", "index.tsx", "index.jsx", "index.js", "main.tsx", "main.js", "index.html"].includes(`${item.filename}.${item.fileExtension}`)) {
@@ -231,9 +230,7 @@ const MainPlaygroundPage = () => {
           JSON.stringify(latestTemplateData)
         );
 
-        // @ts-ignore
-        const updateFileContent = (items: any[]) =>
-          // @ts-ignore
+        const updateFileContent = (items: (TemplateFile | TemplateFolder)[]): (TemplateFile | TemplateFolder)[] =>
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateFileContent(item.items) };
@@ -250,13 +247,26 @@ const MainPlaygroundPage = () => {
         );
 
         // Sync with WebContainer
-        if (writeFileSync) {
-          await writeFileSync(filePath, fileToSave.content);
-          lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-          if (instance && instance.fs) {
-            await instance.fs.writeFile(filePath, fileToSave.content);
-          }
-        }
+        let containerSynced = false;
+
+try {
+  if (writeFileSync) {
+    await writeFileSync(filePath, fileToSave.content); // handles fs.writeFile internally
+    containerSynced = true;
+  } else if (instance?.fs) {
+    // fallback: writeFileSync not ready yet but instance is booted
+    await instance.fs.writeFile(filePath, fileToSave.content);
+    containerSynced = true;
+  } else {
+    console.warn("WebContainer not ready — saving to DB only");
+  }
+} catch (err) {
+  console.error("Failed to sync to WebContainer:", err);
+}
+
+if (containerSynced) {
+  lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
+}
 
         await saveTemplateData(updatedTemplateData);
         setTemplateData(updatedTemplateData);
@@ -267,15 +277,15 @@ const MainPlaygroundPage = () => {
               ...f,
               content: fileToSave.content,
               originalContent: fileToSave.content,
-              hasUnsavedChanges: false,
+              hasUnsavedChanges: containerSynced ? false : f.hasUnsavedChanges,
             }
             : f
         );
         setOpenFiles(updatedOpenFiles);
 
-        toast.success(
-          `Saved ${fileToSave.filename}.${fileToSave.fileExtension}`
-        );
+        containerSynced
+  ? toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`)
+  : toast.warning(`Saved to DB — WebContainer not ready, preview won't reflect changes yet`);
       } catch (error) {
         console.error("Error saving file:", error);
         toast.error(
@@ -295,7 +305,7 @@ const MainPlaygroundPage = () => {
     ]
   );
 
-  const handleSaveAll = async () => {
+  const handleSaveAll = useCallback(async () => {
     const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
 
     if (unsavedFiles.length === 0) {
@@ -306,10 +316,10 @@ const MainPlaygroundPage = () => {
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to save some files");
     }
-  };
+  }, [openFiles, handleSave]);
 
   // recursive function to add files to zip
   const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
@@ -553,11 +563,13 @@ const MainPlaygroundPage = () => {
           </div>
         </SidebarInset>
 
-        {/* AI Chat Panel */}
-        <AIChatPanel
-          templateData={templateData}
-          saveTemplateData={saveTemplateData}
-        />
+{/* AI Chat Panel */}
+         <ErrorBoundary name="AIChatPanel">
+           <AIChatPanel
+             templateData={templateData}
+             saveTemplateData={saveTemplateData}
+           />
+         </ErrorBoundary>
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
 
         {/* Command Palette */}
@@ -586,6 +598,14 @@ const MainPlaygroundPage = () => {
         />
       </>
     </TooltipProvider>
+  );
+};
+
+const MainPlaygroundPage = () => {
+  return (
+    <Suspense fallback={<PlaygroundSkeleton />}>
+      <PlaygroundPageContent />
+    </Suspense>
   );
 };
 

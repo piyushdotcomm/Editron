@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+
 # dependencies
 /node_modules
 /.pnp
@@ -56,3 +57,4 @@ test1.txt
 test-yjs.js
 research_ideas.md
 skills-lock.json
+lint_final.json
