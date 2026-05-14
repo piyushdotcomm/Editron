@@ -95,6 +95,7 @@ const PlaygroundPageContent = () => {
     writeFileSync,
   } = useWebContainer({ templateData });
 
+
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
     setPlaygroundId(id);
@@ -240,13 +241,26 @@ const PlaygroundPageContent = () => {
         );
 
         // Sync with WebContainer
-        if (writeFileSync) {
-          await writeFileSync(filePath, fileToSave.content);
-          lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-          if (instance && instance.fs) {
-            await instance.fs.writeFile(filePath, fileToSave.content);
-          }
-        }
+        let containerSynced = false;
+
+try {
+  if (writeFileSync) {
+    await writeFileSync(filePath, fileToSave.content); // handles fs.writeFile internally
+    containerSynced = true;
+  } else if (instance?.fs) {
+    // fallback: writeFileSync not ready yet but instance is booted
+    await instance.fs.writeFile(filePath, fileToSave.content);
+    containerSynced = true;
+  } else {
+    console.warn("WebContainer not ready — saving to DB only");
+  }
+} catch (err) {
+  console.error("Failed to sync to WebContainer:", err);
+}
+
+if (containerSynced) {
+  lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
+}
 
         await saveTemplateData(updatedTemplateData);
         setTemplateData(updatedTemplateData);
@@ -257,15 +271,15 @@ const PlaygroundPageContent = () => {
               ...f,
               content: fileToSave.content,
               originalContent: fileToSave.content,
-              hasUnsavedChanges: false,
+              hasUnsavedChanges: containerSynced ? false : f.hasUnsavedChanges,
             }
             : f
         );
         setOpenFiles(updatedOpenFiles);
 
-        toast.success(
-          `Saved ${fileToSave.filename}.${fileToSave.fileExtension}`
-        );
+        containerSynced
+  ? toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`)
+  : toast.warning(`Saved to DB — WebContainer not ready, preview won't reflect changes yet`);
       } catch (error) {
         console.error("Error saving file:", error);
         toast.error(
@@ -543,11 +557,13 @@ const PlaygroundPageContent = () => {
           </div>
         </SidebarInset>
 
-        {/* AI Chat Panel */}
-        <AIChatPanel
-          templateData={templateData}
-          saveTemplateData={saveTemplateData}
-        />
+{/* AI Chat Panel */}
+         <ErrorBoundary name="AIChatPanel">
+           <AIChatPanel
+             templateData={templateData}
+             saveTemplateData={saveTemplateData}
+           />
+         </ErrorBoundary>
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
 
         {/* Command Palette */}

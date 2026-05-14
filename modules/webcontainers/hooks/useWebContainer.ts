@@ -1,102 +1,142 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { WebContainer } from "@webcontainer/api";
-import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
+import { create } from "zustand";
 
-// Singleton instance to prevent multiple boots
-let webContainerInstance: WebContainer | null = null;
-let bootPromise: Promise<WebContainer> | null = null;
-
-interface UseWebContainerProps {
-  templateData: TemplateFolder;
+// ─── Path Sanitizer ───────────────────────────────────────────────────────────
+function sanitizeRelativePath(filePath: string): string {
+  if (filePath.startsWith("/") || filePath.includes("\\")) {
+    throw new Error("Invalid path: absolute paths not allowed");
+  }
+  const parts = filePath.split("/").reduce((acc: string[], part) => {
+    if (part === "..") acc.pop();
+    else if (part && part !== ".") acc.push(part);
+    return acc;
+  }, []);
+  const result = parts.join("/");
+  if (result.startsWith("..")) throw new Error("Path traversal detected");
+  return result;
 }
 
-interface UseWebContaierReturn {
+// ─── Zustand Store ────────────────────────────────────────────────────────────
+interface WebContainerState {
+  instance: WebContainer | null;
+  bootPromise: Promise<WebContainer> | null;
+  isLoading: boolean;
+  error: string | null;
+  serverUrl: string | null;
+  initialize: () => Promise<void>;
+  reset: () => void;
+  setServerUrl: (url: string | null) => void;
+}
+
+export const useWebContainerStore = create<WebContainerState>((set, get) => ({
+  instance: null,
+  bootPromise: null,
+  isLoading: false,
+  error: null,
+  serverUrl: null,
+
+  initialize: async () => {
+    const { instance, bootPromise } = get();
+
+    // Already booted
+    if (instance) return;
+
+    // Boot already in progress, wait for it
+    if (bootPromise) {
+      try {
+        const resolvedInstance = await bootPromise;
+        set({ instance: resolvedInstance, isLoading: false });
+      } catch (error) {
+        console.error("Failed to await existing WebContainer boot:", error);
+        set({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to initialize WebContainer",
+          isLoading: false,
+        });
+      }
+      return;
+    }
+
+    // Fresh boot
+    set({ isLoading: true, error: null });
+    try {
+      const promise = WebContainer.boot();
+      set({ bootPromise: promise });
+      const newInstance = await promise;
+      set({ instance: newInstance, isLoading: false });
+    } catch (error) {
+      console.error("Failed to initialize WebContainer:", error);
+      set({
+        bootPromise: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize WebContainer",
+        isLoading: false,
+      });
+    }
+  },
+
+  reset: () => {
+    const { instance } = get();
+    try {
+      instance?.teardown(); // properly release resources
+    } catch (error) {
+      console.error("Failed to teardown WebContainer:", error);
+    }
+    set({
+      instance: null,
+      bootPromise: null,
+      isLoading: false,
+      error: null,
+      serverUrl: null,
+    });
+  },
+
+  setServerUrl: (url) => {
+    set({ serverUrl: url });
+  },
+}));
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+interface UseWebContainerReturn {
   serverUrl: string | null;
   isLoading: boolean;
   error: string | null;
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
-  destory: () => void;
+  destroy: () => void;
 }
 
-export const useWebContainer = ({
-  templateData: _templateData,
-}: UseWebContainerProps): UseWebContaierReturn => {
-  const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [instance, setInstance] = useState<WebContainer | null>(null);
+export const useWebContainer = (): UseWebContainerReturn => {
+  const { instance, isLoading, error, serverUrl, initialize, reset } =
+    useWebContainerStore();
 
-  useEffect(() => {
-    async function initializeWebContainer() {
-      // If we already have a booted instance, use it
-      if (webContainerInstance) {
-        setInstance(webContainerInstance);
-        setIsLoading(false);
-        return;
-      }
-
-      // If initialization is already in progress, wait for it
-      if (bootPromise) {
-        try {
-          const instance = await bootPromise;
-          setInstance(instance);
-          setIsLoading(false);
-        } catch (error) {
-          console.error("Failed to await existing WebContainer boot:", error);
-          setError(
-            error instanceof Error
-              ? error.message
-              : "Failed to initialize WebContainer"
-          );
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      // Start new initialization
-      try {
-        bootPromise = WebContainer.boot();
-        const webcontainerInstanceCreated = await bootPromise;
-
-        webContainerInstance = webcontainerInstanceCreated;
-        setInstance(webcontainerInstanceCreated);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to initialize WebContainer:", error);
-        bootPromise = null; // Reset promise on failure so we can try again if needed
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to initialize WebContainer"
-        );
-        setIsLoading(false);
-      }
-    }
-
-    initializeWebContainer();
-
-    // Cleanup: We intentionally DO NOT teardown the instance here.
-    // WebContainer should persist across re-renders in dev mode.
-  }, []);
+  // Auto-initialize on first use
+  if (!instance && !isLoading) {
+    initialize();
+  }
 
   const writeFileSync = useCallback(
     async (path: string, content: string): Promise<void> => {
       if (!instance) {
-        // If instance is not ready yet, we can't write. 
-        // But in consumer code, we should check isLoading or instance before calling this.
         throw new Error("WebContainer instance is not available");
       }
 
       try {
-        const pathParts = path.split("/");
-        const folderPath = pathParts.slice(0, -1).join("/");
+        const safePath = sanitizeRelativePath(path);
+        const folderPath = safePath.includes("/")
+          ? safePath.substring(0, safePath.lastIndexOf("/"))
+          : null;
 
         if (folderPath) {
-          await instance.fs.mkdir(folderPath, { recursive: true }); // Create folder structure recursively
+          await instance.fs.mkdir(folderPath, { recursive: true });
         }
 
-        await instance.fs.writeFile(path, content);
+        await instance.fs.writeFile(safePath, content);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to write file";
@@ -107,17 +147,12 @@ export const useWebContainer = ({
     [instance]
   );
 
-  const destory = useCallback(() => {
-    // Optional: Implement proper teardown if needed, but be careful with global singleton.
-    // For now, we just clear local state.
-    if (instance) {
-      // webContainerInstance?.teardown(); // Only if we want to kill the global one
-      // webContainerInstance = null;
-      // bootPromise = null;
-      setInstance(null);
-      setServerUrl(null)
-    }
-  }, [instance])
-
-  return { serverUrl, isLoading, error, instance, writeFileSync, destory }
+  return {
+    serverUrl,
+    isLoading,
+    error,
+    instance,
+    writeFileSync,
+    destroy: reset, // also fixes the typo: destory → destroy
+  };
 };
