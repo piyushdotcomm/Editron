@@ -3,10 +3,21 @@ import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 import { transformToWebContainerFormat } from "../hooks/transformer";
-import { CheckCircle, Loader2, XCircle, ExternalLink, RefreshCw, Monitor, Tablet, Smartphone, Globe } from "lucide-react";
+import {
+  CheckCircle,
+  Loader2,
+  XCircle,
+  ExternalLink,
+  RefreshCw,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Globe,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import type { TerminalRef } from "./terminal";
+// import { Input } from "@/components/ui/input";
 
 const TerminalComponent = dynamic(() => import("./terminal"), { ssr: false });
 
@@ -29,13 +40,22 @@ const WebContainerPreview = ({
   instance,
   isLoading,
   serverUrl,
-  writeFileSync,
+  writeFileSync : _writeFileSync,
   forceResetup = false,
 }: WebContainerPreviewProps) => {
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>(serverUrl || "");
+
+  useEffect(() => {
+    if (serverUrl) {
+      setPreviewUrl(serverUrl);
+    }
+  }, [serverUrl]);
+
   const [refreshKey, setRefreshKey] = useState(0);
-  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [loadingState, setLoadingState] = useState({
+  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">(
+    "desktop",
+  );
+  const [, setLoadingState] = useState({
     transforming: false,
     mounting: false,
     installing: false,
@@ -46,14 +66,15 @@ const WebContainerPreview = ({
   const totalSteps = 4;
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-  const [isSetupInProgress, setIsSetupInProgress] = useState(false);
+  const [, setIsSetupInProgress] = useState(false);
   const [installProgress, setInstallProgress] = useState({
     totalDeps: 0,
     installedPackages: 0,
     progressPercent: 0,
     statusText: "",
   });
-  const terminalRef = useRef<any>(null);
+
+  const terminalRef = useRef<TerminalRef | null>(null);
   const setupInProgressRef = useRef(false);
 
   // Helper to count dependencies from package.json content
@@ -68,10 +89,10 @@ const WebContainerPreview = ({
     }
   };
 
-  const createInstallOutputStream = (totalDeps: number) => {
+  const createInstallOutputStream = (_totalDeps: number) => {
     let estimatedProgress = 0;
     let lastUpdateTime = Date.now();
-    
+
     return new WritableStream({
       write(data: string) {
         if (terminalRef.current?.writeToTerminal) {
@@ -79,11 +100,11 @@ const WebContainerPreview = ({
         } else {
           console.log("[WebContainer Install] ", data.trim());
         }
-        
+
         const now = Date.now();
         // Throttle state updates to at most once every 100ms
         const shouldUpdate = now - lastUpdateTime > 100;
-        
+
         // Parse npm output for progress signals
         const addedMatch = data.match(/added (\d+) packages?/i);
         if (addedMatch) {
@@ -97,9 +118,9 @@ const WebContainerPreview = ({
           lastUpdateTime = now;
           return;
         }
-        
+
         if (!shouldUpdate) return;
-        
+
         // Detect resolution / reify / etc. phases
         if (data.includes("reify:") || data.includes("idealTree")) {
           estimatedProgress = Math.min(estimatedProgress + 2, 85);
@@ -132,10 +153,16 @@ const WebContainerPreview = ({
   };
 
   // Helper to detect package manager
-  const detectPackageManager = async (instance: WebContainer): Promise<"npm" | "yarn" | "pnpm"> => {
+  const detectPackageManager = async (
+    instance: WebContainer,
+  ): Promise<"npm" | "yarn" | "pnpm"> => {
     try {
-      if (await instance.fs.readFile("pnpm-lock.yaml", "utf8").catch(() => null)) return "pnpm";
-      if (await instance.fs.readFile("yarn.lock", "utf8").catch(() => null)) return "yarn";
+      if (
+        await instance.fs.readFile("pnpm-lock.yaml", "utf8").catch(() => null)
+      )
+        return "pnpm";
+      if (await instance.fs.readFile("yarn.lock", "utf8").catch(() => null))
+        return "yarn";
       return "npm"; // Default
     } catch {
       return "npm";
@@ -143,7 +170,11 @@ const WebContainerPreview = ({
   };
 
   // Helper to determine the best start script and command
-  const resolveStartCommand = async (instance: WebContainer, pkgManager: string, packageJsonString: string) => {
+  const resolveStartCommand = async (
+    instance: WebContainer,
+    pkgManager: string,
+    packageJsonString: string,
+  ) => {
     try {
       const pkg = JSON.parse(packageJsonString);
       const scripts = pkg.scripts || {};
@@ -154,61 +185,91 @@ const WebContainerPreview = ({
 
       if (pkg.workspaces) {
         isMonorepo = true;
-        workspaces = Array.isArray(pkg.workspaces) ? pkg.workspaces : (pkg.workspaces.packages || []);
+        workspaces = Array.isArray(pkg.workspaces)
+          ? pkg.workspaces
+          : pkg.workspaces.packages || [];
       } else {
-        const pnpmWorkspace = await instance.fs.readFile("pnpm-workspace.yaml", "utf8").catch(() => null);
+        const pnpmWorkspace = await instance.fs
+          .readFile("pnpm-workspace.yaml", "utf8")
+          .catch(() => null);
         if (pnpmWorkspace) {
           isMonorepo = true;
           // Simple regex to extract packages from yaml
-          const matches = [...pnpmWorkspace.matchAll(/-\s+['"]?([^'"\n]+)['"]?/g)];
-          workspaces = matches.map(m => m[1]);
+          const matches = [
+            ...pnpmWorkspace.matchAll(/-\s+['"]?([^'"\n]+)['"]?/g),
+          ];
+          workspaces = matches.map((m) => m[1]);
         }
       }
 
       if (isMonorepo && workspaces.length > 0) {
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            `\x1b[36mℹ Detected monorepo structure with package manager: ${pkgManager}\x1b[0m\r\n`
+            `\x1b[36mℹ Detected monorepo structure with package manager: ${pkgManager}\x1b[0m\r\n`,
           );
         }
 
         // Find the most likely frontend workspace (client, web, app, frontend)
-        const frontendKeywords = ["client", "web", "app", "ui", "frontend", "docs"];
+        // const frontendKeywords = ["client", "web", "app", "ui", "frontend", "docs"];
         let bestWorkspaceDir = "";
         let bestScript = "";
         let bestWorkspaceName = "";
 
         // Since workspaces often have globs (e.g., "apps/*", "packages/*"), we check common directories
-        const dirsToCheck = ["client", "web", "app", "frontend", "apps/web", "apps/client", "packages/web"];
+        const dirsToCheck = [
+          "client",
+          "web",
+          "app",
+          "frontend",
+          "apps/web",
+          "apps/client",
+          "packages/web",
+        ];
 
         for (const dir of dirsToCheck) {
           try {
-            const childPkgContent = await instance.fs.readFile(`${dir}/package.json`, "utf8");
+            const childPkgContent = await instance.fs.readFile(
+              `${dir}/package.json`,
+              "utf8",
+            );
             const childPkg = JSON.parse(childPkgContent);
             const childScripts = childPkg.scripts || {};
 
             if (childScripts.dev || childScripts.start || childScripts.serve) {
               bestWorkspaceDir = dir;
               bestWorkspaceName = childPkg.name || dir;
-              bestScript = childScripts.dev ? "dev" : (childScripts.start ? "start" : "serve");
+              bestScript = childScripts.dev
+                ? "dev"
+                : childScripts.start
+                  ? "start"
+                  : "serve";
               break;
             }
-          } catch (e) { }
+          } catch {}
         }
 
         if (bestWorkspaceDir && bestScript) {
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
-              `\x1b[36mℹ Found frontend workspace: ${bestWorkspaceDir} (script: ${bestScript})\x1b[0m\r\n`
+              `\x1b[36mℹ Found frontend workspace: ${bestWorkspaceDir} (script: ${bestScript})\x1b[0m\r\n`,
             );
           }
 
           if (pkgManager === "pnpm" && bestWorkspaceName) {
-            return { cmd: "pnpm", args: ["--filter", bestWorkspaceName, "run", bestScript] };
+            return {
+              cmd: "pnpm",
+              args: ["--filter", bestWorkspaceName, "run", bestScript],
+            };
           } else if (pkgManager === "yarn") {
-            return { cmd: "yarn", args: ["workspace", bestWorkspaceName, "run", bestScript] };
+            return {
+              cmd: "yarn",
+              args: ["workspace", bestWorkspaceName, "run", bestScript],
+            };
           } else {
-            return { cmd: "npm", args: ["run", bestScript, "--workspace=" + bestWorkspaceName] };
+            return {
+              cmd: "npm",
+              args: ["run", bestScript, "--workspace=" + bestWorkspaceName],
+            };
           }
         }
       }
@@ -219,7 +280,7 @@ const WebContainerPreview = ({
       if (scripts.serve) return { cmd: pkgManager, args: ["run", "serve"] };
 
       return { cmd: pkgManager, args: ["run", "start"] }; // Fallback
-    } catch (e) {
+    } catch {
       return { cmd: pkgManager, args: ["run", "start"] };
     }
   };
@@ -254,25 +315,27 @@ const WebContainerPreview = ({
         try {
           const packageJsonExists = await instance.fs.readFile(
             "package.json",
-            "utf8"
+            "utf8",
           );
 
           if (packageJsonExists) {
             // Files are already mounted, restart the server
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                "🔄 Reconnecting to existing WebContainer session...\r\n"
+                "🔄 Reconnecting to existing WebContainer session...\r\n",
               );
             }
 
             instance.on("server-ready", (port: number, url: string) => {
               if (terminalRef.current?.writeToTerminal) {
                 terminalRef.current.writeToTerminal(
-                  `🌐 Server ready at ${url} (port ${port})\r\n`
+                  `🌐 Server ready at ${url} (port ${port})\r\n`,
                 );
               }
 
-              const isCommonFrontendPort = [3000, 5173, 8080, 4200, 8000].includes(port);
+              const isCommonFrontendPort = [
+                3000, 5173, 8080, 4200, 8000,
+              ].includes(port);
               setPreviewUrl((prevUrl) => {
                 if (prevUrl && !isCommonFrontendPort) return prevUrl;
                 return url;
@@ -303,45 +366,69 @@ const WebContainerPreview = ({
             try {
               pkgContent = await instance.fs.readFile("package.json", "utf8");
               reconnectTotalDeps = countDependencies(pkgContent);
-            } catch { }
-            setInstallProgress({ totalDeps: reconnectTotalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
+            } catch {}
+            setInstallProgress({
+              totalDeps: reconnectTotalDeps,
+              installedPackages: 0,
+              progressPercent: 0,
+              statusText: "Starting install...",
+            });
 
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                `📦 Reinstalling dependencies using \x1b[33m${pkgManager}\x1b[0m (${reconnectTotalDeps} packages)...\r\n`
+                `📦 Reinstalling dependencies using \x1b[33m${pkgManager}\x1b[0m (${reconnectTotalDeps} packages)...\r\n`,
               );
             }
 
-            const installArgs = pkgManager === "npm" ? ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"] : ["install"];
-            const reinstallProcess = await instance.spawn(pkgManager, installArgs);
-            reinstallProcess.output.pipeTo(createInstallOutputStream(reconnectTotalDeps));
+            const installArgs =
+              pkgManager === "npm"
+                ? ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"]
+                : ["install"];
+            const reinstallProcess = await instance.spawn(
+              pkgManager,
+              installArgs,
+            );
+            reinstallProcess.output.pipeTo(
+              createInstallOutputStream(reconnectTotalDeps),
+            );
             const reinstallExitCode = await reinstallProcess.exit;
             if (reinstallExitCode !== 0) {
               if (terminalRef.current?.writeToTerminal) {
                 terminalRef.current.writeToTerminal(
-                  `⚠️ ${pkgManager} install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`
+                  `⚠️ ${pkgManager} install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`,
                 );
               }
             } else {
               if (terminalRef.current?.writeToTerminal) {
                 terminalRef.current.writeToTerminal(
-                  "✅ Dependencies ready\r\n"
+                  "✅ Dependencies ready\r\n",
                 );
               }
             }
 
-            setLoadingState((prev) => ({ ...prev, installing: false, starting: true }));
+            setLoadingState((prev) => ({
+              ...prev,
+              installing: false,
+              starting: true,
+            }));
             setCurrentStep(4);
 
             // Now restart the server
-            const startCommand = await resolveStartCommand(instance, pkgManager, pkgContent);
+            const startCommand = await resolveStartCommand(
+              instance,
+              pkgManager,
+              pkgContent,
+            );
 
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                `🚀 Restarting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`
+                `🚀 Restarting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
               );
             }
-            const startProcess = await instance.spawn(startCommand.cmd, startCommand.args);
+            const startProcess = await instance.spawn(
+              startCommand.cmd,
+              startCommand.args,
+            );
             startProcess.output.pipeTo(
               new WritableStream({
                 write(data) {
@@ -349,11 +436,11 @@ const WebContainerPreview = ({
                     terminalRef.current.writeToTerminal(data);
                   }
                 },
-              })
+              }),
             );
             return;
           }
-        } catch (error) { }
+        } catch {}
 
         // Step-1 transform data
         setLoadingState((prev) => ({ ...prev, transforming: true }));
@@ -361,7 +448,7 @@ const WebContainerPreview = ({
         // Write to terminal
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "🔄 Transforming template data...\r\n"
+            "🔄 Transforming template data...\r\n",
           );
         }
 
@@ -378,70 +465,97 @@ const WebContainerPreview = ({
 
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "📁 Mounting files to WebContainer...\r\n"
+            "📁 Mounting files to WebContainer...\r\n",
           );
         }
         await instance.mount(files);
 
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "✅ Files mounted successfully\r\n"
+            "✅ Files mounted successfully\r\n",
           );
         }
 
         // Check if package.json exists, if not create a default one for static serving
         try {
-          const packageJsonContent = await instance.fs.readFile("package.json", "utf8").catch(() => null);
+          const packageJsonContent = await instance.fs
+            .readFile("package.json", "utf8")
+            .catch(() => null);
 
           if (!packageJsonContent) {
             if (terminalRef.current?.writeToTerminal) {
               terminalRef.current.writeToTerminal(
-                "⚠️ No package.json found. Creating default configuration for static site...\r\n"
+                "⚠️ No package.json found. Creating default configuration for static site...\r\n",
               );
             }
-            await instance.fs.writeFile("package.json", JSON.stringify({
-              name: "static-project",
-              version: "1.0.0",
-              scripts: {
-                start: "npx servor --reload"
-              },
-              dependencies: {
-                "servor": "^4.0.2"
-              }
-            }, null, 2));
+            await instance.fs.writeFile(
+              "package.json",
+              JSON.stringify(
+                {
+                  name: "static-project",
+                  version: "1.0.0",
+                  scripts: {
+                    start: "npx servor --reload",
+                  },
+                  dependencies: {
+                    servor: "^4.0.2",
+                  },
+                },
+                null,
+                2,
+              ),
+            );
           } else {
             // Check for missing start script and try to auto-fix
             try {
               const pkg = JSON.parse(packageJsonContent);
               if (!pkg.scripts || !pkg.scripts.start) {
-                const commonEntries = ["index.js", "server.js", "app.js", "main.js", "src/index.js", "src/server.js", "src/app.js", "src/main.js"];
+                const commonEntries = [
+                  "index.js",
+                  "server.js",
+                  "app.js",
+                  "main.js",
+                  "src/index.js",
+                  "src/server.js",
+                  "src/app.js",
+                  "src/main.js",
+                ];
                 let entryFile = null;
 
                 for (const entry of commonEntries) {
                   try {
-                    const exists = await instance.fs.readFile(entry).catch(() => null);
+                    const exists = await instance.fs
+                      .readFile(entry)
+                      .catch(() => null);
                     if (exists) {
                       entryFile = entry;
                       break;
                     }
-                  } catch (e) { }
+                  } catch {}
                 }
 
                 if (entryFile) {
                   if (terminalRef.current?.writeToTerminal) {
                     terminalRef.current.writeToTerminal(
-                      `⚠️ No start script found. Auto-detected entry point: ${entryFile}. Injecting start script...\r\n`
+                      `⚠️ No start script found. Auto-detected entry point: ${entryFile}. Injecting start script...\r\n`,
                     );
                   }
 
                   pkg.scripts = pkg.scripts || {};
                   pkg.scripts.start = `node ${entryFile}`;
 
-                  await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
+                  await instance.fs.writeFile(
+                    "package.json",
+                    JSON.stringify(pkg, null, 2),
+                  );
                 } else {
                   // Check for client/server monorepo structure
-                  const hasClient = await instance.fs.readFile("client/package.json", "utf8").catch(() => null);
-                  const hasServer = await instance.fs.readFile("server/package.json", "utf8").catch(() => null);
+                  const hasClient = await instance.fs
+                    .readFile("client/package.json", "utf8")
+                    .catch(() => null);
+                  const hasServer = await instance.fs
+                    .readFile("server/package.json", "utf8")
+                    .catch(() => null);
 
                   if (hasClient || hasServer) {
                     const workspaces = [];
@@ -457,16 +571,27 @@ const WebContainerPreview = ({
                       if (!pkgJson) return null;
                       try {
                         const parsed = JSON.parse(pkgJson);
-                        return parsed.scripts?.dev ? "dev" : parsed.scripts?.start ? "start" : null;
-                      } catch { return null; }
+                        return parsed.scripts?.dev
+                          ? "dev"
+                          : parsed.scripts?.start
+                            ? "start"
+                            : null;
+                      } catch {
+                        return null;
+                      }
                     };
 
                     const clientScript = getScript(hasClient);
                     const serverScript = getScript(hasServer);
 
                     // Construct start script
-                    if (hasClient && hasServer && clientScript && serverScript) {
-                      // Attempt to start client last to capture its port, or use a tool like concurrently if available. 
+                    if (
+                      hasClient &&
+                      hasServer &&
+                      clientScript &&
+                      serverScript
+                    ) {
+                      // Attempt to start client last to capture its port, or use a tool like concurrently if available.
                       // For now, valid method is:
                       pkg.scripts.start = `npm run ${serverScript} --prefix server & npm run ${clientScript} --prefix client`;
                     } else if (hasClient && clientScript) {
@@ -480,7 +605,7 @@ const WebContainerPreview = ({
 
                     if (terminalRef.current?.writeToTerminal) {
                       terminalRef.current.writeToTerminal(
-                        `⚠️ Detected monorepo structure (${workspaces.join(", ")}). Configuring workspaces and start script...\r\n`
+                        `⚠️ Detected monorepo structure (${workspaces.join(", ")}). Configuring workspaces and start script...\r\n`,
                       );
                     }
 
@@ -488,7 +613,10 @@ const WebContainerPreview = ({
                     if (!pkg.name) pkg.name = "monorepo-root";
                     if (!pkg.version) pkg.version = "1.0.0";
 
-                    await instance.fs.writeFile("package.json", JSON.stringify(pkg, null, 2));
+                    await instance.fs.writeFile(
+                      "package.json",
+                      JSON.stringify(pkg, null, 2),
+                    );
                   }
                 }
               }
@@ -516,12 +644,17 @@ const WebContainerPreview = ({
         try {
           pckgContent = await instance.fs.readFile("package.json", "utf8");
           totalDeps = countDependencies(pckgContent);
-        } catch { }
-        setInstallProgress({ totalDeps, installedPackages: 0, progressPercent: 0, statusText: "Starting install..." });
+        } catch {}
+        setInstallProgress({
+          totalDeps,
+          installedPackages: 0,
+          progressPercent: 0,
+          statusText: "Starting install...",
+        });
 
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            `📦 Installing dependencies using \x1b[33m${pkgManager}\x1b[0m (${totalDeps} packages)...\r\n`
+            `📦 Installing dependencies using \x1b[33m${pkgManager}\x1b[0m (${totalDeps} packages)...\r\n`,
           );
         }
 
@@ -529,19 +662,31 @@ const WebContainerPreview = ({
         // Fall back to npm install if no lockfile is present
         let freshInstallArgs: string[];
         if (pkgManager === "npm") {
-          const hasLockfile = await instance.fs.readFile("package-lock.json", "utf8").catch(() => null);
+          const hasLockfile = await instance.fs
+            .readFile("package-lock.json", "utf8")
+            .catch(() => null);
           if (hasLockfile) {
             freshInstallArgs = ["ci", "--no-audit", "--no-fund"];
             if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal("🔒 Lockfile found — using \x1b[32mnpm ci\x1b[0m for faster, reliable install...\r\n");
+              terminalRef.current.writeToTerminal(
+                "🔒 Lockfile found — using \x1b[32mnpm ci\x1b[0m for faster, reliable install...\r\n",
+              );
             }
           } else {
-            freshInstallArgs = ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"];
+            freshInstallArgs = [
+              "install",
+              "--no-audit",
+              "--no-fund",
+              "--legacy-peer-deps",
+            ];
           }
         } else {
           freshInstallArgs = ["install"];
         }
-        const installProcess = await instance.spawn(pkgManager, freshInstallArgs);
+        const installProcess = await instance.spawn(
+          pkgManager,
+          freshInstallArgs,
+        );
 
         installProcess.output.pipeTo(createInstallOutputStream(totalDeps));
 
@@ -550,14 +695,14 @@ const WebContainerPreview = ({
         if (installExitCode !== 0) {
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
-              `⚠️ Dependencies install exited with code ${installExitCode}, attempting to start anyway...\r\n`
+              `⚠️ Dependencies install exited with code ${installExitCode}, attempting to start anyway...\r\n`,
             );
           }
           console.warn(`npm install exited with code ${installExitCode}`);
         } else {
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
-              "✅ Dependencies installed successfully\r\n"
+              "✅ Dependencies installed successfully\r\n",
             );
           }
         }
@@ -571,27 +716,36 @@ const WebContainerPreview = ({
 
         // STEP-4 Start The Server
 
-        const startCommand = await resolveStartCommand(instance, pkgManager, pckgContent);
+        const startCommand = await resolveStartCommand(
+          instance,
+          pkgManager,
+          pckgContent,
+        );
 
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            `🚀 Starting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`
+            `🚀 Starting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
           );
         }
 
-        const startProcess = await instance.spawn(startCommand.cmd, startCommand.args);
+        const startProcess = await instance.spawn(
+          startCommand.cmd,
+          startCommand.args,
+        );
 
         instance.on("server-ready", (port: number, url: string) => {
           // todo: Terminal logic
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
-              `🌐 Server ready at ${url} (port ${port})\r\n`
+              `🌐 Server ready at ${url} (port ${port})\r\n`,
             );
           }
 
           // Heuristic: Prefer port 5173 (Vite) or 3000 (Create React App / Next.js) over others (often backend)
           // valid ports for frontend usually: 3000, 3001, 3002, 5173, 5174, 8080, 4200 (Angular), 8000 (Gatsby)
-          const isCommonFrontendPort = [3000, 5173, 8080, 4200, 8000].includes(port);
+          const isCommonFrontendPort = [3000, 5173, 8080, 4200, 8000].includes(
+            port,
+          );
 
           setPreviewUrl((prevUrl) => {
             // If we already have a URL and the new one isn't a "common frontend port", ignore it to avoid backend overriding frontend
@@ -619,7 +773,7 @@ const WebContainerPreview = ({
                 terminalRef.current.writeToTerminal(data);
               }
             },
-          })
+          }),
         );
       } catch (err) {
         console.error("Error setting up container:", err);
@@ -693,12 +847,13 @@ const WebContainerPreview = ({
 
     return (
       <span
-        className={`text-sm font-medium ${isComplete
-          ? "text-green-600"
-          : isActive
-            ? "text-blue-600"
-            : "text-gray-500"
-          }`}
+        className={`text-sm font-medium ${
+          isComplete
+            ? "text-green-600"
+            : isActive
+              ? "text-blue-600"
+              : "text-gray-500"
+        }`}
       >
         {label}
       </span>
@@ -736,8 +891,12 @@ const WebContainerPreview = ({
                       className="h-1.5"
                     />
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>{installProgress.statusText || "Preparing..."}</span>
-                      <span className="font-mono">{installProgress.progressPercent}%</span>
+                      <span>
+                        {installProgress.statusText || "Preparing..."}
+                      </span>
+                      <span className="font-mono">
+                        {installProgress.progressPercent}%
+                      </span>
                     </div>
                     {installProgress.totalDeps > 0 && (
                       <span className="text-[11px] text-muted-foreground/60">
@@ -756,12 +915,14 @@ const WebContainerPreview = ({
 
           {/* Terminal */}
           <div className="flex-1 p-4">
-            {<TerminalComponent
-              ref={terminalRef}
-              webContainerInstance={instance}
-              theme="dark"
-              className="h-full"
-            />}
+            {
+              <TerminalComponent
+                ref={terminalRef}
+                webContainerInstance={instance}
+                theme="dark"
+                className="h-full"
+              />
+            }
           </div>
         </div>
       ) : (
@@ -783,7 +944,12 @@ const WebContainerPreview = ({
                   onClick={() => setRefreshKey((k) => k + 1)}
                   title="Refresh preview"
                 >
-                  <RefreshCw size={13} className={status === "starting" ? "animate-spin text-primary" : ""} />
+                  <RefreshCw
+                    size={13}
+                    className={
+                      isLoading ? "animate-spin text-primary" : ""
+                    }
+                  />
                 </Button>
               </div>
             </div>
@@ -832,7 +998,7 @@ const WebContainerPreview = ({
                 className="h-6 w-6 rounded-md hover:bg-muted/60 text-muted-foreground transition-colors"
                 onClick={() => {
                   const url = `/preview?url=${encodeURIComponent(previewUrl)}`;
-                  window.open(url, '_blank');
+                  window.open(url, "_blank");
                 }}
                 title="Open preview in new tab"
               >
@@ -846,7 +1012,12 @@ const WebContainerPreview = ({
             <div
               className="h-full relative transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] bg-background flex flex-col shadow-xl"
               style={{
-                width: viewport === "mobile" ? "375px" : viewport === "tablet" ? "768px" : "100%",
+                width:
+                  viewport === "mobile"
+                    ? "375px"
+                    : viewport === "tablet"
+                      ? "768px"
+                      : "100%",
                 maxWidth: "100%",
               }}
             >

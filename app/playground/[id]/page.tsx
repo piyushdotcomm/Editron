@@ -26,8 +26,6 @@ import {
   AlertCircle,
   FolderOpen,
 } from "lucide-react";
-import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
-import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
@@ -95,8 +93,8 @@ const PlaygroundPageContent = () => {
     error: containerError,
     instance,
     writeFileSync,
-    
-  } = useWebContainer();
+  } = useWebContainer({ templateData });
+
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
@@ -109,7 +107,7 @@ const PlaygroundPageContent = () => {
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
-      const findDefaultFile = (items: any[]): TemplateFile | null => {
+      const findDefaultFile = (items: (TemplateFile | TemplateFolder)[]): TemplateFile | null => {
         for (const item of items) {
           if (!("folderName" in item)) {
             if (["App.tsx", "App.jsx", "index.tsx", "index.jsx", "index.js", "main.tsx", "main.js", "index.html"].includes(`${item.filename}.${item.fileExtension}`)) {
@@ -226,9 +224,7 @@ const PlaygroundPageContent = () => {
           JSON.stringify(latestTemplateData)
         );
 
-        // @ts-ignore
-        const updateFileContent = (items: any[]) =>
-          // @ts-ignore
+        const updateFileContent = (items: (TemplateFile | TemplateFolder)[]): (TemplateFile | TemplateFolder)[] =>
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateFileContent(item.items) };
@@ -303,7 +299,7 @@ if (containerSynced) {
     ]
   );
 
-  const handleSaveAll = async () => {
+  const handleSaveAll = useCallback(async () => {
     const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
 
     if (unsavedFiles.length === 0) {
@@ -314,10 +310,10 @@ if (containerSynced) {
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to save some files");
     }
-  };
+  }, [openFiles, handleSave]);
 
   // recursive function to add files to zip
   const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
