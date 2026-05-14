@@ -149,7 +149,7 @@ const TemplateSelectionModal = ({
                   />
                   <Input
                     placeholder="Search templates..."
-                    value={searchQuery}dz  
+                    value={searchQuery}  
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
