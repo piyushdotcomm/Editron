@@ -216,13 +216,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const sanitizedMessages = messages.map((msg: { role: "system" | "user" | "assistant"; content?: string; parts: any[] }) => {
+        type MessagePart = { type: string; text: string };
+        const sanitizedMessages = messages.map((msg: { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] }) => {
             if (msg.parts) return msg;
             return {
                 ...msg,
-                parts: typeof msg.content === "string" && msg.content 
-                    ? [{ type: "text", text: msg.content }] 
-                    : []
+                parts: typeof msg.content === "string" && msg.content
+                    ? [{ type: "text", text: msg.content }]
+                    : [] as MessagePart[],
             };
         });
 
