@@ -152,12 +152,12 @@ const TemplateSelectionModal = ({
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <Input
                     placeholder="Search templates..."
-                    value={searchQuery}
+                    value={searchQuery}dz  
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
