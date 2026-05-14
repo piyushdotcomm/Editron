@@ -10,7 +10,7 @@ export const CodeLine = ({ line }: { line: string }) => {
         // We use a series of replacements. Order matters to avoid replacing inside already replaced spans.
         // A better approach for robust highlighting is tokenization.
 
-        let highlighted = text;
+        const highlighted = text;
 
         // Comments (simple // for now)
         if (highlighted.includes('//')) {
@@ -33,6 +33,7 @@ export const CodeLine = ({ line }: { line: string }) => {
 
     React.useEffect(() => {
         setHighlighted(highlight(line));
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [line]);
 
     return highlighted;

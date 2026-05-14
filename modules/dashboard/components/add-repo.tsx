@@ -1,6 +1,5 @@
 "use client";
 
-import { toast } from "sonner";
 import { ArrowDown } from "lucide-react";
 import Image from "next/image";
 

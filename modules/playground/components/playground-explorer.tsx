@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   ChevronRight,
-  Plus,
   FilePlus,
   FolderPlus,
   MoreHorizontal,
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
@@ -367,7 +365,7 @@ function TemplateNode({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="File actions"
+                aria-label={`More actions for ${fileName}`}
               >
                 <MoreHorizontal className="h-3 w-3" />
               </Button>
@@ -519,7 +517,7 @@ function TemplateNode({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Folder actions"
+                  aria-label={`More actions for ${folderName}`}
                 >
                   <MoreHorizontal className="h-3 w-3" />
                 </Button>
