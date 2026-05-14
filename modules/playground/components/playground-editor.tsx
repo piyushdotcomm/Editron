@@ -378,8 +378,7 @@ const PlaygroundEditor = ({
         bindingRef.current = null;
       }
     };
-// eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFile?.filename, activeFile?.fileExtension, playgroundId, isMounted]);
+  }, [activeFile, playgroundId, isMounted, content, session]);
 
   // Cleanup on unmount
   useEffect(() => {

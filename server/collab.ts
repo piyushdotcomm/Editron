@@ -1,7 +1,8 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
 // @ts-ignore
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
+import * as Y from 'yjs';
 import { db } from '../lib/db';
 import { verifyCollabToken } from '../lib/collab-token';
 import { MongodbPersistence } from 'y-mongodb-provider';
@@ -26,18 +27,25 @@ const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
     multipleCollections: false,
 });
 
+setPersistence({
+    bindState: async (docName: string, ydoc: Y.Doc) => {
+        const persistedYdoc = await _mdb.getYDoc(docName);
+        const newUpdates = Y.encodeStateAsUpdate(ydoc);
+        _mdb.storeUpdate(docName, newUpdates);
+        Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc));
+        ydoc.on('update', async (update: Uint8Array) => {
+            _mdb.storeUpdate(docName, update);
+        });
+    },
+    writeState: async (docName: string, ydoc: Y.Doc) => {
+        await _mdb.flushDocument(docName);
+    }
+});
+
 wss.on('connection', (ws, req) => {
     const docName = req.url?.split('?')[0].slice(1) || 'default';
 
-    // Persist to MongoDB binding logic
-    const _persistCallback = async () => {
-        // y-mongodb-provider handles persistence automatically if bound properly
-    };
-
     setupWSConnection(ws, req, { docName, gc: true });
-
-    // Bind the Yjs document to MongoDB when a new doc is created
-    // In a real setup, y-websocket utils keeps an exported 'docs' map, but we'll use a simpler callback if needed.
 });
 
 // Upgrade HTTP to WS with NextAuth JWT Validation

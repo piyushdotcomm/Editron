@@ -39,11 +39,18 @@ const WebContainerPreview = ({
   error,
   instance,
   isLoading,
-  serverUrl : _serverUrl,
+  serverUrl,
   writeFileSync : _writeFileSync,
   forceResetup = false,
 }: WebContainerPreviewProps) => {
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>(serverUrl || "");
+
+  useEffect(() => {
+    if (serverUrl) {
+      setPreviewUrl(serverUrl);
+    }
+  }, [serverUrl]);
+
   const [refreshKey, setRefreshKey] = useState(0);
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">(
     "desktop",
