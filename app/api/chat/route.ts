@@ -27,6 +27,8 @@ If the user asks you to create a new file, call the edit tool with the full cont
 
 // DOS protection: limit prevents AI from hallucinating extremely large payloads
 const MAX_FILE_CONTENT_CHARS = 100_000;
+// Cap batch file changes to prevent aggregate payload attacks
+const MAX_BATCH_CHANGES = 50;
 // UTF-8 worst-case ~4 bytes per char
 /**
  * Record a payload size violation for a user and emit structured warnings.
@@ -69,7 +71,7 @@ export const tools = {
                 // Same protections for batch changes
                 content: z.string()
                     .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
-            })).describe("An array of file modifications to execute as a batch"),
+            })).max(MAX_BATCH_CHANGES, { message: `changes array exceeds max batch size (${MAX_BATCH_CHANGES})` }).describe("An array of file modifications to execute as a batch"),
         }),
     }),
     delete_file: createTool({
@@ -192,15 +194,28 @@ export async function POST(request: NextRequest) {
         }
 
         type MessagePart = { type: string; text: string };
-        const sanitizedMessages = messages.map((msg: { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] }) => {
-            if (msg.parts) return msg;
-            return {
-                ...msg,
-                parts: typeof msg.content === "string" && msg.content
-                    ? [{ type: "text", text: msg.content }]
+        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
+
+        const sanitizedMessages: ChatMessage[] = [];
+        for (const raw of messages) {
+            if (!raw || typeof raw !== "object") {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must be an object" },
+                    { status: 400 }
+                );
+            }
+            const m = raw as ChatMessage;
+            if (Array.isArray(m.parts)) {
+                sanitizedMessages.push(m);
+                continue;
+            }
+            sanitizedMessages.push({
+                ...m,
+                parts: typeof m.content === "string" && m.content.trim()
+                    ? [{ type: "text", text: m.content }]
                     : [] as MessagePart[],
-            };
-        });
+            });
+        }
 
         const resultStream = streamText({
             model,
