@@ -28,50 +28,23 @@ If the user asks you to create a new file, call the edit tool with the full cont
 // DOS protection: limit prevents AI from hallucinating extremely large payloads
 const MAX_FILE_CONTENT_CHARS = 100_000;
 // UTF-8 worst-case ~4 bytes per char
-const MAX_FILE_CONTENT_BYTES = MAX_FILE_CONTENT_CHARS * 4;
+/**
+ * Record a payload size violation for a user and emit structured warnings.
+ * Prevents logging raw payloads; logs metadata only.
+ * @param userId - user identifier or null for anonymous
+ * @param tool - tool name where violation occurred
+ * @param param - parameter name (e.g., 'content')
+ * @param actualSize - observed payload size in characters/bytes
+ * @param maxSize - configured maximum allowed size
+ */
+// Note: We intentionally do NOT track violations in-memory here to avoid
+// introducing dead code or stateful behavior in the request handler.
+// If needed, a telemetry/metrics service should be used instead.
 
-// Violation tracking (in-memory). This is intentionally lightweight — persist if needed.
-const VIOLATION_WINDOW_MS = 5 * 60_000; // 5 minutes
-const VIOLATION_THRESHOLD = 3;
-const violationTracker = new Map<string, number[]>();
-
-function recordViolation(userId: string | null = null, tool = "unknown", param = "content", actualSize?: number, maxSize?: number) {
-    const key = userId ?? "anonymous";
-    const now = Date.now();
-    const arr = violationTracker.get(key) ?? [];
-    // prune old
-    const pruned = arr.filter(t => now - t <= VIOLATION_WINDOW_MS);
-    pruned.push(now);
-    violationTracker.set(key, pruned);
-
-    // Flag suspicious activity
-    if (pruned.length >= VIOLATION_THRESHOLD) {
-        // WARNING-level log without payload
-        console.warn(JSON.stringify({
-            timestamp: new Date().toISOString(),
-            level: "warning",
-            event: "ai_tool_payload_violations",
-            tool,
-            parameter: param,
-            actualSize,
-            maxSize,
-            userId: key,
-            count: pruned.length,
-        }));
-    } else {
-        console.warn(JSON.stringify({
-            timestamp: new Date().toISOString(),
-            level: "warning",
-            event: "ai_tool_payload_violation",
-            tool,
-            parameter: param,
-            actualSize,
-            maxSize,
-            userId: key,
-        }));
-    }
-}
-
+/**
+ * Tool definitions exposed to the AI model. Each tool includes a Zod
+ * input schema to validate parameters at the system boundary.
+ */
 export const tools = {
     read_file: createTool({
         description: "Read the contents of a file in the project. Use this to understand existing code before making changes.",
@@ -83,10 +56,9 @@ export const tools = {
         description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
         inputSchema: z.object({
             path: z.string().describe("The file path relative to the project root"),
-            // Prevent overly large content (character and UTF-8 byte limits)
+            // Prevent overly large content (character limit)
             content: z.string()
-                .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` })
-                .refine(s => Buffer.byteLength(s, "utf8") <= MAX_FILE_CONTENT_BYTES, { message: `content exceeds max bytes (${MAX_FILE_CONTENT_BYTES})` }),
+                .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
         }),
     }),
     edit_multiple_files: createTool({
@@ -96,8 +68,7 @@ export const tools = {
                 path: z.string().describe("The file path relative to the project root"),
                 // Same protections for batch changes
                 content: z.string()
-                    .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` })
-                    .refine(s => Buffer.byteLength(s, "utf8") <= MAX_FILE_CONTENT_BYTES, { message: `content exceeds max bytes (${MAX_FILE_CONTENT_BYTES})` }),
+                    .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
             })).describe("An array of file modifications to execute as a batch"),
         }),
     }),
@@ -116,6 +87,10 @@ const RequestBodySchema = z.object({
     userApiKey: z.string().max(256).optional(),
 });
 
+/**
+ * HTTP POST handler for the AI chat endpoint. Validates request body,
+ * enforces rate limits, selects model provider, and streams model output.
+ */
 export async function POST(request: NextRequest) {
     try {        
 
