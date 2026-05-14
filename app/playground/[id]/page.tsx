@@ -561,11 +561,13 @@ if (containerSynced) {
           </div>
         </SidebarInset>
 
-        {/* AI Chat Panel */}
-        <AIChatPanel
-          templateData={templateData}
-          saveTemplateData={saveTemplateData}
-        />
+{/* AI Chat Panel */}
+         <ErrorBoundary name="AIChatPanel">
+           <AIChatPanel
+             templateData={templateData}
+             saveTemplateData={saveTemplateData}
+           />
+         </ErrorBoundary>
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
 
         {/* Command Palette */}
