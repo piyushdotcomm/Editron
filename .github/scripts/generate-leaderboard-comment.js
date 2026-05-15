@@ -60,7 +60,7 @@ async function github(path) {
 
 async function getAllClosedPRs() {
   let page = 1;
-  let all = [];
+  const all = [];
 
   while (true) {
     const prs = await github(
