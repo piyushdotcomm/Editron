@@ -11,7 +11,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './')
     },
-    include: ['**/*.test.tsx', 'lib/**/*.test.ts'],
+    include: ['**/*.test.tsx', '**/*.test.ts'],
     exclude: ['node_modules', 'editron-starters/**', 'tests/smoke/**']
   }
 })
