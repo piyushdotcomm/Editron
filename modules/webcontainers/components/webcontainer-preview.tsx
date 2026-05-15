@@ -734,7 +734,8 @@ const WebContainerPreview = ({
         );
 
         instance.on("server-ready", (port: number, url: string) => {
-          // todo: Terminal logic
+          // Surface the active preview URL in the embedded terminal so users can
+          // diagnose which WebContainer server was selected when multiple ports start.
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
               `🌐 Server ready at ${url} (port ${port})\r\n`,
