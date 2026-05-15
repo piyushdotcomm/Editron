@@ -100,7 +100,7 @@ export default function Home() {
 
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
               Code with <br className="hidden sm:block" />
-              <span className="inline-flex overflow-visible bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4">
+              <span className="inline-flex overflow-visible bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4 py-1">
                 Intelligence & Speed
               </span>
             </h1>
