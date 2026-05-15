@@ -1,5 +1,5 @@
 import { Footer } from "@/modules/home/footer";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils";
 import { Header } from "@/modules/home/header";
 import { Metadata } from "next";
 export const metadata: Metadata = {

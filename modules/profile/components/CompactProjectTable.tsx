@@ -54,7 +54,7 @@ export default function CompactProjectTable({
     projects,
     onUpdateProject,
     onDeleteProject,
-    onDuplicateProject,
+    onDuplicateProject: _onDuplicateProject,
 }: CompactProjectTableProps) {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -207,7 +207,7 @@ export default function CompactProjectTable({
                     <DialogHeader>
                         <DialogTitle>Edit Project</DialogTitle>
                         <DialogDescription>
-                            Make changes to your project details here. Click save when you're done.
+                            Make changes to your project details here. Click save when you&apos;re done.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -248,7 +248,7 @@ export default function CompactProjectTable({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Project</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All files and
+                            Are you sure you want to delete &quot;{selectedProject?.title}&quot;? This action cannot be undone. All files and
                             data associated with this project will be permanently removed.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

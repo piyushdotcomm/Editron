@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Terminal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";
@@ -100,7 +100,11 @@ export default function Home() {
 
               <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
               Code with <br className="hidden sm:block" />
+<<<<<<< HEAD
               <span className="inline-flex overflow-visible leading-normal bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4">
+=======
+              <span className="inline-flex overflow-visible bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4 py-1">
+>>>>>>> upstream/main
                 Intelligence & Speed
               </span>
             </h1>

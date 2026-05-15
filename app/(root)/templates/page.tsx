@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { templates, TemplateOption } from "@/lib/constants/templates";
+import { templates } from "@/lib/constants/templates";
 import { TemplateCard } from "@/components/marketing/template-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Sparkles } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 
 export default function TemplatesPage() {

@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,19 @@ import { ChevronLeftIcon, GithubIcon, Chrome } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
+=======
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import {
+    ChevronLeftIcon,
+    GithubIcon,
+    Chrome,
+} from 'lucide-react';
+import { _cn } from '@/lib/utils';
+import Link from 'next/link';
+import Image from 'next/image';
+>>>>>>> upstream/main
 
 interface EditronAuthPageProps {
   onGoogleSignIn: () => Promise<void>;

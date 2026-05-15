@@ -1,22 +1,22 @@
 import React, { useState } from "react";
-import { FolderOpen, Package, Server, Search, ChevronRight, ChevronDown } from "lucide-react";
+import { FolderOpen, Package, Server } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
 
 interface PlaygroundSidebarProps {
-    templateData: any;
-    instance: any;
-    writeFileSync: any;
-    activeFile: any;
-    handleFileSelect: any;
-    wrappedHandleAddFile: any;
-    wrappedHandleAddFolder: any;
-    wrappedHandleDeleteFile: any;
-    wrappedHandleDeleteFolder: any;
-    wrappedHandleRenameFile: any;
-    wrappedHandleRenameFolder: any;
+    templateData: unknown;
+    instance: unknown;
+    writeFileSync: unknown;
+    activeFile: unknown;
+    handleFileSelect: unknown;
+    wrappedHandleAddFile: unknown;
+    wrappedHandleAddFolder: unknown;
+    wrappedHandleDeleteFile: unknown;
+    wrappedHandleDeleteFolder: unknown;
+    wrappedHandleRenameFile: unknown;
+    wrappedHandleRenameFolder: unknown;
 }
 
 export const PlaygroundSidebar = ({

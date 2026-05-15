@@ -45,7 +45,7 @@ interface ProjectTableProps {
   projects: Project[]
   onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
   onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<any>
+  onDuplicateProject?: (id: string) => Promise<void>
 }
 
 interface EditProjectData {
@@ -266,7 +266,7 @@ export default function ProjectTable({
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
-              Make changes to your project details here. Click save when you're done.
+              Make changes to your project details here. Click save when you&apos;re done.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -307,7 +307,7 @@ export default function ProjectTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All files and
+              Are you sure you want to delete &quot;{selectedProject?.title}&quot;? This action cannot be undone. All files and
               data associated with this project will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
