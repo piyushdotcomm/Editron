@@ -26,8 +26,6 @@ import {
   AlertCircle,
   FolderOpen,
 } from "lucide-react";
-import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
-import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
@@ -109,6 +107,7 @@ const PlaygroundPageContent = () => {
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const findDefaultFile = (items: any[]): TemplateFile | null => {
         for (const item of items) {
           if (!("folderName" in item)) {
@@ -226,9 +225,12 @@ const PlaygroundPageContent = () => {
           JSON.stringify(latestTemplateData)
         );
 
-        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updateFileContent = (items: any[]) =>
-          // @ts-ignore
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateFileContent(item.items) };
@@ -281,9 +283,16 @@ if (containerSynced) {
         );
         setOpenFiles(updatedOpenFiles);
 
-        containerSynced
-  ? toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`)
-  : toast.warning(`Saved to DB — WebContainer not ready, preview won't reflect changes yet`);
+        if (containerSynced) {
+					toast.success(
+						`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`,
+					);
+				} else {
+					toast.warning(
+						`Saved to DB — WebContainer not ready, preview won't reflect changes yet`,
+					);
+				}
+
       } catch (error) {
         console.error("Error saving file:", error);
         toast.error(
@@ -303,7 +312,7 @@ if (containerSynced) {
     ]
   );
 
-  const handleSaveAll = async () => {
+  const handleSaveAll = useCallback(async () => {
     const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
 
     if (unsavedFiles.length === 0) {
@@ -314,10 +323,10 @@ if (containerSynced) {
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save some files");
     }
-  };
+  }, [openFiles, handleSave]);
 
   // recursive function to add files to zip
   const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
