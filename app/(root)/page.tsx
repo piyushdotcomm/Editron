@@ -98,9 +98,13 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
               Code with <br className="hidden sm:block" />
+<<<<<<< HEAD
+              <span className="inline-flex overflow-visible leading-normal bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4">
+=======
               <span className="inline-flex overflow-visible bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4 py-1">
+>>>>>>> upstream/main
                 Intelligence & Speed
               </span>
             </h1>
@@ -187,7 +191,7 @@ export default function Home() {
           >
             {/* Section Header */}
             <div className="mb-16 text-center space-y-4">
-              <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+              <h2 className="inline-flex overflow-visible leading-normal text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
                 Beyond Just an Editor
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
