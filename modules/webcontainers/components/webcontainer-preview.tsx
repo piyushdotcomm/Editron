@@ -928,12 +928,12 @@ const WebContainerPreview = ({
       ) : (
         <div className="h-full flex flex-col min-h-0 bg-background">
           {/* Top Bar (Browser Controls) */}
-          <div className="flex items-center justify-between px-3 py-2 bg-preview-toolbar-light dark:bg-preview-toolbar-dark border-b border-border/40 drag-handle">
+          <div className="flex items-center justify-between px-3 py-2 bg-preview-toolbar border-b border-border/40 drag-handle">
             <div className="flex items-center gap-4 shrink-0">
               <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
-                <div className="w-3 h-3 rounded-full bg-mac-close border-mac-close-border hover:bg-mac-close-hover cursor-pointer shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-mac-minimize border-mac-minimize-border hover:bg-mac-minimize-hover cursor-pointer shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-mac-maximize border-mac-maximize-border hover:bg-mac-maximize-hover cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-close border-mac-close-border hover:bg-mac-close-hover cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-minimize border-mac-minimize-border hover:bg-mac-minimize-hover cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-maximize border-mac-maximize-border hover:bg-mac-maximize-hover cursor-pointer shadow-sm" />
               </div>
 
               <div className="flex items-center gap-0.5">
@@ -1008,7 +1008,7 @@ const WebContainerPreview = ({
           </div>
 
           {/* Preview Iframe Container */}
-          <div className="flex-1 min-h-0 flex items-center justify-center bg-preview-canvas-light dark:bg-preview-canvas-dark overflow-hidden relative">
+          <div className="flex-1 min-h-0 flex items-center justify-center bg-preview-canvas overflow-hidden relative">
             <div
               className="h-full relative transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] bg-background flex flex-col shadow-xl"
               style={{
