@@ -200,4 +200,8 @@ async function getAllPRs(state) {
   md += 'Keep contributing to climb the leaderboard 📈';
 
   console.log(md);
+  } catch (error) {
+    console.error('Error generating leaderboard:', error);
+    process.exit(1);
+  }
 })();
