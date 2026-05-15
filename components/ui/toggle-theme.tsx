@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useTheme } from "next-themes";
@@ -30,14 +29,11 @@ export function ThemeToggle() {
                 setTheme(resolvedTheme === "light" ? "dark" : "light");
             }}
         >
-            {
-                resolvedTheme === "light" ? (
-                    <Moon className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
-                ) : (
-                    <Sun className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
-                )
-            }
+            {resolvedTheme === "light" ? (
+                <Moon className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+            ) : (
+                <Sun className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+            )}
         </button>
-    )
+    );
 }
-

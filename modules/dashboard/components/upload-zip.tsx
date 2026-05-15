@@ -1,7 +1,6 @@
 "use client";
 
 import { Upload, FileArchive, Loader2 } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -51,9 +50,10 @@ const UploadZip = () => {
             const data = await res.json();
             toast.success("Project uploaded successfully!");
             router.push(`/playground/${data.id}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Upload error:", error);
-            toast.error(error.message || "Failed to upload ZIP file");
+            const errorMessage = error instanceof Error ? error.message : "Failed to upload ZIP file";
+            toast.error(errorMessage);
         } finally {
             setIsUploading(false);
             // Reset input so same file can be re-selected

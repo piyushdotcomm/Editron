@@ -8,7 +8,7 @@ import {
     GithubIcon,
     Chrome,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { _cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 

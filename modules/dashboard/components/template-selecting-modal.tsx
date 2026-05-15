@@ -25,15 +25,7 @@ import {
   Clock,
   Check,
   Plus,
-  Layers,
-  Video,
-  Smartphone,
-  Presentation,
-  Box,
-  FileCode,
   Terminal,
-  Cpu,
-  Paintbrush,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -49,7 +41,7 @@ type TemplateSelectionModalProps = {
   }) => void;
 };
 
-import { templates, TemplateOption } from "@/lib/constants/templates";
+import { templates } from "@/lib/constants/templates";
 
 const TemplateSelectionModal = ({
   isOpen,
@@ -157,7 +149,7 @@ const TemplateSelectionModal = ({
                   />
                   <Input
                     placeholder="Search templates..."
-                    value={searchQuery}
+                    value={searchQuery}  
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
@@ -166,7 +158,7 @@ const TemplateSelectionModal = ({
                 <Tabs
                   defaultValue="all"
                   className="w-full sm:w-auto"
-                  onValueChange={(value) => setCategory(value as any)}
+                  onValueChange={(value) => setCategory(value as "all" | "frontend" | "backend" | "fullstack" | "tooling")}
                 >
                   <TabsList className="grid grid-cols-5 w-full sm:w-[500px]">
                     <TabsTrigger value="all">All</TabsTrigger>

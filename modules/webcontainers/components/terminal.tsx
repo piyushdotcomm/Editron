@@ -27,7 +27,7 @@ export interface TerminalRef {
 
 const
   TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
-    webcontainerUrl,
+    webcontainerUrl: _webcontainerUrl,
     className,
     theme = "dark",
     webContainerInstance
@@ -178,13 +178,13 @@ const
         }));
 
         // Wait for process to complete
-        const exitCode = await process.exit;
+        const _exitCode = await process.exit;
         currentProcess.current = null;
 
         // Show new prompt
         writePrompt();
 
-      } catch (error) {
+      } catch (_error) {
         if (term.current) {
           term.current.writeln(`\r\nCommand not found: ${command}`);
           writePrompt();
@@ -323,6 +323,7 @@ const
       writePrompt();
 
       return terminal;
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme, handleTerminalInput, writePrompt]);
 
     const connectToWebContainer = useCallback(async () => {
@@ -417,6 +418,7 @@ const
           currentProcess.current.kill();
         }
         if (shellProcess.current) {
+// eslint-disable-next-line react-hooks/exhaustive-deps
           shellProcess.current.kill();
         }
         if (term.current) {

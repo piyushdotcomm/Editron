@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import {
   configureMonaco,
@@ -28,8 +28,8 @@ export interface PlaygroundEditorProps {
   onCursorChange?: (line: number, col: number) => void;
 }
 
-let inlineProviderDisposable: any = null;
-let formatterDisposable: any = null;
+let inlineProviderDisposable: { dispose: () => void } | null = null;
+let formatterDisposable: { dispose: () => void } | null = null;
 
 const PlaygroundEditor = ({
   activeFile,
@@ -39,10 +39,10 @@ const PlaygroundEditor = ({
 }: PlaygroundEditorProps) => {
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<unknown>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<any>(null);
+  const bindingRef = useRef<unknown>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -77,7 +77,7 @@ const PlaygroundEditor = ({
     const languages = ["javascript", "typescript", "html", "css", "json"];
 
     formatterDisposable = monaco.languages.registerDocumentFormattingEditProvider(languages, {
-      async provideDocumentFormattingEdits(model, options, token) {
+      async provideDocumentFormattingEdits(model, options, _token) {
         const text = model.getValue();
         const languageId = model.getLanguageId();
 
@@ -253,6 +253,7 @@ const PlaygroundEditor = ({
 
   useEffect(() => {
     updateEditorLanguage();
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile]);
 
   // Bind Yjs to Monaco
@@ -377,7 +378,7 @@ const PlaygroundEditor = ({
         bindingRef.current = null;
       }
     };
-  }, [activeFile?.filename, activeFile?.fileExtension, playgroundId, isMounted]);
+  }, [activeFile, playgroundId, isMounted, content, session]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -442,7 +443,7 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // @ts-ignore
+        // @ts-expect-error - Monaco options typo
         options={{
           ...defaultEditorOptions,
           inlineSuggest: { enabled: true },

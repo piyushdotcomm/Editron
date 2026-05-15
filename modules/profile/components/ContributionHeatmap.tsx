@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,6 @@ interface HeatmapData {
 }
 
 export default function ContributionHeatmap({ data }: { data: HeatmapData[] }) {
-    const [view, setView] = useState<"year" | "month">("year");
 
     // Calculate intensity 0-4
     const maxCount = Math.max(...(data?.map(d => d.count) || [0]), 1);

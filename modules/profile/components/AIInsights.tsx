@@ -1,7 +1,7 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
-import { Sparkles, ArrowRight, MessageSquare, CheckCircle } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
+import { Sparkles, MessageSquare, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AIInsights() {

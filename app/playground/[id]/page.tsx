@@ -93,8 +93,8 @@ const PlaygroundPageContent = () => {
     error: containerError,
     instance,
     writeFileSync,
-    
-  } = useWebContainer();
+  } = useWebContainer({ templateData });
+
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
   useEffect(() => {
@@ -107,8 +107,7 @@ const PlaygroundPageContent = () => {
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const findDefaultFile = (items: any[]): TemplateFile | null => {
+      const findDefaultFile = (items: (TemplateFile | TemplateFolder)[]): TemplateFile | null => {
         for (const item of items) {
           if (!("folderName" in item)) {
             if (["App.tsx", "App.jsx", "index.tsx", "index.jsx", "index.js", "main.tsx", "main.js", "index.html"].includes(`${item.filename}.${item.fileExtension}`)) {
@@ -225,12 +224,7 @@ const PlaygroundPageContent = () => {
           JSON.stringify(latestTemplateData)
         );
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const updateFileContent = (items: any[]) =>
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
+        const updateFileContent = (items: (TemplateFile | TemplateFolder)[]): (TemplateFile | TemplateFolder)[] =>
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateFileContent(item.items) };
@@ -570,11 +564,13 @@ if (containerSynced) {
           </div>
         </SidebarInset>
 
-        {/* AI Chat Panel */}
-        <AIChatPanel
-          templateData={templateData}
-          saveTemplateData={saveTemplateData}
-        />
+{/* AI Chat Panel */}
+         <ErrorBoundary name="AIChatPanel">
+           <AIChatPanel
+             templateData={templateData}
+             saveTemplateData={saveTemplateData}
+           />
+         </ErrorBoundary>
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
 
         {/* Command Palette */}
