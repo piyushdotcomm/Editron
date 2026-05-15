@@ -127,6 +127,13 @@ export const useAI = create<AIState>((set, get) => {
 });
 
 // --- Helpers ---
+/**
+ * Recursively collects all file paths from a nested folder structure.
+ * 
+ * @param items - Array of template files and folders.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns Array of relative file and folder paths.
+ */
 export function collectFilePaths(items: any[], prefix = ""): string[] {
     const paths: string[] = [];
     for (const item of items) {
@@ -142,6 +149,14 @@ export function collectFilePaths(items: any[], prefix = ""): string[] {
     return paths;
 }
 
+/**
+ * Finds a file within the nested template structure by its full path.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to find.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns The found file object or null if not found.
+ */
 export function findFileByPath(items: any[], targetPath: string, prefix = ""): any | null {
     for (const item of items) {
         if ("folderName" in item) {
@@ -157,6 +172,14 @@ export function findFileByPath(items: any[], targetPath: string, prefix = ""): a
     return null;
 }
 
+/**
+ * Returns a new array with the specified file removed from the structure.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to delete.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns A new items array with the file removed.
+ */
 export function deleteFileByPath(items: any[], targetPath: string, prefix = ""): any[] {
     return items.filter((item) => {
         if ("folderName" in item) {
@@ -171,6 +194,15 @@ export function deleteFileByPath(items: any[], targetPath: string, prefix = ""):
     });
 }
 
+/**
+ * Recursively updates an existing file or creates it along with missing intermediate folders.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to update or create.
+ * @param newContent - The content to write to the file.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns A new items array containing the updated or created file.
+ */
 export function addOrUpdateFile(items: any[], targetPath: string, newContent: string, prefix = ""): any[] {
     // 1. Try to find and update existing file
 
