@@ -222,6 +222,25 @@ We use **Element (Matrix)** for real-time communication and contributor support.
 - **GitHub Discussions:** For non-urgent questions and architectural ideas.
 - **Issues:** For bug reports and feature requests.
 
+## 🤝 Contributors
+
+Thanks to everyone who has contributed to Editron!
+
+<div align="center">
+<!-- CONTRIBUTORS_START -->
+<!-- CONTRIBUTORS_END -->
+</div>
+
+## 🧑‍🏫 Mentors
+
+Thanks to our amazing mentors for guiding the contributors!
+
+<div align="center">
+<!-- GSSOC_MENTORS_START -->
+<a href="https://github.com/piyushdotcomm"><img src="https://github.com/piyushdotcomm.png" width="50px" alt="piyushdotcomm" /></a>
+<!-- GSSOC_MENTORS_END -->
+</div>
+
 ## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
