@@ -9,9 +9,15 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     alias: {
-      '@': path.resolve(__dirname, './')
+      '@': path.resolve(__dirname, './'),
+      'next/server': 'next/server.js'
     },
     include: ['**/*.test.tsx', '**/*.test.ts'],
-    exclude: ['node_modules', 'editron-starters/**', 'tests/smoke/**']
+    exclude: ['node_modules', 'editron-starters/**', 'tests/smoke/**'],
+    server: {
+      deps: {
+        inline: ['next-auth']
+      }
+    }
   }
 })
