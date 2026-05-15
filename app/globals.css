@@ -126,10 +126,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --animate-highlight: highlight 0.6s ease forwards;
   --animate-flash: flash 0.6s ease forwards;
-    --color-preview-toolbar-light: var(--preview-toolbar-light);
-  --color-preview-toolbar-dark: var(--preview-toolbar-dark);
-  --color-preview-canvas-light: var(--preview-canvas-light);
-  --color-preview-canvas-dark: var(--preview-canvas-dark);
+    --color-preview-toolbar: var(--preview-toolbar);
+  --color-preview-canvas: var(--preview-canvas);
   --color-mac-close: var(--mac-close);
   --color-mac-close-border: var(--mac-close-border);
   --color-mac-minimize: var(--mac-minimize);
@@ -174,8 +172,8 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
-  --preview-toolbar-light: #f8f9fa;
-  --preview-canvas-light: #f0f0f0;
+  --preview-toolbar: #f8f9fa;
+  --preview-canvas: #f0f0f0;
   --mac-close: #ff5f56;
   --mac-close-border: #e0443e;
   --mac-minimize: #ffbd2e;
@@ -219,8 +217,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
-  --preview-toolbar-dark: #18181a;
-  --preview-canvas-dark: #0c0c0e;
+  --preview-toolbar: #18181a;
+  --preview-canvas: #0c0c0e;
 }
 
 @layer base {
