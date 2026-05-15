@@ -25,7 +25,29 @@ If the user asks you to create a new file, call the edit tool with the full cont
 
 
 
-const tools = {
+// DOS protection: limit prevents AI from hallucinating extremely large payloads
+const MAX_FILE_CONTENT_CHARS = 100_000;
+// Cap batch file changes to prevent aggregate payload attacks
+const MAX_BATCH_CHANGES = 50;
+// UTF-8 worst-case ~4 bytes per char
+/**
+ * Record a payload size violation for a user and emit structured warnings.
+ * Prevents logging raw payloads; logs metadata only.
+ * @param userId - user identifier or null for anonymous
+ * @param tool - tool name where violation occurred
+ * @param param - parameter name (e.g., 'content')
+ * @param actualSize - observed payload size in characters/bytes
+ * @param maxSize - configured maximum allowed size
+ */
+// Note: We intentionally do NOT track violations in-memory here to avoid
+// introducing dead code or stateful behavior in the request handler.
+// If needed, a telemetry/metrics service should be used instead.
+
+/**
+ * Tool definitions exposed to the AI model. Each tool includes a Zod
+ * input schema to validate parameters at the system boundary.
+ */
+export const tools = {
     read_file: createTool({
         description: "Read the contents of a file in the project. Use this to understand existing code before making changes.",
         inputSchema: z.object({
@@ -36,7 +58,9 @@ const tools = {
         description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
         inputSchema: z.object({
             path: z.string().describe("The file path relative to the project root"),
-            content: z.string().describe("The complete new file content"),
+            // Prevent overly large content (character limit)
+            content: z.string()
+                .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
         }),
     }),
     edit_multiple_files: createTool({
@@ -44,8 +68,10 @@ const tools = {
         inputSchema: z.object({
             changes: z.array(z.object({
                 path: z.string().describe("The file path relative to the project root"),
-                content: z.string().describe("The complete new file content"),
-            })).describe("An array of file modifications to execute as a batch"),
+                // Same protections for batch changes
+                content: z.string()
+                    .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
+            })).max(MAX_BATCH_CHANGES, { message: `changes array exceeds max batch size (${MAX_BATCH_CHANGES})` }).describe("An array of file modifications to execute as a batch"),
         }),
     }),
     delete_file: createTool({
@@ -63,6 +89,10 @@ const RequestBodySchema = z.object({
     userApiKey: z.string().max(256).optional(),
 });
 
+/**
+ * HTTP POST handler for the AI chat endpoint. Validates request body,
+ * enforces rate limits, selects model provider, and streams model output.
+ */
 export async function POST(request: NextRequest) {
     try {        
 
@@ -163,15 +193,29 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const sanitizedMessages = messages.map((msg: { role: "system" | "user" | "assistant"; content?: string; parts: any[] }) => {
-            if (msg.parts) return msg;
-            return {
-                ...msg,
-                parts: typeof msg.content === "string" && msg.content 
-                    ? [{ type: "text", text: msg.content }] 
-                    : []
-            };
-        });
+        type MessagePart = { type: string; text: string };
+        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
+
+        const sanitizedMessages: ChatMessage[] = [];
+        for (const raw of messages) {
+            if (!raw || typeof raw !== "object") {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must be an object" },
+                    { status: 400 }
+                );
+            }
+            const m = raw as ChatMessage;
+            if (Array.isArray(m.parts)) {
+                sanitizedMessages.push(m);
+                continue;
+            }
+            sanitizedMessages.push({
+                ...m,
+                parts: typeof m.content === "string" && m.content.trim()
+                    ? [{ type: "text", text: m.content }]
+                    : [] as MessagePart[],
+            });
+        }
 
         const resultStream = streamText({
             model,
