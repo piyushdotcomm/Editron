@@ -96,7 +96,7 @@ export default function Home() {
 
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-[1.1] max-w-5xl mx-auto">
               Code with <br className="hidden sm:block" />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-2">Intelligence & Speed</span>
+              <span className="overflow-visible bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-4">Intelligence & Speed</span>
             </h1>
 
             <p className="max-w-2xl text-lg sm:text-xl text-muted-foreground leading-relaxed mx-auto">
