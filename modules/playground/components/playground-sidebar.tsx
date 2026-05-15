@@ -5,18 +5,20 @@ import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
 
+import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
+
 interface PlaygroundSidebarProps {
-    templateData: unknown;
+    templateData: TemplateFolder | null;
     instance: unknown;
-    writeFileSync: unknown;
-    activeFile: unknown;
-    handleFileSelect: unknown;
-    wrappedHandleAddFile: unknown;
-    wrappedHandleAddFolder: unknown;
-    wrappedHandleDeleteFile: unknown;
-    wrappedHandleDeleteFolder: unknown;
-    wrappedHandleRenameFile: unknown;
-    wrappedHandleRenameFolder: unknown;
+    writeFileSync: (path: string, content: string) => Promise<void>;
+    activeFile: TemplateFile | null;
+    handleFileSelect: (file: TemplateFile) => void;
+    wrappedHandleAddFile: (file: TemplateFile, parentPath: string) => void;
+    wrappedHandleAddFolder: (folder: TemplateFolder, parentPath: string) => void;
+    wrappedHandleDeleteFile: (file: TemplateFile, parentPath: string) => void;
+    wrappedHandleDeleteFolder: (folder: TemplateFolder, parentPath: string) => void;
+    wrappedHandleRenameFile: (file: TemplateFile, newFilename: string, newExtension: string, parentPath: string) => void;
+    wrappedHandleRenameFolder: (folder: TemplateFolder, newFolderName: string, parentPath: string) => void;
 }
 
 export const PlaygroundSidebar = ({
@@ -81,9 +83,9 @@ export const PlaygroundSidebar = ({
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
                             <TemplateFileTree
-                                data={templateData}
+                                data={templateData as any}
                                 onFileSelect={handleFileSelect}
-                                selectedFile={activeFile}
+                                selectedFile={activeFile || undefined}
                                 title=""
                                 onAddFile={wrappedHandleAddFile}
                                 onAddFolder={wrappedHandleAddFolder}

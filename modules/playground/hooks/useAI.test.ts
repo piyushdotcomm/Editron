@@ -12,6 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import type { TemplateFile, TemplateFolder } from "../lib/path-to-json";
 import {
   collectFilePaths,
   deleteFileByPath,
@@ -108,19 +109,19 @@ describe("findFileByPath", () => {
   it("finds a root-level file", () => {
     const result = findFileByPath(makeFixture(), "index.ts");
     expect(result).not.toBeNull();
-    expect(result.filename).toBe("index");
+    expect((result as TemplateFile).filename).toBe("index");
   });
 
   it("finds a first-level nested file", () => {
     const result = findFileByPath(makeFixture(), "src/App.tsx");
     expect(result).not.toBeNull();
-    expect(result.filename).toBe("App");
+    expect((result as TemplateFile).filename).toBe("App");
   });
 
   it("finds a deeply nested file", () => {
     const result = findFileByPath(makeFixture(), "src/utils/helpers.ts");
     expect(result).not.toBeNull();
-    expect(result.filename).toBe("helpers");
+    expect((result as TemplateFile).filename).toBe("helpers");
   });
 
   it("returns null for a path that does not exist", () => {
@@ -182,12 +183,12 @@ describe("deleteFileByPath", () => {
 describe("addOrUpdateFile", () => {
   it("updates the content of an existing root-level file", () => {
     const result = addOrUpdateFile(makeFixture(), "index.ts", "// updated");
-    expect(findFileByPath(result, "index.ts")?.content).toBe("// updated");
+    expect((findFileByPath(result, "index.ts") as TemplateFile).content).toBe("// updated");
   });
 
   it("updates the content of a nested file", () => {
     const result = addOrUpdateFile(makeFixture(), "src/App.tsx", "// new App");
-    expect(findFileByPath(result, "src/App.tsx")?.content).toBe("// new App");
+    expect((findFileByPath(result, "src/App.tsx") as TemplateFile).content).toBe("// new App");
   });
 
   it("updates a deeply nested file", () => {
@@ -196,14 +197,14 @@ describe("addOrUpdateFile", () => {
       "src/utils/helpers.ts",
       "// new helpers"
     );
-    expect(findFileByPath(result, "src/utils/helpers.ts")?.content).toBe(
+    expect((findFileByPath(result, "src/utils/helpers.ts") as TemplateFile).content).toBe(
       "// new helpers"
     );
   });
 
   it("creates a new root-level file that did not exist", () => {
     const result = addOrUpdateFile(makeFixture(), "newFile.ts", "// new");
-    const file = findFileByPath(result, "newFile.ts");
+    const file = findFileByPath(result, "newFile.ts") as TemplateFile;
     expect(file).not.toBeNull();
     expect(file?.content).toBe("// new");
     expect(file?.filename).toBe("newFile");
@@ -221,12 +222,12 @@ describe("addOrUpdateFile", () => {
     expect(paths).toContain("a/");
     expect(paths).toContain("a/b/");
     expect(paths).toContain("a/b/c.ts");
-    expect(findFileByPath(result, "a/b/c.ts")?.content).toBe("// deep");
+    expect((findFileByPath(result, "a/b/c.ts") as TemplateFile).content).toBe("// deep");
   });
 
   it("correctly handles a filename with no extension", () => {
     const result = addOrUpdateFile([], "Makefile", "build:");
-    const file = findFileByPath(result, "Makefile");
+    const file = findFileByPath(result, "Makefile") as TemplateFile;
     expect(file).not.toBeNull();
     expect(file?.filename).toBe("Makefile");
     expect(file?.fileExtension).toBe("");
@@ -234,8 +235,8 @@ describe("addOrUpdateFile", () => {
 
   it("does not mutate unrelated files when updating", () => {
     const result = addOrUpdateFile(makeFixture(), "index.ts", "// changed");
-    expect(findFileByPath(result, "README.md")?.content).toBe("# readme");
-    expect(findFileByPath(result, "src/App.tsx")?.content).toBe("// App");
+    expect((findFileByPath(result, "README.md") as TemplateFile).content).toBe("# readme");
+    expect((findFileByPath(result, "src/App.tsx") as TemplateFile).content).toBe("// App");
   });
 });
 
