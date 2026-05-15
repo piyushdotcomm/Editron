@@ -277,9 +277,16 @@ if (containerSynced) {
         );
         setOpenFiles(updatedOpenFiles);
 
-        containerSynced
-  ? toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`)
-  : toast.warning(`Saved to DB — WebContainer not ready, preview won't reflect changes yet`);
+        if (containerSynced) {
+					toast.success(
+						`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`,
+					);
+				} else {
+					toast.warning(
+						`Saved to DB — WebContainer not ready, preview won't reflect changes yet`,
+					);
+				}
+
       } catch (error) {
         console.error("Error saving file:", error);
         toast.error(
@@ -310,7 +317,7 @@ if (containerSynced) {
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (_error) {
+    } catch {
       toast.error("Failed to save some files");
     }
   }, [openFiles, handleSave]);
