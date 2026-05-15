@@ -1,6 +1,6 @@
 ---
 name: GSSoC Feature Request
-about: Suggest a new feature or improvement for the GSoC Org Finder
+about: Suggest a new feature or improvement for Editron
 title: 'feat: '
 labels: 'gssoc, enhancement'
 assignees: ''

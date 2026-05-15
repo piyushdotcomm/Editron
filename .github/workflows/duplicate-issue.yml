@@ -61,7 +61,7 @@ jobs:
             }
 
             if (duplicateIssue) {
-              const bodyText = `## 🔁 Duplicate Issue Detected\n\n` +
+              const bodyText = `<!-- duplicate-detector -->\n## 🔁 Duplicate Issue Detected\n\n` +
                 `Hi @${username}, this issue appears to be a duplicate of:\n\n` +
                 `➡️ #${duplicateIssue.number}\n\n` +
                 `Maintainers may close this issue to keep discussion in one place.\n\n` +

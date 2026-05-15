@@ -38,7 +38,7 @@ jobs:
               body.includes('gssoc');
 
             // Idempotency - Don't post multiple times
-            const { data: existing } = await github.rest.issues.listComments({
+            const existing = await github.paginate(github.rest.issues.listComments, {
               owner, repo, issue_number: number, per_page: 100
             });
 

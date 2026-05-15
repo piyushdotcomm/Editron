@@ -115,7 +115,7 @@ jobs:
               return;
             }
 
-            const { data: issueEvents } = await github.rest.issues.listEventsForTimeline({
+            const issueEvents = await github.paginate(github.rest.issues.listEventsForTimeline, {
               owner, repo, issue_number, per_page: 100
             });
             const recentUnassign = issueEvents

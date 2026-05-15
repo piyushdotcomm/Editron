@@ -79,7 +79,15 @@ jobs:
             }
 
             // Build comment
-            const body = `## 🔁 Possible Duplicate PR Detected\n\n` +
+            const marker = '<!-- duplicate-pr-detector -->';
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber, per_page: 100
+            });
+            if (comments.some(c => c.body.includes(marker))) {
+              return;
+            }
+
+            const body = `${marker}\n## 🔁 Possible Duplicate PR Detected\n\n` +
               `Hi @${username}, a PR with a very similar title already exists:\n\n` +
               `➡️ #${duplicatePR.number}\n\n` +
               `Please check if your changes overlap with the existing PR.\n\n` +

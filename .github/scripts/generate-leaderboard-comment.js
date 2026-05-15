@@ -58,13 +58,13 @@ async function github(path) {
   return res.json();
 }
 
-async function getAllClosedPRs() {
+async function getAllPRs(state) {
   let page = 1;
   const all = [];
 
   while (true) {
     const prs = await github(
-      `/repos/${owner}/${repo}/pulls?state=closed&per_page=100&page=${page}`
+      `/repos/${owner}/${repo}/pulls?state=${state}&per_page=100&page=${page}`
     );
 
     if (!prs.length) break;
@@ -78,41 +78,40 @@ async function getAllClosedPRs() {
 }
 
 (async () => {
-  const prs = await getAllClosedPRs();
+  try {
+    const prs = await getAllPRs('closed');
 
-  const contributorMap = new Map();
+    const contributorMap = new Map();
 
-  for (const pr of prs) {
-    if (!pr.user || isExcluded(pr.user.login, pr.user.type, pr.author_association)) continue;
+    for (const pr of prs) {
+      if (!pr.user || isExcluded(pr.user.login, pr.user.type, pr.author_association)) continue;
 
-    const login = pr.user.login;
+      const login = pr.user.login;
 
-    if (!contributorMap.has(login)) {
-      contributorMap.set(login, {
-        username: login,
-        merged: 0,
-        closed: 0,
-        score: 0
-      });
+      if (!contributorMap.has(login)) {
+        contributorMap.set(login, {
+          username: login,
+          merged: 0,
+          closed: 0,
+          score: 0
+        });
+      }
+
+      const user = contributorMap.get(login);
+
+      user.closed++;
+
+      if (pr.merged_at) {
+        user.merged++;
+        user.score += 10;
+      }
     }
 
-    const user = contributorMap.get(login);
+    // Add open PR score
+    const openPRs = await getAllPRs('open');
 
-    user.closed++;
-
-    if (pr.merged_at) {
-      user.merged++;
-      user.score += 10;
-    }
-  }
-
-  // Add open PR score
-  const openPRs = await github(
-    `/repos/${owner}/${repo}/pulls?state=open&per_page=100`
-  );
-
-  for (const pr of openPRs) {
-    if (!pr.user || isExcluded(pr.user.login, pr.user.type, pr.author_association)) continue;
+    for (const pr of openPRs) {
+      if (!pr.user || isExcluded(pr.user.login, pr.user.type, pr.author_association)) continue;
 
     const login = pr.user.login;
 
