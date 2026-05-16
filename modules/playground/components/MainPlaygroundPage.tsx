@@ -46,7 +46,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
+
 
 // New components
 import { StatusBar } from "@/modules/playground/components/status-bar";
@@ -213,13 +213,13 @@ const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
   const handleFileSelect = (file: TemplateFile) => {
     openFile(file);
   };
- const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
 
  const {
   handleSave,
   handleSaveAll,
   handleDownloadZip,
 } = usePlaygroundActions({
+  id,
   templateData,
   playgroundData,
   saveTemplateData,
