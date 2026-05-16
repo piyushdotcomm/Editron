@@ -39,9 +39,9 @@ import {
 import { Button } from "@/components/ui/button";
 
 import RenameFolderDialog from "./dialogs/rename-folder-dialog";
-import { ExplorerRootActions } from "./explorer-dialogs/explorer-root-actions";
-import RenameFileDialog from "./dialogs/rename-file-dialog";
 import { DeleteDialog } from "./dialogs/delete-dialog";
+import { ExplorerRootActions } from "./explorer-dialogs/explorer-root-actions";
+import { ExplorerFileActions } from "./explorer-dialogs/explorer-file-actions";
 
 interface TemplateFile {
   filename: string;
@@ -261,8 +261,6 @@ function TemplateNode({
   const [isNewFileDialogOpen, setIsNewFileDialogOpen] = React.useState(false);
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] =
     React.useState(false);
-  const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isValidItem) return null;
@@ -276,99 +274,77 @@ function TemplateNode({
       selectedFile.filename === file.filename &&
       selectedFile.fileExtension === file.fileExtension;
 
-    const handleRename = () => {
-      setIsRenameDialogOpen(true);
-    };
-
-    const handleDelete = () => {
-      setIsDeleteDialogOpen(true);
-    };
-
-    const confirmDelete = () => {
-      onDeleteFile?.(file, path);
-      setIsDeleteDialogOpen(false);
-    };
-
-    const handleRenameSubmit = (newFilename: string, newExtension: string) => {
-      onRenameFile?.(file, newFilename, newExtension, path);
-      setIsRenameDialogOpen(false);
-    };
-
     return (
-      <SidebarMenuItem>
-        <div
-          className="flex items-center group relative w-full h-8"
-          style={{ paddingLeft: `${level * 12}px` }}
-        >
-          {/* Tree Indentation Guide */}
-          {level > 0 && (
+      <ExplorerFileActions
+        file={file}
+        path={path}
+        onDeleteFile={onDeleteFile}
+        onRenameFile={onRenameFile}
+      >
+        {({ openRenameDialog, openDeleteDialog }) => (
+          <SidebarMenuItem>
             <div
-              className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
-              style={{ left: `${level * 12 - 8}px` }}
-            />
-          )}
+              className="flex items-center group relative w-full h-8"
+              style={{ paddingLeft: `${level * 12}px` }}
+            >
+              {/* Tree Indentation Guide */}
+              {level > 0 && (
+                <div
+                  className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
+                  style={{ left: `${level * 12 - 8}px` }}
+                />
+              )}
 
-          {/* Active File Line Indicator */}
-          {isSelected && (
-            <div className="absolute left-1 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary z-10" />
-          )}
+              {/* Active File Line Indicator */}
+              {isSelected && (
+                <div className="absolute left-1 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary z-10" />
+              )}
 
-          <SidebarMenuButton
-            isActive={isSelected}
-            onClick={() => onFileSelect?.(file)}
-            className={`flex-1 ${isSelected ? "bg-primary/10 text-primary font-medium" : ""}`}
-          >
-            <FileIcon extension={file.fileExtension} className="h-4 w-4 mr-2" />
-            <span>{fileName}</span>
-          </SidebarMenuButton>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label={`More actions for ${fileName}`}
+              <SidebarMenuButton
+                isActive={isSelected}
+                onClick={() => onFileSelect?.(file)}
+                className={`flex-1 ${isSelected ? "bg-primary/10 text-primary font-medium" : ""}`}
               >
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleRename}>
-                <Edit3 className="h-4 w-4 mr-2" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                <FileIcon
+                  extension={file.fileExtension}
+                  className="h-4 w-4 mr-2"
+                />
+                <span>{fileName}</span>
+              </SidebarMenuButton>
 
-        <RenameFileDialog
-          isOpen={isRenameDialogOpen}
-          onClose={() => setIsRenameDialogOpen(false)}
-          onRename={handleRenameSubmit}
-          currentFilename={file.filename}
-          currentExtension={file.fileExtension}
-        />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={`More actions for ${fileName}`}
+                  >
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-        <DeleteDialog
-          isOpen={isDeleteDialogOpen}
-          setIsOpen={setIsDeleteDialogOpen}
-          onConfirm={confirmDelete}
-          title="Delete File"
-          description={`Are you sure you want to delete "${fileName}"? This action cannot be undone.`}
-          itemName={fileName}
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
-        />
-      </SidebarMenuItem>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={openRenameDialog}>
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Rename
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={openDeleteDialog}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </SidebarMenuItem>
+        )}
+      </ExplorerFileActions>
     );
   } else {
     const folder = item as TemplateFolder;
@@ -383,6 +359,10 @@ function TemplateNode({
       setIsNewFolderDialogOpen(true);
     };
 
+    const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
     const handleRename = () => {
       setIsRenameDialogOpen(true);
     };
@@ -394,6 +374,11 @@ function TemplateNode({
     const confirmDelete = () => {
       onDeleteFolder?.(folder, path);
       setIsDeleteDialogOpen(false);
+    };
+
+    const handleRenameSubmit = (newFolderName: string) => {
+      onRenameFolder?.(folder, newFolderName, path);
+      setIsRenameDialogOpen(false);
     };
 
     const handleCreateFile = (filename: string, extension: string) => {
@@ -417,11 +402,6 @@ function TemplateNode({
         onAddFolder(newFolder, currentPath);
       }
       setIsNewFolderDialogOpen(false);
-    };
-
-    const handleRenameSubmit = (newFolderName: string) => {
-      onRenameFolder?.(folder, newFolderName, path);
-      setIsRenameDialogOpen(false);
     };
 
     return (
