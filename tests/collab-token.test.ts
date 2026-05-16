@@ -66,6 +66,7 @@ describe("collab-token", () => {
 
     const token = createCollabToken("room-1", "user-1");
 
+    // Advance past the 1-hour TOKEN_TTL_MS (60 * 60 * 1000) used in lib/collab-token.ts
     vi.setSystemTime(now.getTime() + 60 * 60 * 1000 + 1000);
 
     const payload = verifyCollabToken(token);
