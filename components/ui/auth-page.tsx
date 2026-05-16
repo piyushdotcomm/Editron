@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from './button';
 
@@ -105,19 +106,19 @@ export function AuthPage() {
                     </form>
                     <p className="text-muted-foreground mt-8 text-sm">
                         By clicking continue, you agree to our{' '}
-                        <a
-                            href="#"
+                        <Link
+                            href="/terms"
                             className="hover:text-primary underline underline-offset-4"
                         >
                             Terms of Service
-                        </a>{' '}
+                        </Link>{' '}
                         and{' '}
-                        <a
-                            href="#"
+                        <Link
+                            href="/privacy"
                             className="hover:text-primary underline underline-offset-4"
                         >
                             Privacy Policy
-                        </a>
+                        </Link>
                         .
                     </p>
                 </div>
