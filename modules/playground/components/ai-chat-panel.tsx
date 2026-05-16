@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
     Sheet,
     SheetContent,
@@ -376,8 +378,30 @@ export default function AIChatPanel({
                                     </div>
                                     <div className="flex-1 space-y-2 min-w-0">
                                         {textContent && (
-                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground shadow-sm">
-                                                {textContent}
+                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed break-words text-foreground shadow-sm prose prose-sm dark:prose-invert max-w-none">
+                                                <ReactMarkdown 
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        h1: ({node, ...props}) => <h1 className="text-base font-bold mt-3 mb-2 first:mt-0" {...props} />,
+                                                        h2: ({node, ...props}) => <h2 className="text-sm font-bold mt-2.5 mb-1.5 first:mt-0" {...props} />,
+                                                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold mt-2 mb-1 first:mt-0" {...props} />,
+                                                        p: ({node, ...props}) => <p className="my-1.5 first:mt-0 last:mb-0" {...props} />,
+                                                        ul: ({node, ...props}) => <ul className="list-disc list-inside my-1.5 space-y-0.5 ml-2" {...props} />,
+                                                        ol: ({node, ...props}) => <ol className="list-decimal list-inside my-1.5 space-y-0.5 ml-2" {...props} />,
+                                                        li: ({node, ...props}) => <li className="my-0.5" {...props} />,
+                                                        code: ({node, inline, ...props}) => 
+                                                            inline ? (
+                                                                <code className="bg-muted/80 px-1.5 py-0.5 rounded text-xs font-mono border border-border/50" {...props} />
+                                                            ) : (
+                                                                <code className="block bg-muted/80 p-2.5 rounded-lg text-xs font-mono border border-border/50 my-1.5 overflow-x-auto" {...props} />
+                                                            ),
+                                                        pre: ({node, ...props}) => <pre className="my-1.5" {...props} />,
+                                                        blockquote: ({node, ...props}) => <blockquote className="border-l-2 border-muted-foreground/30 pl-3 italic my-1.5 text-muted-foreground" {...props} />,
+                                                        a: ({node, ...props}) => <a className="text-primary underline hover:text-primary/80" {...props} />,
+                                                    }}
+                                                >
+                                                    {textContent}
+                                                </ReactMarkdown>
                                             </div>
                                         )}
                                         {toolParts.map((ti: any) => {
