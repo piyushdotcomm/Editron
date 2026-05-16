@@ -20,6 +20,9 @@ const server = http.createServer((request, response) => {
 
 const wss = new WebSocketServer({ noServer: true });
 
+// Track active documents for graceful shutdown
+const activeDocs = new Map<string, Y.Doc>();
+
 // Setup MongoDB persistence
 const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
     collectionName: 'yjs-transactions',
@@ -29,6 +32,7 @@ const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
 
 setPersistence({
     bindState: async (docName: string, ydoc: Y.Doc) => {
+        activeDocs.set(docName, ydoc);
         const persistedYdoc = await _mdb.getYDoc(docName);
         const newUpdates = Y.encodeStateAsUpdate(ydoc);
         _mdb.storeUpdate(docName, newUpdates);
@@ -91,10 +95,57 @@ server.on('upgrade', async (request, socket, head) => {
         });
     } catch (error) {
         console.error('Upgrade error:', error);
-        socket.write('HTTP/1.1 500 Internal Server Error\\r\\n\\r\\n');
+        socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
         socket.destroy();
     }
 });
+
+// -- Graceful shutdown --
+let isShuttingDown = false;
+
+async function gracefulShutdown(signal: string) {
+    if (isShuttingDown) {
+        console.log(`[collab] Already shutting down, ignoring ${signal}`);
+        return;
+    }
+    isShuttingDown = true;
+
+    console.log(`[collab] Received ${signal}, shutting down gracefully...`);
+
+    // 1. Stop accepting new connections
+    server.close((err) => {
+        if (err) console.error('[collab] Error closing HTTP server:', err);
+    });
+
+    // 2. Close all WebSocket connections with a close frame
+    wss.clients.forEach((client) => {
+        try {
+            client.close(1001, 'Server shutting down');
+        } catch {
+            // ignore individual close errors
+        }
+    });
+
+    // 3. Flush all active Yjs documents to MongoDB
+    const docNames = Array.from(activeDocs.keys());
+    console.log(`[collab] Flushing ${docNames.length} active document(s)...`);
+    
+    const flushPromises = docNames.map(async (docName) => {
+        try {
+            await _mdb.flushDocument(docName);
+            console.log(`[collab] Flushed: ${docName}`);
+        } catch (err) {
+            console.error(`[collab] Failed to flush ${docName}:`, err);
+        }
+    });
+    await Promise.allSettled(flushPromises);
+
+    console.log('[collab] Graceful shutdown complete.');
+    process.exit(0);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 server.listen(port, () => {
     console.log(`Collaboration server running on port ${port}`);
