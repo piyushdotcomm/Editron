@@ -1,27 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { templates } from "@/lib/constants/templates";
+import { useState, useEffect } from "react";
+import type { TemplateSummary } from "@/lib/constants/templates";
 import { TemplateCard } from "@/components/marketing/template-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Sparkles } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 
 export default function TemplatesPage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [category, setCategory] = useState<"all" | "frontend" | "backend" | "fullstack" | "tooling">("all");
+    const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
 
-    const filteredTemplates = templates.filter((template) => {
+    useEffect(() => {
+        let mounted = true;
+        fetch('/api/templates')
+            .then((r) => r.json())
+            .then((data) => {
+                if (mounted && Array.isArray(data)) setAvailableTemplates(data);
+            })
+            .catch(() => {});
+        return () => { mounted = false };
+    }, []);
+
+    const filteredTemplates = availableTemplates.filter((template) => {
         const matchesSearch =
             template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            template.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+            template.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesCategory = category === "all" || template.category === category;
-
-        return matchesCategory && matchesSearch;
+        return matchesSearch;
     });
 
     return (
@@ -55,15 +62,6 @@ export default function TemplatesPage() {
                         />
                     </div>
 
-                    <Tabs defaultValue="all" onValueChange={(v) => setCategory(v as any)} className="w-full md:w-auto">
-                        <TabsList className="w-full md:w-auto h-12 p-1 bg-background/50 backdrop-blur-sm border">
-                            <TabsTrigger value="all" className="px-4">All</TabsTrigger>
-                            <TabsTrigger value="frontend" className="px-4">Frontend</TabsTrigger>
-                            <TabsTrigger value="backend" className="px-4">Backend</TabsTrigger>
-                            <TabsTrigger value="fullstack" className="px-4">Fullstack</TabsTrigger>
-                            <TabsTrigger value="tooling" className="px-4">Tooling</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
                 </div>
             </div>
 
@@ -84,7 +82,7 @@ export default function TemplatesPage() {
                         <p className="text-muted-foreground mt-2">Try adjusting your search or category filter.</p>
                         <Button
                             variant="link"
-                            onClick={() => { setSearchQuery(""); setCategory("all"); }}
+                            onClick={() => { setSearchQuery(""); }}
                             className="mt-4"
                         >
                             Clear all filters

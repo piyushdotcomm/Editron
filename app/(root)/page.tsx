@@ -6,20 +6,34 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";
-import dynamic from "next/dynamic";
-
-// Lazy-load Three.js shader — keeps 338KB out of the critical rendering path
-const AnimatedShaderBackground = dynamic(
-  () => import("@/components/ui/animated-shader-background"),
-  { ssr: false },
-);
 import { CommitsGrid } from "@/components/ui/commits-grid";
 import { cn } from "@/lib/utils";
-import { templates } from "@/lib/constants/templates";
 import { TemplateCard } from "@/components/marketing/template-card";
+import type { TemplateSummary } from "@/lib/constants/templates";
+
+function AnimatedShaderBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(233,63,63,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.10),_transparent_32%)]" />
+      <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl animate-pulse" />
+      <div className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl animate-pulse [animation-delay:1.2s]" />
+    </div>
+  );
+}
+
+const fetchTemplates = async () => {
+  try {
+    const res = await fetch('/api/templates');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+};
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
 
   // Schema Markup for AI SEO (Organization & SoftwareApplication)
   const schemaMarkup = {
@@ -52,7 +66,15 @@ export default function Home() {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 3200);
-    return () => clearTimeout(timer);
+    // fetch templates for popular section
+    let mounted = true;
+    fetchTemplates().then((data) => {
+      if (mounted && Array.isArray(data)) setAvailableTemplates(data);
+    });
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -165,14 +187,11 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {templates
-                .filter((t) => t.popularity === 5)
-                .slice(0, 4)
-                .map((template) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {availableTemplates.slice(0, 4).map((template) => (
                   <TemplateCard key={template.id} template={template} />
                 ))}
-            </div>
+              </div>
           </section>
 
           {/* Features Section */}

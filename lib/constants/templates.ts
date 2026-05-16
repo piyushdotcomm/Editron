@@ -505,3 +505,108 @@ export const templates: TemplateOption[] = [
         category: "tooling",
     },
 ];
+
+export interface TemplateMetadata {
+    id?: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    icon?: string;
+    color?: string;
+    popularity?: number;
+    category?: TemplateOption["category"];
+}
+
+export interface TemplateSummary {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+}
+
+/**
+ * Extract metadata from a TemplateOption or a raw text (supports simple YAML frontmatter).
+ */
+export function extractMetadataFromTemplate(
+    input: TemplateOption | string
+): TemplateMetadata {
+    if (typeof input === "string") {
+        return extractMetadataFromText(input);
+    }
+
+    return {
+        id: input.id,
+        title: input.name,
+        description: input.description,
+        tags: input.tags,
+        icon: input.icon,
+        color: input.color,
+        popularity: input.popularity,
+        category: input.category,
+    };
+}
+
+/**
+ * Very small YAML-frontmatter parser for common keys (title, description, tags, icon, color).
+ * - Recognizes frontmatter between leading `---` markers
+ * - Parses simple `key: value` lines and arrays written as `[a, b]` or comma lists
+ */
+export function extractMetadataFromText(content: string): TemplateMetadata {
+    const fm = content.match(/^---\n([\s\S]*?)\n---/);
+    if (fm) {
+        const body = fm[1];
+        const meta: Record<string, any> = {};
+        for (const line of body.split(/\r?\n/)) {
+            const m = line.match(/^(\w+)\s*:\s*(.*)$/);
+            if (!m) continue;
+            const key = m[1];
+            let val: any = m[2].trim();
+            // array like [a, b]
+            if (val.startsWith("[") && val.endsWith("]")) {
+                try {
+                    val = val
+                        .slice(1, -1)
+                        .split(",")
+                        .map((segment: string) => segment.trim().replace(/^['\"]|['\"]$/g, ""));
+                } catch (_) {
+                    val = undefined;
+                }
+            } else if (/^\[.*\]$/.test(val) === false && val.includes(",")) {
+                // comma separated list
+                const parts = val.split(",").map((segment: string) => segment.trim());
+                if (parts.length > 1) val = parts;
+            } else {
+                val = val.replace(/^['\"]|['\"]$/g, "");
+            }
+            meta[key] = val;
+        }
+
+        return {
+            title: meta.title || meta.name,
+            description: meta.description,
+            tags: meta.tags || meta.tag,
+            icon: meta.icon,
+            color: meta.color,
+        };
+    }
+
+    // fallback heuristics: first non-empty line = title, next paragraph = description
+    const lines = content.split(/\r?\n/).map((l) => l.trim());
+    const nonEmpty = lines.filter(Boolean);
+    return {
+        title: nonEmpty[0],
+        description: nonEmpty.slice(1, 4).join(" ") || undefined,
+    };
+}
+
+/**
+ * Returns lightweight summaries for templates.
+ */
+export function getTemplateSummaries(): TemplateSummary[] {
+    return templates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        icon: template.icon,
+    }));
+}
