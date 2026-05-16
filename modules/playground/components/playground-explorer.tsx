@@ -37,11 +37,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Button } from "@/components/ui/button";
-
-import RenameFolderDialog from "./dialogs/rename-folder-dialog";
-import { DeleteDialog } from "./dialogs/delete-dialog";
 import { ExplorerRootActions } from "./explorer-dialogs/explorer-root-actions";
 import { ExplorerFileActions } from "./explorer-dialogs/explorer-file-actions";
+import { ExplorerFolderActions } from "./explorer-dialogs/explorer-folder-actions";
 
 interface TemplateFile {
   filename: string;
@@ -190,7 +188,6 @@ export function TemplateFileTree({
                         onDeleteFolder={onDeleteFolder}
                         onRenameFile={onRenameFile}
                         onRenameFolder={onRenameFolder}
-                        searchQuery={searchQuery}
                       />
                     ))
                   ) : (
@@ -239,7 +236,6 @@ interface TemplateNodeProps {
     newFolderName: string,
     parentPath: string,
   ) => void;
-  searchQuery?: string;
 }
 
 function TemplateNode({
@@ -254,13 +250,9 @@ function TemplateNode({
   onDeleteFolder,
   onRenameFile,
   onRenameFolder,
-  searchQuery,
 }: TemplateNodeProps) {
   const isValidItem = item && typeof item === "object";
   const isFolder = isValidItem && "folderName" in item;
-  const [isNewFileDialogOpen, setIsNewFileDialogOpen] = React.useState(false);
-  const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] =
-    React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isValidItem) return null;
@@ -351,193 +343,138 @@ function TemplateNode({
     const folderName = folder.folderName;
     const currentPath = path ? `${path}/${folderName}` : folderName;
 
-    const handleAddFile = () => {
-      setIsNewFileDialogOpen(true);
-    };
-
-    const handleAddFolder = () => {
-      setIsNewFolderDialogOpen(true);
-    };
-
-    const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
-
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-
-    const handleRename = () => {
-      setIsRenameDialogOpen(true);
-    };
-
-    const handleDelete = () => {
-      setIsDeleteDialogOpen(true);
-    };
-
-    const confirmDelete = () => {
-      onDeleteFolder?.(folder, path);
-      setIsDeleteDialogOpen(false);
-    };
-
-    const handleRenameSubmit = (newFolderName: string) => {
-      onRenameFolder?.(folder, newFolderName, path);
-      setIsRenameDialogOpen(false);
-    };
-
-    const handleCreateFile = (filename: string, extension: string) => {
-      if (onAddFile) {
-        const newFile: TemplateFile = {
-          filename,
-          fileExtension: extension,
-          content: "",
-        };
-        onAddFile(newFile, currentPath);
-      }
-      setIsNewFileDialogOpen(false);
-    };
-
-    const handleCreateFolder = (folderName: string) => {
-      if (onAddFolder) {
-        const newFolder: TemplateFolder = {
-          folderName,
-          items: [],
-        };
-        onAddFolder(newFolder, currentPath);
-      }
-      setIsNewFolderDialogOpen(false);
-    };
-
     return (
-      <SidebarMenuItem>
-        <Collapsible
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          className="group/collapsible [&[data-state=open]>div>button>svg:first-child]:rotate-90"
-        >
-          <div
-            className="flex items-center group/folder-actions relative w-full"
-            style={{ paddingLeft: `${level * 12}px` }}
-          >
-            {/* Tree Indentation Guide */}
-            {level > 0 && (
+      <ExplorerFolderActions
+        folder={folder}
+        path={path}
+        currentPath={currentPath}
+        onAddFile={onAddFile}
+        onAddFolder={onAddFolder}
+        onDeleteFolder={onDeleteFolder}
+        onRenameFolder={onRenameFolder}
+      >
+        {({
+          openNewFileDialog,
+          openNewFolderDialog,
+          openRenameDialog,
+          openDeleteDialog,
+        }) => (
+          <SidebarMenuItem>
+            <Collapsible
+              open={isOpen}
+              onOpenChange={setIsOpen}
+              className="group/collapsible [&[data-state=open]>div>button>svg:first-child]:rotate-90"
+            >
               <div
-                className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
-                style={{ left: `${level * 12 - 8}px` }}
-              />
-            )}
-
-            <CollapsibleTrigger asChild>
-              <SidebarMenuButton className="flex-1 pr-16 group-data-[state=open]/collapsible:text-foreground">
-                <ChevronRight className="transition-transform h-4 w-4 -ml-1 text-muted-foreground/60" />
-                <FolderIcon isOpen={isOpen} className="h-4 w-4 mr-1.5" />
-                <span className="truncate">{folderName}</span>
-              </SidebarMenuButton>
-            </CollapsibleTrigger>
-
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/folder-actions:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm px-1 rounded-md">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddFile();
-                }}
-                title="New File"
-                aria-label="New File"
+                className="flex items-center group/folder-actions relative w-full"
+                style={{ paddingLeft: `${level * 12}px` }}
               >
-                <FilePlus className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddFolder();
-                }}
-                title="New Folder"
-                aria-label="New Folder"
-              >
-                <FolderPlus className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+                {/* Tree Indentation Guide */}
+                {level > 0 && (
+                  <div
+                    className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
+                    style={{ left: `${level * 12 - 8}px` }}
+                  />
+                )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`More actions for ${folderName}`}
-                >
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleAddFile}>
-                  <FilePlus className="h-4 w-4 mr-2" />
-                  New File
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleAddFolder}>
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  New Folder
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleRename}>
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Rename
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleDelete}
-                  className="text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton className="flex-1 pr-16 group-data-[state=open]/collapsible:text-foreground">
+                    <ChevronRight className="transition-transform h-4 w-4 -ml-1 text-muted-foreground/60" />
+                    <FolderIcon isOpen={isOpen} className="h-4 w-4 mr-1.5" />
+                    <span className="truncate">{folderName}</span>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
 
-          <CollapsibleContent>
-            <SidebarMenuSub>
-              {folder.items.map((childItem, index) => (
-                <TemplateNode
-                  key={index}
-                  item={childItem}
-                  onFileSelect={onFileSelect}
-                  selectedFile={selectedFile}
-                  level={level + 1}
-                  path={currentPath}
-                  onAddFile={onAddFile}
-                  onAddFolder={onAddFolder}
-                  onDeleteFile={onDeleteFile}
-                  onDeleteFolder={onDeleteFolder}
-                  onRenameFile={onRenameFile}
-                  onRenameFolder={onRenameFolder}
-                  searchQuery={searchQuery}
-                />
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        </Collapsible>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/folder-actions:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm px-1 rounded-md">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openNewFileDialog();
+                    }}
+                    title="New File"
+                    aria-label="New File"
+                  >
+                    <FilePlus className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openNewFolderDialog();
+                    }}
+                    title="New Folder"
+                    aria-label="New Folder"
+                  >
+                    <FolderPlus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
 
-        <RenameFolderDialog
-          isOpen={isRenameDialogOpen}
-          onClose={() => setIsRenameDialogOpen(false)}
-          onRename={handleRenameSubmit}
-          currentFolderName={folderName}
-        />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label={`More actions for ${folderName}`}
+                    >
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={openNewFileDialog}>
+                      <FilePlus className="h-4 w-4 mr-2" />
+                      New File
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={openNewFolderDialog}>
+                      <FolderPlus className="h-4 w-4 mr-2" />
+                      New Folder
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={openRenameDialog}>
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Rename
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={openDeleteDialog}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
-        <DeleteDialog
-          isOpen={isDeleteDialogOpen}
-          setIsOpen={setIsDeleteDialogOpen}
-          onConfirm={confirmDelete}
-          title="Delete Folder"
-          description={`Are you sure you want to delete "${folderName}" and all its contents? This action cannot be undone.`}
-          itemName={folderName}
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
-        />
-      </SidebarMenuItem>
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  {folder.items.map((childItem, index) => (
+                    <TemplateNode
+                      key={index}
+                      item={childItem}
+                      onFileSelect={onFileSelect}
+                      selectedFile={selectedFile}
+                      level={level + 1}
+                      path={currentPath}
+                      onAddFile={onAddFile}
+                      onAddFolder={onAddFolder}
+                      onDeleteFile={onDeleteFile}
+                      onDeleteFolder={onDeleteFolder}
+                      onRenameFile={onRenameFile}
+                      onRenameFolder={onRenameFolder}
+                    />
+                  ))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarMenuItem>
+        )}
+      </ExplorerFolderActions>
     );
   }
 }
