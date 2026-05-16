@@ -65,9 +65,15 @@ const PlaygroundPageContent = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
-  const { playgroundData, templateData, isLoading, error, saveTemplateData } =
+  const { playgroundData, templateData, isLoading, isSuccess, error, saveTemplateData } =
     usePlayground(id);
   const sidebar = useSidebar();
+
+  useEffect(() => {
+    if (isSuccess && templateData) {
+      toast.success("Playground loaded successfully");
+    }
+  }, [isSuccess, templateData]);
 
   const {
     setTemplateData,
