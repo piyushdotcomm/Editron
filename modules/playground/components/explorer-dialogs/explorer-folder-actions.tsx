@@ -6,17 +6,7 @@ import NewFileDialog from "../dialogs/new-file-dialog";
 import NewFolderDialog from "../dialogs/new-folder-dialog";
 import RenameFolderDialog from "../dialogs/rename-folder-dialog";
 import { DeleteDialog } from "../dialogs/delete-dialog";
-
-interface TemplateFile {
-  filename: string;
-  fileExtension: string;
-  content: string;
-}
-
-interface TemplateFolder {
-  folderName: string;
-  items: (TemplateFile | TemplateFolder)[];
-}
+import type { TemplateFile, TemplateFolder } from "./types";
 
 interface ExplorerFolderActionsProps {
   folder: TemplateFolder;

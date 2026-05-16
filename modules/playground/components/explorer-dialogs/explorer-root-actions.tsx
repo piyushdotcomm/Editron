@@ -4,17 +4,7 @@ import * as React from "react";
 
 import NewFileDialog from "../dialogs/new-file-dialog";
 import NewFolderDialog from "../dialogs/new-folder-dialog";
-
-interface TemplateFile {
-  filename: string;
-  fileExtension: string;
-  content: string;
-}
-
-interface TemplateFolder {
-  folderName: string;
-  items: (TemplateFile | TemplateFolder)[];
-}
+import type { TemplateFile, TemplateFolder } from "./types";
 
 interface ExplorerRootActionsProps {
   onAddFile?: (file: TemplateFile, parentPath: string) => void;

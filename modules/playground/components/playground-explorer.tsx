@@ -40,19 +40,11 @@ import { Button } from "@/components/ui/button";
 import { ExplorerRootActions } from "./explorer-dialogs/explorer-root-actions";
 import { ExplorerFileActions } from "./explorer-dialogs/explorer-file-actions";
 import { ExplorerFolderActions } from "./explorer-dialogs/explorer-folder-actions";
-
-interface TemplateFile {
-  filename: string;
-  fileExtension: string;
-  content: string;
-}
-
-interface TemplateFolder {
-  folderName: string;
-  items: (TemplateFile | TemplateFolder)[];
-}
-
-type TemplateItem = TemplateFile | TemplateFolder;
+import type {
+  TemplateFile,
+  TemplateFolder,
+  TemplateItem,
+} from "./explorer-dialogs/types";
 
 interface TemplateFileTreeProps {
   data: TemplateItem;
@@ -174,9 +166,13 @@ export function TemplateFileTree({
               <SidebarGroupContent>
                 <SidebarMenu>
                   {isRootFolder ? (
-                    filteredItems.map((child, index) => (
+                    filteredItems.map((child) => (
                       <TemplateNode
-                        key={index}
+                        key={
+                          "folderName" in child
+                            ? child.folderName
+                            : `${child.filename}.${child.fileExtension}`
+                        }
                         item={child}
                         onFileSelect={onFileSelect}
                         selectedFile={selectedFile}
@@ -453,9 +449,13 @@ function TemplateNode({
 
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {folder.items.map((childItem, index) => (
+                  {folder.items.map((childItem) => (
                     <TemplateNode
-                      key={index}
+                      key={
+                        "folderName" in childItem
+                          ? `${currentPath}/${childItem.folderName}`
+                          : `${currentPath}/${childItem.filename}.${childItem.fileExtension}`
+                      }
                       item={childItem}
                       onFileSelect={onFileSelect}
                       selectedFile={selectedFile}

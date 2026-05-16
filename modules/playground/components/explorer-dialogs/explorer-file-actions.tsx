@@ -4,12 +4,7 @@ import * as React from "react";
 
 import RenameFileDialog from "../dialogs/rename-file-dialog";
 import { DeleteDialog } from "../dialogs/delete-dialog";
-
-interface TemplateFile {
-  filename: string;
-  fileExtension: string;
-  content: string;
-}
+import type { TemplateFile } from "./types";
 
 interface ExplorerFileActionsProps {
   file: TemplateFile;
