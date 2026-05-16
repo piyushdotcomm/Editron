@@ -26,32 +26,24 @@ export function ExplorerRootActions({
     React.useState(false);
 
   const handleCreateFile = (filename: string, extension: string) => {
-    if (!onAddFile) {
-      return;
-    }
-
     const newFile: TemplateFile = {
       filename,
       fileExtension: extension,
       content: "",
     };
 
-    onAddFile(newFile, "");
+    onAddFile?.(newFile, "");
 
     setIsNewFileDialogOpen(false);
   };
 
   const handleCreateFolder = (folderName: string) => {
-    if (!onAddFolder) {
-      return;
-    }
-
     const newFolder: TemplateFolder = {
       folderName,
       items: [],
     };
 
-    onAddFolder(newFolder, "");
+    onAddFolder?.(newFolder, "");
 
     setIsNewFolderDialogOpen(false);
   };
