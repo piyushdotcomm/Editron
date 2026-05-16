@@ -39,8 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import RenameFolderDialog from "./dialogs/rename-folder-dialog";
-import NewFolderDialog from "./dialogs/new-folder-dialog";
-import NewFileDialog from "./dialogs/new-file-dialog";
+import { ExplorerRootActions } from "./explorer-dialogs/explorer-root-actions";
 import RenameFileDialog from "./dialogs/rename-file-dialog";
 import { DeleteDialog } from "./dialogs/delete-dialog";
 
@@ -49,7 +48,6 @@ interface TemplateFile {
   fileExtension: string;
   content: string;
 }
-
 
 interface TemplateFolder {
   folderName: string;
@@ -71,12 +69,12 @@ interface TemplateFileTreeProps {
     file: TemplateFile,
     newFilename: string,
     newExtension: string,
-    parentPath: string
+    parentPath: string,
   ) => void;
   onRenameFolder?: (
     folder: TemplateFolder,
     newFolderName: string,
-    parentPath: string
+    parentPath: string,
   ) => void;
 }
 
@@ -94,43 +92,12 @@ export function TemplateFileTree({
 }: TemplateFileTreeProps) {
   const isRootFolder = data && typeof data === "object" && "folderName" in data;
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [isNewFileDialogOpen, setIsNewFileDialogOpen] = React.useState(false);
-  const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] =
-    React.useState(false);
-
-  const handleAddRootFile = () => {
-    setIsNewFileDialogOpen(true);
-  };
-
-  const handleAddRootFolder = () => {
-    setIsNewFolderDialogOpen(true);
-  };
-
-  const handleCreateFile = (filename: string, extension: string) => {
-    if (onAddFile && isRootFolder) {
-      const newFile: TemplateFile = {
-        filename,
-        fileExtension: extension,
-        content: "",
-      };
-      onAddFile(newFile, "");
-    }
-    setIsNewFileDialogOpen(false);
-  };
-
-  const handleCreateFolder = (folderName: string) => {
-    if (onAddFolder && isRootFolder) {
-      const newFolder: TemplateFolder = {
-        folderName,
-        items: [],
-      };
-      onAddFolder(newFolder, "");
-    }
-    setIsNewFolderDialogOpen(false);
-  };
 
   // Filter items recursively
-  const filterItems = (items: (TemplateFile | TemplateFolder)[], query: string): (TemplateFile | TemplateFolder)[] => {
+  const filterItems = (
+    items: (TemplateFile | TemplateFolder)[],
+    query: string,
+  ): (TemplateFile | TemplateFolder)[] => {
     if (!query.trim()) return items;
     const q = query.toLowerCase();
     return items.filter((item) => {
@@ -144,114 +111,110 @@ export function TemplateFileTree({
     });
   };
 
-  const filteredItems = isRootFolder ? filterItems((data as TemplateFolder).items, searchQuery) : [];
+  const filteredItems = isRootFolder
+    ? filterItems((data as TemplateFolder).items, searchQuery)
+    : [];
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
-        <SidebarGroup>
-          <div className="flex items-center justify-between px-2 cursor-default group/root-actions">
-            <SidebarGroupLabel className="px-1 font-semibold text-xs tracking-wider text-muted-foreground uppercase">{title}</SidebarGroupLabel>
+    <ExplorerRootActions onAddFile={onAddFile} onAddFolder={onAddFolder}>
+      {({ openNewFileDialog, openNewFolderDialog }) => (
+        <div className="flex flex-col w-full h-full">
+          <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
+            <SidebarGroup>
+              <div className="flex items-center justify-between px-2 cursor-default group/root-actions">
+                <SidebarGroupLabel className="px-1 font-semibold text-xs tracking-wider text-muted-foreground uppercase">
+                  {title}
+                </SidebarGroupLabel>
 
-            <div className="flex items-center gap-0.5 opacity-0 group-hover/root-actions:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={handleAddRootFile}
-                title="New File"
-                aria-label="New File"
-              >
-                <FilePlus className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={handleAddRootFolder}
-                title="New Folder"
-                aria-label="New Folder"
-              >
-                <FolderPlus className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
+                <div className="flex items-center gap-0.5 opacity-0 group-hover/root-actions:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                    onClick={openNewFileDialog}
+                    title="New File"
+                    aria-label="New File"
+                  >
+                    <FilePlus className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                    onClick={openNewFolderDialog}
+                    title="New Folder"
+                    aria-label="New Folder"
+                  >
+                    <FolderPlus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
 
-          {/* Premium Search filter */}
-          <div className="px-3 pb-3 pt-1">
-            <div className="relative group/search">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 transition-colors group-focus-within/search:text-primary" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Find in files..."
-                className="h-8 text-xs pl-9 pr-8 bg-black/5 dark:bg-white/5 border-transparent focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:bg-background rounded-full transition-all shadow-inner"
-                aria-label="Filter files"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
-                  aria-label="Clear filter"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {isRootFolder ? (
-                filteredItems.map((child, index) => (
-                  <TemplateNode
-                    key={index}
-                    item={child}
-                    onFileSelect={onFileSelect}
-                    selectedFile={selectedFile}
-                    level={0}
-                    path=""
-                    onAddFile={onAddFile}
-                    onAddFolder={onAddFolder}
-                    onDeleteFile={onDeleteFile}
-                    onDeleteFolder={onDeleteFolder}
-                    onRenameFile={onRenameFile}
-                    onRenameFolder={onRenameFolder}
-                    searchQuery={searchQuery}
+              {/* Premium Search filter */}
+              <div className="px-3 pb-3 pt-1">
+                <div className="relative group/search">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 transition-colors group-focus-within/search:text-primary" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Find in files..."
+                    className="h-8 text-xs pl-9 pr-8 bg-black/5 dark:bg-white/5 border-transparent focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:bg-background rounded-full transition-all shadow-inner"
+                    aria-label="Filter files"
                   />
-                ))
-              ) : (
-                <TemplateNode
-                  item={data}
-                  onFileSelect={onFileSelect}
-                  selectedFile={selectedFile}
-                  level={0}
-                  path=""
-                  onAddFile={onAddFile}
-                  onAddFolder={onAddFolder}
-                  onDeleteFile={onDeleteFile}
-                  onDeleteFolder={onDeleteFolder}
-                  onRenameFile={onRenameFile}
-                  onRenameFolder={onRenameFolder}
-                />
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </div>
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
+                      aria-label="Clear filter"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
 
-      <NewFileDialog
-        isOpen={isNewFileDialogOpen}
-        onClose={() => setIsNewFileDialogOpen(false)}
-        onCreateFile={handleCreateFile}
-      />
-
-      <NewFolderDialog
-        isOpen={isNewFolderDialogOpen}
-        onClose={() => setIsNewFolderDialogOpen(false)}
-        onCreateFolder={handleCreateFolder}
-      />
-    </div>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {isRootFolder ? (
+                    filteredItems.map((child, index) => (
+                      <TemplateNode
+                        key={index}
+                        item={child}
+                        onFileSelect={onFileSelect}
+                        selectedFile={selectedFile}
+                        level={0}
+                        path=""
+                        onAddFile={onAddFile}
+                        onAddFolder={onAddFolder}
+                        onDeleteFile={onDeleteFile}
+                        onDeleteFolder={onDeleteFolder}
+                        onRenameFile={onRenameFile}
+                        onRenameFolder={onRenameFolder}
+                        searchQuery={searchQuery}
+                      />
+                    ))
+                  ) : (
+                    <TemplateNode
+                      item={data}
+                      onFileSelect={onFileSelect}
+                      selectedFile={selectedFile}
+                      level={0}
+                      path=""
+                      onAddFile={onAddFile}
+                      onAddFolder={onAddFolder}
+                      onDeleteFile={onDeleteFile}
+                      onDeleteFolder={onDeleteFolder}
+                      onRenameFile={onRenameFile}
+                      onRenameFolder={onRenameFolder}
+                    />
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        </div>
+      )}
+    </ExplorerRootActions>
   );
 }
 
@@ -269,12 +232,12 @@ interface TemplateNodeProps {
     file: TemplateFile,
     newFilename: string,
     newExtension: string,
-    parentPath: string
+    parentPath: string,
   ) => void;
   onRenameFolder?: (
     folder: TemplateFolder,
     newFolderName: string,
-    parentPath: string
+    parentPath: string,
   ) => void;
   searchQuery?: string;
 }
@@ -341,7 +304,7 @@ function TemplateNode({
           {level > 0 && (
             <div
               className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
-              style={{ left: `${(level * 12) - 8}px` }}
+              style={{ left: `${level * 12 - 8}px` }}
             />
           )}
 
@@ -476,7 +439,7 @@ function TemplateNode({
             {level > 0 && (
               <div
                 className="absolute left-[10px] top-0 bottom-0 w-px bg-border/40"
-                style={{ left: `${(level * 12) - 8}px` }}
+                style={{ left: `${level * 12 - 8}px` }}
               />
             )}
 
@@ -493,7 +456,10 @@ function TemplateNode({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={(e) => { e.stopPropagation(); handleAddFile(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddFile();
+                }}
                 title="New File"
                 aria-label="New File"
               >
@@ -503,7 +469,10 @@ function TemplateNode({
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                onClick={(e) => { e.stopPropagation(); handleAddFolder(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddFolder();
+                }}
                 title="New Folder"
                 aria-label="New Folder"
               >
@@ -570,18 +539,6 @@ function TemplateNode({
             </SidebarMenuSub>
           </CollapsibleContent>
         </Collapsible>
-
-        <NewFileDialog
-          isOpen={isNewFileDialogOpen}
-          onClose={() => setIsNewFileDialogOpen(false)}
-          onCreateFile={handleCreateFile}
-        />
-
-        <NewFolderDialog
-          isOpen={isNewFolderDialogOpen}
-          onClose={() => setIsNewFolderDialogOpen(false)}
-          onCreateFolder={handleCreateFolder}
-        />
 
         <RenameFolderDialog
           isOpen={isRenameDialogOpen}
