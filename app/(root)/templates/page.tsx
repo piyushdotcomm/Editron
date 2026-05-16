@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Sparkles } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
-import Head from "next/head";
+
 
 export default function TemplatesPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -26,14 +26,6 @@ export default function TemplatesPage() {
     });
 
     return (
-        <>
-            <Head>
-                <title>Templates | Editron</title>
-                <meta
-                    name="description"
-                    content="Browse ready-to-use project templates and kickstart your coding session instantly in Editron."
-                />
-            </Head>
         <div className="min-h-screen bg-background">
             <AnimatedShaderBackground />
 
@@ -102,6 +94,5 @@ export default function TemplatesPage() {
                 )}
             </div>
         </div>
-        </>
     );
 }
