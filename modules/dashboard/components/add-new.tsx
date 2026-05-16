@@ -31,11 +31,11 @@ const AddNewButton = () => {
     <>
       <div
         onClick={() => setIsModalOpen(true)}
-        className="group relative px-6 py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer 
+        className="group relative px-4 py-5 sm:px-6 sm:py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer
         transition-all duration-300 ease-out
         hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 hover:-translate-y-1"
       >
-        <div className="flex flex-row items-center gap-5">
+        <div className="flex flex-row items-center gap-3 sm:gap-5">
           <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 group-hover:bg-red-500/20 group-hover:border-red-500/40 transition-all duration-300">
             <Plus className="h-6 w-6 text-red-500 transition-transform duration-300 group-hover:rotate-90" />
           </div>
@@ -45,7 +45,7 @@ const AddNewButton = () => {
           </div>
         </div>
 
-        <div className="relative opacity-80 group-hover:opacity-100 transition-opacity">
+        <div className="relative hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity">
           <Image
             src={"/add-new.svg"}
             alt="Create new playground"
