@@ -94,6 +94,7 @@ The current Prisma schema centers around:
 git clone https://github.com/piyushdotcomm/Editron.git
 cd Editron
 npm install
+cp .env.example .env
 ```
 
 ### Environment variables
