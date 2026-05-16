@@ -5,7 +5,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
-
+import { auth } from "@/auth";
 
 const COMPLETION_SYSTEM_PROMPT =
     "You are an inline code completion engine. Given the code context below, provide ONLY the next few tokens/lines that naturally continue the code. Do NOT include explanations, markdown, or the existing code. Output ONLY the completion text.";
@@ -46,50 +46,28 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { prompt, language, provider, userApiKey } = result.data;
+       const { prompt, language, provider, userApiKey } = result.data;
+const session = await auth();
+const hasValidUserKey = userApiKey && userApiKey.trim() !== "";
 
-        const contextPrompt = language
-            ? `Language: ${language}\n\n${prompt}`
-            : prompt;
+const contextPrompt = language ? `Language: ${language}\n\n${prompt}` : prompt;
+let model;
 
-        let model;
-
-        if (provider === "gemini") {
-            const apiKey = userApiKey || process.env.GEMINI_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Gemini API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const google = createGoogleGenerativeAI({ apiKey });
-            model = google("gemini-2.0-flash");
-        } else if (provider === "groq") {
-            const apiKey = userApiKey || process.env.GROQ_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Groq API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const groq = createGroq({ apiKey });
-            model = groq("llama-3.3-70b-versatile");
-        } else if (provider === "mistral") {
-            const apiKey = userApiKey || process.env.MISTRAL_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Mistral API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const mistral = createMistral({ apiKey });
-            model = mistral("codestral-latest");
-        } else {
-            return NextResponse.json(
-                { success: false, error: "Invalid provider" },
-                { status: 400 }
-            );
-        }
+if (provider === "gemini") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.GEMINI_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Gemini API key not configured." }, { status: 400 });
+  model = createGoogleGenerativeAI({ apiKey })("gemini-2.0-flash");
+} else if (provider === "groq") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.GROQ_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Groq API key not configured." }, { status: 400 });
+  model = createGroq({ apiKey })("llama-3.3-70b-versatile");
+} else if (provider === "mistral") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.MISTRAL_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Mistral API key not configured." }, { status: 400 });
+  model = createMistral({ apiKey })("codestral-latest");
+} else {
+  return NextResponse.json({ success: false, error: "Invalid provider" }, { status: 400 });
+}
 
     const { text } = await generateText({
       model,
