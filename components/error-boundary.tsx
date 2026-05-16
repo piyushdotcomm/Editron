@@ -2,9 +2,14 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 
+type FallbackRenderProps = {
+    error: Error | null;
+    reset: () => void;
+};
+
 interface Props {
     children: ReactNode;
-    fallback?: ReactNode;
+    fallback?: ReactNode | ((props: FallbackRenderProps) => ReactNode);
     name?: string;
 }
 
@@ -18,6 +23,10 @@ export class ErrorBoundary extends Component<Props, State> {
         super(props);
         this.state = { hasError: false, error: null };
     }
+
+    reset = () => {
+        this.setState({ hasError: false, error: null });
+    };
 
     static getDerivedStateFromError(error: Error): State {
         return { hasError: true, error };
@@ -39,6 +48,13 @@ export class ErrorBoundary extends Component<Props, State> {
     render() {
         if (this.state.hasError) {
             if (this.props.fallback) {
+                if (typeof this.props.fallback === "function") {
+                    return this.props.fallback({
+                        error: this.state.error,
+                        reset: this.reset,
+                    });
+                }
+
                 return this.props.fallback;
             }
 
@@ -52,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             {this.state.error?.message || "An unexpected error occurred"}
                         </p>
                         <button
-                            onClick={() => this.setState({ hasError: false, error: null })}
+                            onClick={this.reset}
                             className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                         >
                             Try Again
