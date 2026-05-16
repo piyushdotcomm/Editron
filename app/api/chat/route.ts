@@ -59,10 +59,21 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 
 // ─── Request Schema ───────────────────────────────────────────────────────────
 
+const IncomingMessageSchema = z.object({
+  role: z.enum(["system", "user", "assistant"]),
+  content: z.string().optional(),
+  parts: z.array(
+    z.object({
+      type: z.string(),
+      text: z.string(),
+    }),
+  ).optional(),
+});
+
 const RequestBodySchema = z.object({
-  messages:   z.array(z.any()).max(100),
-  provider:   z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
-  fileTree:   z.string().max(50_000).optional(),
+  messages: z.array(IncomingMessageSchema).max(100),
+  provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
+  fileTree: z.string().max(50_000).optional(),
   userApiKey: z.string().max(256).optional(),
 });
 
@@ -140,6 +151,13 @@ function sanitizeMessages(
     }
 
     const m = item as ChatMessage;
+
+    if (!["system", "user", "assistant"].includes(m.role)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid message role" },
+        { status: 400 },
+      );
+    }
 
     if (Array.isArray(m.parts)) {
       sanitized.push(m);
