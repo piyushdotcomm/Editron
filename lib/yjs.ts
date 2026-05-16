@@ -53,16 +53,16 @@ export function getOrCreateYDoc(roomId: string, token: string) {
         params: {
             token,
         },
-    } as any);
+    });
 
     yDocs.set(roomId, { doc, provider });
 
     // Optional: Clean up when the connection is closed to prevent memory leaks
-    provider.on('synced', (isSynced: boolean) => {
-        console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced);
+    provider.on('synced', (isSynced: unknown) => {
+        console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
     });
-    provider.on('status', (event: any) => {
-        console.log(`[Yjs] Room ${roomId} status:`, event.status);
+    provider.on('status', (event: unknown) => {
+        console.log(`[Yjs] Room ${roomId} status:`, (event as { status: 'connected' | 'disconnected' | 'connecting' }).status);
     });
 
     return { doc, provider };

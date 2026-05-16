@@ -1,7 +1,8 @@
 "use client";
+import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
-import JSZip from "jszip";
+
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,6 +27,8 @@ import {
   AlertCircle,
   FolderOpen,
 } from "lucide-react";
+import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
+import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
@@ -34,19 +37,17 @@ import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
-import { findFilePath } from "@/modules/playground/lib";
+
 import {
   TemplateFile,
   TemplateFolder,
 } from "@/modules/playground/lib/path-to-json";
-import React, {
-  Suspense,
+import {
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
+
 
 // New components
 import { StatusBar } from "@/modules/playground/components/status-bar";
@@ -58,22 +59,30 @@ import { PlaygroundHeader } from "@/modules/playground/components/playground-hea
 import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab-bar";
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
 
-const PlaygroundPageContent = () => {
-  const { id } = useParams<{ id: string }>();
-  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const [showAISettings, setShowAISettings] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
-  const { playgroundData, templateData, isLoading, isSuccess, error, saveTemplateData } =
-    usePlayground(id);
-  const sidebar = useSidebar();
 
-  useEffect(() => {
-    if (isSuccess && templateData) {
-      toast.success("Playground loaded successfully");
-    }
-  }, [isSuccess, templateData]);
+interface MainPlaygroundPageProps {
+  initialData: any;
+  id: string;
+}
+
+const MainPlaygroundPage = ({ initialData, id }: MainPlaygroundPageProps) => {
+  const playgroundData = initialData;
+  const rawContent = initialData?.templateFiles?.[0]?.content;
+  const parsedTemplate = rawContent
+    ? typeof rawContent === "string"
+      ? JSON.parse(rawContent)
+      : rawContent
+    : null;
+
+  const [templateData, setTemplateDataState] = useState(parsedTemplate);
+  const [error] = useState<string | null>(null);
+  const { saveTemplateData } = usePlayground(id);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+const [showAISettings, setShowAISettings] = useState(false);
+const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
+const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
+  const sidebar = useSidebar();
 
   const {
     setTemplateData,
@@ -95,14 +104,14 @@ const PlaygroundPageContent = () => {
   } = useFileExplorer();
   const {
     serverUrl,
-    isLoading: containerLoading,
+    
     error: containerError,
     instance,
     writeFileSync,
+    // @ts-ignore
   } = useWebContainer({ templateData });
 
-
-  const lastSyncedContent = useRef<Map<string, string>>(new Map());
+  
   useEffect(() => {
     setPlaygroundId(id);
     if (templateData && !openFiles.length) {
@@ -113,7 +122,7 @@ const PlaygroundPageContent = () => {
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
-      const findDefaultFile = (items: (TemplateFile | TemplateFolder)[]): TemplateFile | null => {
+      const findDefaultFile = (items: any[]): TemplateFile | null => {
         for (const item of items) {
           if (!("folderName" in item)) {
             if (["App.tsx", "App.jsx", "index.tsx", "index.jsx", "index.js", "main.tsx", "main.js", "index.html"].includes(`${item.filename}.${item.fileExtension}`)) {
@@ -205,221 +214,35 @@ const PlaygroundPageContent = () => {
   const handleFileSelect = (file: TemplateFile) => {
     openFile(file);
   };
-  const handleSave = useCallback(
-    async (fileId?: string) => {
-      const targetFileId = fileId || activeFileId;
-      if (!targetFileId) return;
 
-      const fileToSave = openFiles.find((f) => f.id === targetFileId);
-
-      if (!fileToSave) return;
-
-      const latestTemplateData = useFileExplorer.getState().templateData;
-      if (!latestTemplateData) return
-
-      try {
-        const filePath = findFilePath(fileToSave, latestTemplateData);
-        if (!filePath) {
-          toast.error(
-            `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`
-          );
-          return;
-        }
-
-        const updatedTemplateData = JSON.parse(
-          JSON.stringify(latestTemplateData)
-        );
-
-        const updateFileContent = (items: (TemplateFile | TemplateFolder)[]): (TemplateFile | TemplateFolder)[] =>
-          items.map((item) => {
-            if ("folderName" in item) {
-              return { ...item, items: updateFileContent(item.items) };
-            } else if (
-              item.filename === fileToSave.filename &&
-              item.fileExtension === fileToSave.fileExtension
-            ) {
-              return { ...item, content: fileToSave.content };
-            }
-            return item;
-          });
-        updatedTemplateData.items = updateFileContent(
-          updatedTemplateData.items
-        );
-
-        // Sync with WebContainer
-        let containerSynced = false;
-
-try {
-  if (writeFileSync) {
-    await writeFileSync(filePath, fileToSave.content); // handles fs.writeFile internally
-    containerSynced = true;
-  } else if (instance?.fs) {
-    // fallback: writeFileSync not ready yet but instance is booted
-    await instance.fs.writeFile(filePath, fileToSave.content);
-    containerSynced = true;
-  } else {
-    console.warn("WebContainer not ready — saving to DB only");
-  }
-} catch (err) {
-  console.error("Failed to sync to WebContainer:", err);
-}
-
-if (containerSynced) {
-  lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-}
-
-        await saveTemplateData(updatedTemplateData);
-        setTemplateData(updatedTemplateData);
-        // Update open files
-        const updatedOpenFiles = openFiles.map((f) =>
-          f.id === targetFileId
-            ? {
-              ...f,
-              content: fileToSave.content,
-              originalContent: fileToSave.content,
-              hasUnsavedChanges: containerSynced ? false : f.hasUnsavedChanges,
-            }
-            : f
-        );
-        setOpenFiles(updatedOpenFiles);
-
-        if (containerSynced) {
-					toast.success(
-						`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`,
-					);
-				} else {
-					toast.warning(
-						`Saved to DB — WebContainer not ready, preview won't reflect changes yet`,
-					);
-				}
-
-      } catch (error) {
-        console.error("Error saving file:", error);
-        toast.error(
-          `Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`
-        );
-        throw error;
-      }
-    },
-    [
-      activeFileId,
-      openFiles,
-      writeFileSync,
-      instance,
-      saveTemplateData,
-      setTemplateData,
-      setOpenFiles,
-    ]
-  );
-
-  const handleSaveAll = useCallback(async () => {
-    const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
-
-    if (unsavedFiles.length === 0) {
-      toast.info("No unsaved changes");
-      return;
-    }
-
-    try {
-      await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
-      toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch {
-      toast.error("Failed to save some files");
-    }
-  }, [openFiles, handleSave]);
-
-  // recursive function to add files to zip
-  const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
-    folder.items.forEach((item) => {
-      if ("folderName" in item) {
-        const newFolder = zipFolder.folder(item.folderName);
-        if (newFolder) {
-          addFilesToZip(item, newFolder);
-        }
-      } else {
-        zipFolder.file(item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""), item.content);
-      }
-    });
-  };
-
-  const handleDownloadZip = async () => {
-    if (!templateData) return;
-
-    try {
-      const zip = new JSZip();
-      addFilesToZip(templateData, zip);
-
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = window.URL.createObjectURL(content);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${playgroundData?.title || "project"}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Project downloaded successfully");
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download project");
-    }
-  };
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+S — Save
-      if (e.ctrlKey && !e.shiftKey && e.key === "s") {
-        e.preventDefault();
-        handleSave();
-      }
-      // Ctrl+Shift+S — Save All
-      if (e.ctrlKey && e.shiftKey && e.key === "S") {
-        e.preventDefault();
-        handleSaveAll();
-      }
-      // Ctrl+K or Ctrl+Shift+P — Command Palette
-      if ((e.ctrlKey && e.key === "k") || (e.ctrlKey && e.shiftKey && e.key === "P")) {
-        e.preventDefault();
-        setIsCommandPaletteOpen(true);
-      }
-      // Ctrl+B — Toggle Sidebar
-      if (e.ctrlKey && !e.shiftKey && e.key === "b") {
-        e.preventDefault();
-        sidebar.toggleSidebar();
-      }
-      // Ctrl+\ — Toggle Preview
-      if (e.ctrlKey && e.key === "\\") {
-        e.preventDefault();
-        setIsPreviewVisible((prev) => !prev);
-      }
-      // Ctrl+Shift+A — Toggle AI Chat
-      if (e.ctrlKey && e.shiftKey && e.key === "A") {
-        e.preventDefault();
-        useAI.getState().toggleChat();
-      }
-      // Ctrl+W — Close current tab
-      if (e.ctrlKey && !e.shiftKey && e.key === "w") {
-        e.preventDefault();
-        if (activeFileId) {
-          closeFile(activeFileId);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleSave, handleSaveAll, sidebar, activeFileId, closeFile]);
-
+ const {
+  handleSave,
+  handleSaveAll,
+  handleDownloadZip,
+} = usePlaygroundActions({
+  id,
+  templateData,
+  playgroundData,
+  saveTemplateData,
+  writeFileSync,
+  activeFileId,
+  openFiles,
+  setTemplateData,
+  setOpenFiles,
+  closeFile,
+  setIsPreviewVisible,
+  setIsCommandPaletteOpen,
+});
   // Derive container status
   const containerStatus: "idle" | "building" | "running" | "error" = containerError
     ? "error"
-    : containerLoading
-      ? "building"
-      : serverUrl
+    : serverUrl
         ? "running"
         : "idle";
-
+ 
+if (!playgroundData && !templateData && !error) {
+  return <PlaygroundSkeleton />;
+}
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
@@ -436,24 +259,10 @@ if (containerSynced) {
   }
 
   // Loading state — skeleton
-  if (isLoading) {
-    return <PlaygroundSkeleton />;
-  }
 
   // No template data
-  if (!templateData) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
-        <FolderOpen className="h-12 w-12 text-amber-500 mb-4" />
-        <h2 className="text-xl font-semibold text-amber-600 mb-2">
-          No template data available
-        </h2>
-        <Button onClick={() => window.location.reload()} variant="outline">
-          Reload Template
-        </Button>
-      </div>
-    );
-  }
+ 
+
 
   return (
     <TooltipProvider>
@@ -509,7 +318,12 @@ if (containerSynced) {
                   />
 
                   {/* Breadcrumbs */}
-                  <Breadcrumbs activeFile={activeFile} templateData={templateData} />
+                  {templateData && (
+  <Breadcrumbs
+    activeFile={activeFile}
+    templateData={templateData}
+  />
+)}
 
                   {/* Editor + Preview */}
                   <div className="flex-1 min-h-0" role="tabpanel">
@@ -537,7 +351,7 @@ if (containerSynced) {
                               templateData={templateData!}
                               instance={instance}
                               writeFileSync={writeFileSync}
-                              isLoading={containerLoading}
+                            
                               error={containerError}
                               serverUrl={serverUrl!}
                               forceResetup={false}
@@ -570,13 +384,11 @@ if (containerSynced) {
           </div>
         </SidebarInset>
 
-{/* AI Chat Panel */}
-         <ErrorBoundary name="AIChatPanel">
-           <AIChatPanel
-             templateData={templateData}
-             saveTemplateData={saveTemplateData}
-           />
-         </ErrorBoundary>
+        {/* AI Chat Panel */}
+        <AIChatPanel
+          templateData={templateData}
+          saveTemplateData={saveTemplateData}
+        />
         <AISettingsDialog open={showAISettings} onOpenChange={setShowAISettings} />
 
         {/* Command Palette */}
@@ -605,14 +417,6 @@ if (containerSynced) {
         />
       </>
     </TooltipProvider>
-  );
-};
-
-const MainPlaygroundPage = () => {
-  return (
-    <Suspense fallback={<PlaygroundSkeleton />}>
-      <PlaygroundPageContent />
-    </Suspense>
   );
 };
 

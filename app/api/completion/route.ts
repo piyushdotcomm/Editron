@@ -46,67 +46,35 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { prompt, language, provider, userApiKey } = result.data;
+       const { prompt, language, provider, userApiKey } = result.data;
+const session = await auth();
+const hasValidUserKey = userApiKey && userApiKey.trim() !== "";
 
-        const session = await auth();
-        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
-                { status: 401 }
-            );
-        }
+const contextPrompt = language ? `Language: ${language}\n\n${prompt}` : prompt;
+let model;
 
-        const contextPrompt = language
-            ? `Language: ${language}\n\n${prompt}`
-            : prompt;
+if (provider === "gemini") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.GEMINI_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Gemini API key not configured." }, { status: 400 });
+  model = createGoogleGenerativeAI({ apiKey })("gemini-2.0-flash");
+} else if (provider === "groq") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.GROQ_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Groq API key not configured." }, { status: 400 });
+  model = createGroq({ apiKey })("llama-3.3-70b-versatile");
+} else if (provider === "mistral") {
+  const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.MISTRAL_API_KEY : null;
+  if (!apiKey) return NextResponse.json({ success: false, error: "Mistral API key not configured." }, { status: 400 });
+  model = createMistral({ apiKey })("codestral-latest");
+} else {
+  return NextResponse.json({ success: false, error: "Invalid provider" }, { status: 400 });
+}
 
-        let model;
-
-        if (provider === "gemini") {
-            const apiKey = userApiKey || process.env.GEMINI_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Gemini API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const google = createGoogleGenerativeAI({ apiKey });
-            model = google("gemini-2.0-flash");
-        } else if (provider === "groq") {
-            const apiKey = userApiKey || process.env.GROQ_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Groq API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const groq = createGroq({ apiKey });
-            model = groq("llama-3.3-70b-versatile");
-        } else if (provider === "mistral") {
-            const apiKey = userApiKey || process.env.MISTRAL_API_KEY;
-            if (!apiKey) {
-                return NextResponse.json(
-                    { success: false, error: "Mistral API key not configured. Add your key in AI settings." },
-                    { status: 400 }
-                );
-            }
-            const mistral = createMistral({ apiKey });
-            model = mistral("codestral-latest");
-        } else {
-            return NextResponse.json(
-                { success: false, error: "Invalid provider" },
-                { status: 400 }
-            );
-        }
-
-        const { text } = await generateText({
-            model,
-            system: COMPLETION_SYSTEM_PROMPT,
-            prompt: contextPrompt,
-            maxTokens: 256,
-            temperature: 0.2,
-            topP: 0.8,
-        });
+    const { text } = await generateText({
+      model,
+      prompt: contextPrompt,
+      system: COMPLETION_SYSTEM_PROMPT,
+      maxOutputTokens: 256,
+    });
 
         return NextResponse.json({ completion: text.trim() });
     } catch (error: unknown) {
