@@ -378,10 +378,11 @@ export default function AIChatPanel({
                                     </div>
                                     <div className="flex-1 space-y-2 min-w-0">
                                         {textContent && (
-                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed break-words text-foreground shadow-sm prose prose-sm dark:prose-invert max-w-none">
-                                                <ReactMarkdown 
-                                                    remarkPlugins={[remarkGfm]}
-                                                    components={{
+                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed break-words text-foreground shadow-sm">
+                                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                    <ReactMarkdown 
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
                                                         h1: ({node, ...props}) => <h1 className="text-base font-bold mt-3 mb-2 first:mt-0" {...props} />,
                                                         h2: ({node, ...props}) => <h2 className="text-sm font-bold mt-2.5 mb-1.5 first:mt-0" {...props} />,
                                                         h3: ({node, ...props}) => <h3 className="text-sm font-semibold mt-2 mb-1 first:mt-0" {...props} />,
@@ -401,7 +402,8 @@ export default function AIChatPanel({
                                                     }}
                                                 >
                                                     {textContent}
-                                                </ReactMarkdown>
+                                                    </ReactMarkdown>
+                                                </div>
                                             </div>
                                         )}
                                         {toolParts.map((ti: any) => {
