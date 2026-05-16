@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createCollabToken,
@@ -6,8 +6,21 @@ import {
 } from "../lib/collab-token";
 
 describe("collab-token", () => {
+  let originalSecret: string | undefined;
+
   beforeEach(() => {
+    originalSecret = process.env.AUTH_SECRET;
     process.env.AUTH_SECRET = "test-secret";
+  });
+
+  afterEach(() => {
+    if (originalSecret) {
+      process.env.AUTH_SECRET = originalSecret;
+    } else {
+      delete process.env.AUTH_SECRET;
+    }
+
+    vi.useRealTimers();
   });
 
   it("should create a valid token", () => {
@@ -40,6 +53,22 @@ describe("collab-token", () => {
     const tampered = token + "abc";
 
     const payload = verifyCollabToken(tampered);
+
+    expect(payload).toBeNull();
+  });
+
+  it("should return null for expired token", () => {
+    vi.useFakeTimers();
+
+    const now = new Date();
+
+    vi.setSystemTime(now);
+
+    const token = createCollabToken("room-1", "user-1");
+
+    vi.setSystemTime(now.getTime() + 60 * 60 * 1000 + 1000);
+
+    const payload = verifyCollabToken(token);
 
     expect(payload).toBeNull();
   });
