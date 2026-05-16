@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
 import { auth } from "@/auth";
-import { tools } from "./tools"; // extract tools + SYSTEM_PROMPT to a sibling module
+import { tools, SYSTEM_PROMPT } from "./tools";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
