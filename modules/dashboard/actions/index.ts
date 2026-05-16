@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
 import type { TemplateKey } from "@/lib/template";
+import { Templates } from "@prisma/client";
 
 export const toggleStarMarked = async (
   playgroundId: string,
@@ -94,7 +95,10 @@ export const createPlayground = async (data: {
       data: {
         title: title,
         description: description,
-        template: template,
+      template:
+  template === "BLANK"
+    ? undefined
+    : (template as Templates),
         userId,
       },
     });
