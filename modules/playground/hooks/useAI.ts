@@ -184,17 +184,17 @@ export function findFileByPath(items: FileSystemItem[], targetPath: string, pref
  * @returns A new items array with the file removed.
  */
 export function deleteFileByPath(items: FileSystemItem[], targetPath: string, prefix = ""): FileSystemItem[] {
-    return items.filter((item) => {
+    return items.reduce<FileSystemItem[]>((acc, item) => {
         if ("folderName" in item) {
-            const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
-            item.items = deleteFileByPath(item.items as FileSystemItem[], targetPath, fp);
-            return true;
+            const currentPath = prefix ? `${prefix}/${item.folderName}` : item.folderName;
+            acc.push({ ...item, items: deleteFileByPath(item.items as FileSystemItem[], targetPath, currentPath) });
         } else {
             const ext = item.fileExtension ? `.${item.fileExtension}` : "";
-            const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
-            return filePath !== targetPath;
+            const currentPath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
+            if (currentPath !== targetPath) acc.push(item);
         }
-    });
+        return acc;
+    }, []);
 }
 
 /**
