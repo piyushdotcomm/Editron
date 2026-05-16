@@ -10,6 +10,12 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     Bot,
     Send,
     Trash2,
@@ -20,6 +26,7 @@ import {
     Zap,
     Code2,
     ChevronDown,
+    Download,
 } from "lucide-react";
 import {
     useAI,
@@ -33,6 +40,10 @@ import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useChat } from "@ai-sdk/react";
+import {
+    exportChatAsMarkdown,
+    exportChatAsJSON,
+} from "@/modules/playground/lib/chat-export";
 
 interface AIChatPanelProps {
     templateData: TemplateFolder | null;
@@ -297,6 +308,34 @@ export default function AIChatPanel({
         }
     };
 
+    const handleExportMarkdown = () => {
+        if (messages.length === 0) {
+            toast.error("No messages to export");
+            return;
+        }
+        try {
+            exportChatAsMarkdown(messages);
+            toast.success("Chat exported as Markdown");
+        } catch (error) {
+            console.error("Export error:", error);
+            toast.error("Failed to export chat");
+        }
+    };
+
+    const handleExportJSON = () => {
+        if (messages.length === 0) {
+            toast.error("No messages to export");
+            return;
+        }
+        try {
+            exportChatAsJSON(messages);
+            toast.success("Chat exported as JSON");
+        } catch (error) {
+            console.error("Export error:", error);
+            toast.error("Failed to export chat");
+        }
+    };
+
     const clearChat = () => setMessages([]);
     const currentProvider = PROVIDERS.find((p) => p.id === provider) || PROVIDERS[0];
 
@@ -316,9 +355,32 @@ export default function AIChatPanel({
                                 </SheetDescription>
                             </div>
                         </div>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" onClick={clearChat} title="Clear chat">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button 
+                                        size="icon" 
+                                        variant="ghost" 
+                                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors" 
+                                        title="Export chat"
+                                        disabled={messages.length === 0}
+                                    >
+                                        <Download className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuItem onClick={handleExportMarkdown} className="cursor-pointer">
+                                        <span>📄 Export as Markdown</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleExportJSON} className="cursor-pointer">
+                                        <span>📋 Export as JSON</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" onClick={clearChat} title="Clear chat">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </SheetHeader>
 
