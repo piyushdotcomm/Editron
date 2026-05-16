@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
 import type { TemplateKey } from "@/lib/template";
+import { Templates } from "@prisma/client";
 
 export const toggleStarMarked = async (
   playgroundId: string,
@@ -94,7 +95,10 @@ export const createPlayground = async (data: {
       data: {
         title: title,
         description: description,
-        template: template,
+      template:
+  template === "BLANK"
+    ? undefined
+    : (template as Templates),
         userId,
       },
     });
@@ -135,60 +139,52 @@ export const editProjectById = async (
   }
 };
 
-// export const duplicateProjectById = async (id: string) => {
-//   try {
-//     const originalPlayground = await db.playground.findUnique({
-//       where: { id },
-//       // todo: add tempalte files
-//     });
-//     if (!originalPlayground) {
-//       throw new Error("Original playground not found");
-//     }
 
-//     const duplicatedPlayground = await db.playground.create({
-//       data: {
-//         title: `${originalPlayground.title} (Copy)`,
-//         description: originalPlayground.description,
-//         template: originalPlayground.template,
-//         userId: originalPlayground.userId,
-
-//         // todo: add template files
-//       },
-//     });
-
-//     revalidatePath("/dashboard");
-//     return duplicatedPlayground;
-//   } catch (error) {
-//     console.error("Error duplicating project:", error);
-//   }
-// };
 export const duplicateProjectById = async (id: string) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("User Id is Required");
+  }
+
   try {
-    const originalPlayground = await db.playground.findUnique({
-      where: { id },
+    const originalPlayground = await db.playground.findFirst({
+      where: {
+        id,
+        userId,
+      },
+      include: {
+        templateFiles: true,
+      },
     });
 
     if (!originalPlayground) {
       throw new Error("Original playground not found");
     }
 
-    console.log("🎯 Using original user:", originalPlayground.userId);
-
     const duplicatedPlayground = await db.playground.create({
       data: {
         title: `${originalPlayground.title} (Copy)`,
         description: originalPlayground.description,
         template: originalPlayground.template,
-        userId: originalPlayground.userId, // 👈 FIX HERE
+        userId,
+        templateFiles: originalPlayground.templateFiles.length
+          ? {
+              create: originalPlayground.templateFiles.map((file) => ({
+                content: file.content,
+              })),
+            }
+          : undefined,
       },
     });
 
-    console.log("✨ Duplicate created:", duplicatedPlayground);
-
     revalidatePath("/dashboard");
+
     return duplicatedPlayground;
   } catch (error) {
-    console.error("❌ Error duplicating project:", error);
+    console.error("Error duplicating project:", error);
+    throw error;
   }
 };
 

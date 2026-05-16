@@ -28,7 +28,7 @@ import { useWebContainerStore } from "../hooks/useWebContainer";
 interface WebContainerPreviewProps {
   templateData: TemplateFolder;
   serverUrl: string;
-  isLoading: boolean;
+  
   error: string | null;
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
@@ -38,7 +38,7 @@ const WebContainerPreview = ({
   templateData,
   error,
   instance,
-  isLoading,
+ 
   serverUrl,
   writeFileSync : _writeFileSync,
   forceResetup = false,
@@ -734,7 +734,8 @@ const WebContainerPreview = ({
         );
 
         instance.on("server-ready", (port: number, url: string) => {
-          // todo: Terminal logic
+          // Surface the active preview URL in the embedded terminal so users can
+          // diagnose which WebContainer server was selected when multiple ports start.
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
               `🌐 Server ready at ${url} (port ${port})\r\n`,
@@ -804,19 +805,7 @@ const WebContainerPreview = ({
   };
 }, []);
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md p-6 rounded-lg bg-gray-50 dark:bg-gray-900">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <h3 className="text-lg font-medium">Initializing WebContainer</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Setting up the environment for your project...
-          </p>
-        </div>
-      </div>
-    );
-  }
+ 
 
   if (error || setupError) {
     return (
