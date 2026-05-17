@@ -88,6 +88,7 @@ export function Header() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        aria-label="Open menu"
                                         className="rounded-full hover:bg-secondary/80 transition-all duration-200"
                                     >
                                         <Menu className="h-5 w-5" />
@@ -150,6 +151,7 @@ export function Header() {
                                                     <Link href="/auth/sign-in">
                                                         <Button
                                                             variant="outline"
+                                                            onClick={() => setOpen(false)}
                                                             className="w-full rounded-xl"
                                                         >
                                                             Sign In
@@ -157,14 +159,14 @@ export function Header() {
                                                     </Link>
 
                                                     <Link href="/dashboard">
-                                                        <Button className="w-full rounded-xl bg-red-600 hover:bg-red-700">
+                                                        <Button className="w-full rounded-xl bg-red-600 hover:bg-red-700" onClick={() => setOpen(false)}>
                                                             Get Started
                                                         </Button>
                                                     </Link>
                                                 </>
                                             ) : (
                                                 <Link href="/dashboard">
-                                                    <Button className="w-full rounded-xl">
+                                                    <Button className="w-full rounded-xl" onClick={() => setOpen(false)}>
                                                         Dashboard
                                                     </Button>
                                                 </Link>
