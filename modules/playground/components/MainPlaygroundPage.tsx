@@ -2,6 +2,7 @@
 import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { fetchCollabToken, getOrCreateYDoc } from "@/lib/yjs";
 
 import {
   ResizableHandle,
@@ -23,17 +24,10 @@ const PlaygroundEditor = dynamic(
   { ssr: false }
 );
 
-import {
-  AlertCircle,
-  FolderOpen,
-} from "lucide-react";
-import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
-import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
-import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
@@ -82,6 +76,7 @@ const [showAISettings, setShowAISettings] = useState(false);
 const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
 const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
+const [collaboratorCount, setCollaboratorCount] = useState(0);
   const sidebar = useSidebar();
 
   const {
@@ -118,6 +113,47 @@ const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
       setTemplateData(templateData);
     }
   }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);
+
+  useEffect(() => {
+  if (!id) return;
+
+  let cleanup = () => {};
+
+  void (async () => {
+    try {
+      const token = await fetchCollabToken(id);
+      const { provider } = getOrCreateYDoc(id, token);
+
+      const updateCollaborators = () => {
+        const states = Array.from(provider.awareness.getStates().values());
+
+        const activeUsers = states
+          .filter((s: any) => s.user)
+          .map((s: any) => s.user);
+
+        const uniqueUsers = Array.from(
+          new Map(activeUsers.map((u: any) => [u.name, u])).values()
+        );
+
+        setCollaboratorCount(uniqueUsers.length);
+      };
+
+      provider.awareness.on("change", updateCollaborators);
+
+      updateCollaborators();
+
+      cleanup = () => {
+        provider.awareness.off("change", updateCollaborators);
+      };
+    } catch (error) {
+      console.error("Failed to track collaborators:", error);
+    }
+  })();
+
+  return () => {
+    cleanup();
+  };
+}, [id]);
 
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
@@ -378,7 +414,7 @@ if (!playgroundData && !templateData && !error) {
               activeFile={activeFile}
               cursorPosition={cursorPosition}
               containerStatus={containerStatus}
-              collaboratorCount={0}
+              collaboratorCount={collaboratorCount}
               openFileCount={openFiles.length}
             />
           </div>
