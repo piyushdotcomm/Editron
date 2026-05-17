@@ -10,12 +10,17 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: smart-issue-assignment-${{ github.event.issue.number }}
+  group: smart-issue-assignment-${{ github.actor }}
   cancel-in-progress: false
 
 jobs:
   handle-assignment:
-    if: github.event.issue.pull_request == null
+    if: >-
+      github.event.issue.pull_request == null &&
+      (contains(tolower(github.event.comment.body), '/assign') ||
+       contains(tolower(github.event.comment.body), 'assign me') ||
+       contains(tolower(github.event.comment.body), '/unassign') ||
+       contains(tolower(github.event.comment.body), 'unassign me'))
     runs-on: ubuntu-latest
     steps:
       - name: Smart Assignment Validation
@@ -161,11 +166,10 @@ jobs:
               ...(spamResult.items || []).map(i => i.number),
               ...(slopResult.items || []).map(i => i.number)
             ]);
-            const spamPRs = { length: spamSet.size };
 
-            if (spamPRs.length >= 2) {
+            if (spamSet.size >= 2) {
               await github.rest.issues.createComment({ owner, repo, issue_number,
-                body: `🚫 @${username}, your assignment request has been **denied**.\n\nYou have ${spamPRs.length} PRs previously flagged as spam/AI-slop. Please contact a maintainer to appeal.` });
+                body: `🚫 @${username}, your assignment request has been **denied**.\n\nYou have ${spamSet.size} PRs previously flagged as spam/AI-slop. Please contact a maintainer to appeal.` });
               return;
             }
 

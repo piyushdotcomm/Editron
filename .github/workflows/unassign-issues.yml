@@ -38,6 +38,9 @@ jobs:
             for (const issue of issues) {
               if (issue.pull_request) continue; // skip PRs
 
+              // Skip API calls entirely if the issue has been active recently
+              if (new Date(issue.updated_at) > cutoff) continue;
+
               const comments = await github.paginate(
                 github.rest.issues.listComments,
                 { owner, repo, issue_number: issue.number, per_page: 100 }

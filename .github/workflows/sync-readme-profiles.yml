@@ -30,24 +30,15 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             
-            // Fetch all merged PR authors
+            // Fetch all contributors efficiently
             const contributors = new Set();
-            let page = 1;
-            while (true) {
-              const prs = await github.rest.pulls.list({
-                owner,
-                repo,
-                state: 'closed',
-                per_page: 100,
-                page
-              });
-              if (prs.data.length === 0) break;
-              for (const pr of prs.data) {
-                if (pr.merged_at && pr.user && pr.user.type !== 'Bot') {
-                  contributors.add(pr.user.login);
-                }
+            const contribs = await github.paginate(github.rest.repos.listContributors, {
+              owner, repo, per_page: 100
+            });
+            for (const user of contribs) {
+              if (user.type !== 'Bot') {
+                contributors.add(user.login);
               }
-              page++;
             }
             
             // Read mentors

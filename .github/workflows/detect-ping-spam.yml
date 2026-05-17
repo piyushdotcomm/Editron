@@ -42,8 +42,11 @@ jobs:
             }
 
             // Skip valid assignment commands (handled by issue-context-assignment workflow)
-            const trimmedBody = body.trim();
-            if (/^(\/assign|assign me|\/unassign|unassign me)$/.test(trimmedBody)) return;
+            // Relaxed the strict matching so comments like "/assign gssoc" or "please assign me" are correctly skipped by the spam detector
+            if (body.includes('/assign') || body.includes('assign me') || body.includes('/unassign') || body.includes('unassign me')) {
+              core.info('Comment contains assignment commands, skipping spam check.');
+              return;
+            }
 
             // Spam ping patterns (common during GSSOC/NSOC)
             const spamPatterns = [
