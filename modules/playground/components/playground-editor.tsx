@@ -1,4 +1,6 @@
 "use client";
+
+import { TIMEOUTS } from "@/lib/constants/config";
 import { useRef, useEffect, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import {
@@ -178,7 +180,7 @@ const PlaygroundEditor = ({
           // Wait with debounce (return promise that resolves after delay)
           await new Promise<void>((resolve) => {
             if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = setTimeout(resolve, 1500);
+            debounceTimerRef.current = setTimeout(resolve, TIMEOUTS.EDITOR_DEBOUNCE);
           });
 
           if (token.isCancellationRequested) return { items: [] };

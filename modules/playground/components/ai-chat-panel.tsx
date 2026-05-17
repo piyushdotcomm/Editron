@@ -1,5 +1,6 @@
 "use client";
 
+import { TIMEOUTS } from "@/lib/constants/config";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Sheet,
@@ -124,7 +125,7 @@ export default function AIChatPanel({
     }, [messages]);
 
     useEffect(() => {
-        if (isChatOpen) setTimeout(() => inputRef.current?.focus(), 300);
+        if (isChatOpen) setTimeout(() => inputRef.current?.focus(), TIMEOUTS.CHAT_INPUT_FOCUS);
     }, [isChatOpen]);
 
     // Close provider picker on outside click
