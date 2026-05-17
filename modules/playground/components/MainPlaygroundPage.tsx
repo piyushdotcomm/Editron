@@ -71,6 +71,7 @@ const MainPlaygroundPage = ({ initialData, id }: MainPlaygroundPageProps) => {
   const [templateData, setTemplateDataState] = useState(parsedTemplate);
   const [error] = useState<string | null>(null);
   const { saveTemplateData } = usePlayground(id);
+  const { toggleChat } = useAI();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 const [showAISettings, setShowAISettings] = useState(false);
 const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -114,51 +115,7 @@ const [collaboratorCount, setCollaboratorCount] = useState(0);
     }
   }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);
 
-  useEffect(() => {
-  if (!id) return;
-
-  let cancelled = false;
-
-  void (async () => {
-    try {
-      const token = await fetchCollabToken(id);
-
-      if (cancelled) return;
-
-      const { provider } = getOrCreateYDoc(id, token);
-
-      const updateCollaborators = () => {
-        if (cancelled) return;
-
-        const states = Array.from(provider.awareness.getStates().values());
-
-        const activeUsers = states
-          .filter((s: any) => s.user)
-          .map((s: any) => s.user);
-
-        const uniqueUsers = Array.from(
-          new Map(activeUsers.map((u: any) => [u.name, u])).values()
-        );
-
-        setCollaboratorCount(uniqueUsers.length);
-      };
-
-      provider.awareness.on("change", updateCollaborators);
-
-      updateCollaborators();
-
-      if (cancelled) {
-        provider.awareness.off("change", updateCollaborators);
-      }
-    } catch (error) {
-      console.error("Failed to track collaborators:", error);
-    }
-  })();
-
-  return () => {
-    cancelled = true;
-  };
-}, [id]);
+  
 
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
@@ -342,7 +299,7 @@ if (!playgroundData && !templateData && !error) {
             handleDownloadZip={handleDownloadZip}
             setShowAISettings={setShowAISettings}
             closeAllFiles={closeAllFiles}
-            toggleAIChat={() => useAI.getState().toggleChat()}
+            toggleAIChat={toggleChat}
           />
 
           {/* ==== CONTENT ==== */}
@@ -407,7 +364,7 @@ if (!playgroundData && !templateData && !error) {
                 <WelcomeScreen
                   projectTitle={playgroundData?.title}
                   onTogglePreview={() => setIsPreviewVisible(true)}
-                  onOpenAI={() => useAI.getState().toggleChat()}
+                  onOpenAI={toggleChat}
                   onDownload={handleDownloadZip}
                   onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
                 />
@@ -443,7 +400,7 @@ if (!playgroundData && !templateData && !error) {
           onSaveAll={handleSaveAll}
           onDownload={handleDownloadZip}
           onTogglePreview={() => setIsPreviewVisible((prev) => !prev)}
-          onToggleAI={() => useAI.getState().toggleChat()}
+          onToggleAI={toggleChat}
           onToggleSidebar={() => sidebar.toggleSidebar()}
           onOpenSettings={() => setShowAISettings(true)}
           onCloseAllFiles={closeAllFiles}
