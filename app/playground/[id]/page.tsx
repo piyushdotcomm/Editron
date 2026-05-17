@@ -65,9 +65,15 @@ const PlaygroundPageContent = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
-  const { playgroundData, templateData, isLoading, error, saveTemplateData } =
+  const { playgroundData, templateData, isLoading, isSuccess, error, saveTemplateData } =
     usePlayground(id);
   const sidebar = useSidebar();
+
+  useEffect(() => {
+    if (isSuccess && templateData) {
+      toast.success("Playground loaded successfully");
+    }
+  }, [isSuccess, templateData]);
 
   const {
     setTemplateData,
@@ -277,9 +283,16 @@ if (containerSynced) {
         );
         setOpenFiles(updatedOpenFiles);
 
-        containerSynced
-  ? toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`)
-  : toast.warning(`Saved to DB — WebContainer not ready, preview won't reflect changes yet`);
+        if (containerSynced) {
+					toast.success(
+						`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`,
+					);
+				} else {
+					toast.warning(
+						`Saved to DB — WebContainer not ready, preview won't reflect changes yet`,
+					);
+				}
+
       } catch (error) {
         console.error("Error saving file:", error);
         toast.error(
@@ -310,7 +323,7 @@ if (containerSynced) {
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (_error) {
+    } catch {
       toast.error("Failed to save some files");
     }
   }, [openFiles, handleSave]);

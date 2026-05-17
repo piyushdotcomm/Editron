@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0px);
@@ -127,6 +126,17 @@
   --radius-xl: calc(var(--radius) + 4px);
   --animate-highlight: highlight 0.6s ease forwards;
   --animate-flash: flash 0.6s ease forwards;
+    --color-preview-toolbar: var(--preview-toolbar);
+  --color-preview-canvas: var(--preview-canvas);
+  --color-mac-close: var(--mac-close);
+  --color-mac-close-border: var(--mac-close-border);
+  --color-mac-minimize: var(--mac-minimize);
+  --color-mac-minimize-border: var(--mac-minimize-border);
+  --color-mac-maximize: var(--mac-maximize);
+  --color-mac-maximize-border: var(--mac-maximize-border);
+  --color-mac-close-hover: var(--mac-close-hover);
+  --color-mac-minimize-hover: var(--mac-minimize-hover);
+  --color-mac-maximize-hover: var(--mac-maximize-hover);
 }
 
 :root {
@@ -162,6 +172,17 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  --preview-toolbar: #f8f9fa;
+  --preview-canvas: #f0f0f0;
+  --mac-close: #ff5f56;
+  --mac-close-border: #e0443e;
+  --mac-minimize: #ffbd2e;
+  --mac-minimize-border: #dea123;
+  --mac-maximize: #27c93f;
+  --mac-maximize-border: #1aab29;
+  --mac-close-hover: #ff5f56cc;
+  --mac-minimize-hover: #ffbd2ecc;
+  --mac-maximize-hover: #27c93fcc;
 }
 
 .dark {
@@ -196,6 +217,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+  --preview-toolbar: #18181a;
+  --preview-canvas: #0c0c0e;
 }
 
 @layer base {
@@ -229,7 +252,6 @@
 
 /* Respect user's reduced motion preference (WCAG 2.3) */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {

@@ -1,0 +1,89 @@
+name: 🔄 Sync README Profiles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/reviewers/gssoc-mentors.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update README
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Fetch all contributors efficiently
+            const contributors = new Set();
+            const contribs = await github.paginate(github.rest.repos.listContributors, {
+              owner, repo, per_page: 100
+            });
+            for (const user of contribs) {
+              if (user.type !== 'Bot') {
+                contributors.add(user.login);
+              }
+            }
+            
+            // Read mentors
+            let mentors = [];
+            try {
+              const mentorsData = JSON.parse(fs.readFileSync('.github/reviewers/gssoc-mentors.json', 'utf8'));
+              mentors = mentorsData.reviewers || [];
+            } catch (e) {
+              core.warning('Could not read mentors.json: ' + e.message);
+            }
+            
+            // Build HTML
+            const buildHtml = (users) => {
+              return Array.from(users).map(user => 
+                `<a href="https://github.com/${user}"><img src="https://github.com/${user}.png" width="50px" alt="${user}" /></a>`
+              ).join('');
+            };
+            
+            const contributorsHtml = buildHtml(contributors);
+            const mentorsHtml = buildHtml(mentors);
+            
+            // Update README
+            let readme = fs.readFileSync('README.md', 'utf8');
+            
+            readme = readme.replace(
+              /<!-- CONTRIBUTORS_START -->[\s\S]*<!-- CONTRIBUTORS_END -->/,
+              `<!-- CONTRIBUTORS_START -->\n${contributorsHtml}\n<!-- CONTRIBUTORS_END -->`
+            );
+            
+            readme = readme.replace(
+              /<!-- GSSOC_MENTORS_START -->[\s\S]*<!-- GSSOC_MENTORS_END -->/,
+              `<!-- GSSOC_MENTORS_START -->\n${mentorsHtml}\n<!-- GSSOC_MENTORS_END -->`
+            );
+            
+            fs.writeFileSync('README.md', readme);
+            core.info('README updated successfully.');
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "docs: sync contributors and mentors in README"
+          title: "docs: sync contributors and mentors in README"
+          body: |
+            Automated backfill of contributors and mentors profiles.
+          branch: sync-readme-profiles
+          delete-branch: true
+          add-paths: |
+            README.md

@@ -22,7 +22,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Editron | AI-Powered Cloud Code Editor",
+  title: {
+    default: "Editron",
+    template: "%s | Editron",
+  },
   description: "A fast, browser-based development environment with WebContainers, 40+ starter templates, live previews, and integrated AI assistance (Gemini, Groq, Mistral). Stop installing, start coding.",
   keywords: ["cloud editor", "webcontainers", "browser ide", "ai code assistant", "nextjs templates", "react playground", "online code editor"],
   openGraph: {

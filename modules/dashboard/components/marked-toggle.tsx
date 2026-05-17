@@ -45,7 +45,7 @@ export const MarkedToggleButton = forwardRef<HTMLButtonElement, MarkedToggleButt
       } catch (error) {
         console.error("Failed to toggle mark for revision:", error)
         setIsMarked(!newMarkedState) // Revert state if the update fails
-        // You might want to add a toast notification here for the user
+        toast.error("Failed to update favorite status")
       }
     }
 

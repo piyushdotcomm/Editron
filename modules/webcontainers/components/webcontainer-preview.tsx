@@ -28,7 +28,7 @@ import { useWebContainerStore } from "../hooks/useWebContainer";
 interface WebContainerPreviewProps {
   templateData: TemplateFolder;
   serverUrl: string;
-  isLoading: boolean;
+  
   error: string | null;
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
@@ -38,7 +38,7 @@ const WebContainerPreview = ({
   templateData,
   error,
   instance,
-  isLoading,
+ 
   serverUrl,
   writeFileSync : _writeFileSync,
   forceResetup = false,
@@ -734,7 +734,8 @@ const WebContainerPreview = ({
         );
 
         instance.on("server-ready", (port: number, url: string) => {
-          // todo: Terminal logic
+          // Surface the active preview URL in the embedded terminal so users can
+          // diagnose which WebContainer server was selected when multiple ports start.
           if (terminalRef.current?.writeToTerminal) {
             terminalRef.current.writeToTerminal(
               `🌐 Server ready at ${url} (port ${port})\r\n`,
@@ -804,19 +805,7 @@ const WebContainerPreview = ({
   };
 }, []);
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md p-6 rounded-lg bg-gray-50 dark:bg-gray-900">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <h3 className="text-lg font-medium">Initializing WebContainer</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Setting up the environment for your project...
-          </p>
-        </div>
-      </div>
-    );
-  }
+ 
 
   if (error || setupError) {
     return (
@@ -928,12 +917,12 @@ const WebContainerPreview = ({
       ) : (
         <div className="h-full flex flex-col min-h-0 bg-background">
           {/* Top Bar (Browser Controls) */}
-          <div className="flex items-center justify-between px-3 py-2 bg-[#f8f9fa] dark:bg-[#18181a] border-b border-border/40 drag-handle">
+          <div className="flex items-center justify-between px-3 py-2 bg-preview-toolbar border-b border-border/40 drag-handle">
             <div className="flex items-center gap-4 shrink-0">
               <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] hover:bg-[#ff5f56]/80 cursor-pointer shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] hover:bg-[#ffbd2e]/80 cursor-pointer shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] hover:bg-[#27c93f]/80 cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-close border-mac-close-border hover:bg-mac-close-hover cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-minimize border-mac-minimize-border hover:bg-mac-minimize-hover cursor-pointer shadow-sm" />
+                <div className="w-3 h-3 rounded-full border bg-mac-maximize border-mac-maximize-border hover:bg-mac-maximize-hover cursor-pointer shadow-sm" />
               </div>
 
               <div className="flex items-center gap-0.5">
@@ -1008,7 +997,7 @@ const WebContainerPreview = ({
           </div>
 
           {/* Preview Iframe Container */}
-          <div className="flex-1 min-h-0 flex items-center justify-center bg-[#f0f0f0] dark:bg-[#0c0c0e] overflow-hidden relative">
+          <div className="flex-1 min-h-0 flex items-center justify-center bg-preview-canvas overflow-hidden relative">
             <div
               className="h-full relative transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] bg-background flex flex-col shadow-xl"
               style={{

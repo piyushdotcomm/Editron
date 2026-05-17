@@ -1,21 +1,22 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import { WebLinksAddon } from "xterm-addon-web-links";
-import { SearchAddon } from "xterm-addon-search";
-import "xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { SearchAddon } from "@xterm/addon-search";
+import "@xterm/xterm/css/xterm.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Copy, Trash2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
 interface TerminalProps {
   webcontainerUrl?: string;
   className?: string;
   theme?: "dark" | "light";
-  webContainerInstance?: any;
+  webContainerInstance?: WebContainer | null;
 }
 
 // Define the methods that will be exposed through the ref
@@ -45,8 +46,8 @@ const
     const cursorPosition = useRef<number>(0);
     const commandHistory = useRef<string[]>([]);
     const historyIndex = useRef<number>(-1);
-    const currentProcess = useRef<any>(null);
-    const shellProcess = useRef<any>(null);
+    const currentProcess = useRef<WebContainerProcess | null>(null);
+    const shellProcess = useRef<WebContainerProcess | null>(null);
 
     const terminalThemes = {
       dark: {

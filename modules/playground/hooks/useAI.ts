@@ -1,6 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
+
+export type FileSystemItem = TemplateFile | TemplateFolder;
 
 export type AIProvider = "gemini" | "groq" | "mistral";
 
@@ -127,7 +130,14 @@ export const useAI = create<AIState>((set, get) => {
 });
 
 // --- Helpers ---
-export function collectFilePaths(items: any[], prefix = ""): string[] {
+/**
+ * Recursively collects all file paths from a nested folder structure.
+ * 
+ * @param items - Array of template files and folders.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns Array of relative file and folder paths.
+ */
+export function collectFilePaths(items: FileSystemItem[], prefix = ""): string[] {
     const paths: string[] = [];
     for (const item of items) {
         if ("folderName" in item) {
@@ -142,7 +152,15 @@ export function collectFilePaths(items: any[], prefix = ""): string[] {
     return paths;
 }
 
-export function findFileByPath(items: any[], targetPath: string, prefix = ""): any | null {
+/**
+ * Finds a file within the nested template structure by its full path.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to find.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns The found file object or null if not found.
+ */
+export function findFileByPath(items: FileSystemItem[], targetPath: string, prefix = ""): FileSystemItem | null {
     for (const item of items) {
         if ("folderName" in item) {
             const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
@@ -157,21 +175,38 @@ export function findFileByPath(items: any[], targetPath: string, prefix = ""): a
     return null;
 }
 
-export function deleteFileByPath(items: any[], targetPath: string, prefix = ""): any[] {
-    return items.filter((item) => {
+/**
+ * Returns a new array with the specified file removed from the structure.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to delete.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns A new items array with the file removed.
+ */
+export function deleteFileByPath(items: FileSystemItem[], targetPath: string, prefix = ""): FileSystemItem[] {
+    return items.reduce<FileSystemItem[]>((acc, item) => {
         if ("folderName" in item) {
-            const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
-            item.items = deleteFileByPath(item.items, targetPath, fp);
-            return true;
+            const currentPath = prefix ? `${prefix}/${item.folderName}` : item.folderName;
+            acc.push({ ...item, items: deleteFileByPath(item.items as FileSystemItem[], targetPath, currentPath) });
         } else {
             const ext = item.fileExtension ? `.${item.fileExtension}` : "";
-            const filePath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
-            return filePath !== targetPath;
+            const currentPath = prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`;
+            if (currentPath !== targetPath) acc.push(item);
         }
-    });
+        return acc;
+    }, []);
 }
 
-export function addOrUpdateFile(items: any[], targetPath: string, newContent: string, prefix = ""): any[] {
+/**
+ * Recursively updates an existing file or creates it along with missing intermediate folders.
+ * 
+ * @param items - Array of template files and folders.
+ * @param targetPath - The full path of the file to update or create.
+ * @param newContent - The content to write to the file.
+ * @param prefix - Optional prefix for the current path level.
+ * @returns A new items array containing the updated or created file.
+ */
+export function addOrUpdateFile(items: FileSystemItem[], targetPath: string, newContent: string, prefix = ""): FileSystemItem[] {
     // 1. Try to find and update existing file
 
     // If we found and updated the file (or it was handled in recursion which we can't easily detect with just map),
@@ -193,7 +228,7 @@ export function addOrUpdateFile(items: any[], targetPath: string, newContent: st
             if ("folderName" in item) {
                 const fp = prefix ? `${prefix}/${item.folderName}` : item.folderName;
                 if (targetPath.startsWith(fp + "/")) {
-                    return { ...item, items: addOrUpdateFile(item.items, targetPath, newContent, fp) };
+                    return { ...item, items: addOrUpdateFile(item.items as FileSystemItem[], targetPath, newContent, fp) };
                 }
                 return item;
             } else {
@@ -202,7 +237,7 @@ export function addOrUpdateFile(items: any[], targetPath: string, newContent: st
                 if (filePath === targetPath) return { ...item, content: newContent };
                 return item;
             }
-        });
+        }) as FileSystemItem[];
     }
 
     // 2. If not found, we need to create it.
@@ -227,11 +262,11 @@ export function addOrUpdateFile(items: any[], targetPath: string, newContent: st
     if (folderIndex > -1) {
         // Folder exists, recurse into it
         const newItems = [...items];
-        const folder = newItems[folderIndex];
+        const folder = newItems[folderIndex] as TemplateFolder;
         const fp = prefix ? `${prefix}/${folder.folderName}` : folder.folderName;
         newItems[folderIndex] = {
             ...folder,
-            items: addOrUpdateFile(folder.items, targetPath, newContent, fp)
+            items: addOrUpdateFile(folder.items as FileSystemItem[], targetPath, newContent, fp)
         };
         return newItems;
     } else {

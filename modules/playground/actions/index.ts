@@ -2,9 +2,11 @@
 
 import { db } from "@/lib/db"
 import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
-import { TemplateFolder } from "../lib/path-to-json";
+import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json";
 import { revalidatePath } from "next/cache";
 import { currentUser } from "@/modules/auth/actions";
+import { templatePaths, TemplateKey } from "@/lib/template";
+import path from "path";
 
 
 // Toggle marked status for a problem
@@ -97,24 +99,64 @@ export const getAllPlaygroundForUser = async ()=>{
     }
 }
 
-export const getPlaygroundById = async (id:string)=>{
+export const getPlaygroundById = async (id: string) => {
     try {
         const userId = await requireCurrentUserId();
         const playground = await db.playground.findFirst({
-            where:{id, userId},
-            select:{
+            where: { id, userId },
+            select: {
                 id: true,
-                title:true,
-              templateFiles:{
-                select:{
-                  content:true
+                title: true,
+                template: true,
+                templateFiles: {
+                    select: {
+                        content: true
+                    }
                 }
-              }
             }
-        })
-        return playground;
+        });
+
+        if (!playground) return null;
+
+        let templateData: TemplateFolder | null = null;
+        const rawContent = playground.templateFiles?.[0]?.content;
+
+        if (rawContent) {
+            try {
+                templateData = typeof rawContent === "string"
+                    ? JSON.parse(rawContent)
+                    : rawContent;
+            } catch (error) {
+                console.error("Error parsing template content from DB:", error);
+            }
+        }
+
+        // If no template data in DB, fall back to scanning the template directory
+        if (!templateData) {
+            const templateKey = playground.template as TemplateKey;
+            const templatePath = templatePaths[templateKey];
+
+            if (templatePath) {
+                try {
+                    const fullPath = path.join(process.cwd(), templatePath);
+                    templateData = await scanTemplateDirectory(fullPath);
+                } catch (error) {
+                    console.error("Error scanning template directory:", error);
+                }
+            }
+        }
+
+        return {
+            playgroundData: {
+                id: playground.id,
+                title: playground.title,
+                template: playground.template,
+            },
+            templateData
+        };
     } catch (error) {
-        console.log(error)
+        console.error("Error in getPlaygroundById:", error);
+        throw error;
     }
 }
 
