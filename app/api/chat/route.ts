@@ -57,10 +57,13 @@ const PROVIDER_CONFIG: Record<ProviderName, {
 const RATE_LIMIT_REQUESTS = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 
+// Centralized role definition
+const VALID_MESSAGE_ROLES = ["system", "user", "assistant"] as const;
+
 // ─── Request Schema ───────────────────────────────────────────────────────────
 
 const IncomingMessageSchema = z.object({
-  role: z.enum(["system", "user", "assistant"]),
+  role: z.enum(VALID_MESSAGE_ROLES),
   content: z.string().optional(),
   parts: z.array(
     z.object({
@@ -68,7 +71,7 @@ const IncomingMessageSchema = z.object({
       text: z.string(),
     }),
   ).optional(),
-});
+}).passthrough(); // Prevent Zod from stripping additional AI SDK fields
 
 const RequestBodySchema = z.object({
   messages: z.array(IncomingMessageSchema).max(100),
@@ -128,9 +131,11 @@ function capitalize(s: string): string {
 
 type MessagePart = { type: string; text: string };
 type ChatMessage = {
-  role: "system" | "user" | "assistant";
+  role: typeof VALID_MESSAGE_ROLES[number];
   content?: string;
   parts?: MessagePart[];
+  // Allow other AI SDK fields to pass through seamlessly
+  [key: string]: any;
 };
 
 /**
@@ -152,7 +157,8 @@ function sanitizeMessages(
 
     const m = item as ChatMessage;
 
-    if (!["system", "user", "assistant"].includes(m.role)) {
+    // Utilize the shared constant to validate roles dynamically
+    if (!VALID_MESSAGE_ROLES.includes(m.role)) {
       return NextResponse.json(
         { success: false, error: "Invalid message role" },
         { status: 400 },
