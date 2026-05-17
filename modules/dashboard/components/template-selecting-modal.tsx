@@ -12,6 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
+import type { TemplateCategory } from "@/lib/templates/types";
 import type { TemplateKey } from "@/lib/template";
 import {
   ChevronRight,
@@ -24,7 +26,7 @@ import {
   Globe,
   Terminal,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates/types";
@@ -52,32 +54,44 @@ const TemplateSelectionModal = ({
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | "all">("all");
 
-  const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
+  const [availableTemplates] = useState<TemplateSummary[]>(() => getTemplateSummariesWithMeta());
 
-  useEffect(() => {
-    let mounted = true;
-    fetch('/api/templates/meta')
-      .then((r) => r.json())
-      .then((data) => {
-        if (mounted && Array.isArray(data)) setAvailableTemplates(data);
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const categoryTabs: Array<{ key: TemplateCategory | "all"; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "frontend", label: "Frontend" },
+    { key: "backend", label: "Backend" },
+    { key: "fullstack", label: "Fullstack" },
+    { key: "tooling", label: "Tooling" },
+  ];
 
-  const filteredTemplates = availableTemplates.filter((template) => {
-    const matchesSearch =
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredTemplates = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return matchesSearch;
-  });
+    return availableTemplates.filter((template) => {
+      const matchesCategory =
+        selectedCategory === "all" || template.category === selectedCategory;
+      const matchesSearch =
+        normalizedQuery.length === 0 ||
+        template.name.toLowerCase().includes(normalizedQuery) ||
+        template.description.toLowerCase().includes(normalizedQuery) ||
+        template.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery));
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [availableTemplates, searchQuery, selectedCategory]);
 
   const selectedTemplateSummary =
     availableTemplates.find((template) => template.id === selectedTemplate) ?? null;
+
+  const resetSelectionState = () => {
+    setStep("select");
+    setSelectedTemplate(null);
+    setProjectName("");
+    setSearchQuery("");
+    setSelectedCategory("all");
+  };
 
 
   const handleSelectTemplate = (templateId: string) => {
@@ -100,9 +114,7 @@ const TemplateSelectionModal = ({
 
       onClose();
       // Reset state for next time
-      setStep("select");
-      setSelectedTemplate(null);
-      setProjectName("");
+      resetSelectionState();
     }
   };
 
@@ -117,9 +129,7 @@ const TemplateSelectionModal = ({
         if (!open) {
           onClose();
           // Reset state when closing
-          setStep("select");
-          setSelectedTemplate(null);
-          setProjectName("");
+          resetSelectionState();
         }
       }}
     >
@@ -150,6 +160,25 @@ const TemplateSelectionModal = ({
                     className="pl-10"
                   />
                 </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {categoryTabs.map((tab) => (
+                  <Button
+                    key={tab.key}
+                    type="button"
+                    variant={selectedCategory === tab.key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(tab.key)}
+                    className={
+                      selectedCategory === tab.key
+                        ? "bg-[#E93F3F] hover:bg-[#d03636] text-white"
+                        : ""
+                    }
+                  >
+                    {tab.label}
+                  </Button>
+                ))}
               </div>
 
               <RadioGroup

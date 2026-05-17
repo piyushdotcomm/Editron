@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import type { TemplateSummary } from "@/lib/templates/types";
-import { ArrowRight, Code2, Globe2 } from "lucide-react";
+import { ArrowRight, Code2, Globe2, Server, Terminal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -90,8 +90,20 @@ export function TemplateCard({ template, featured = false }: TemplateCardProps) 
 }
 
 function TemplateTypeIcon({ template }: { template: TemplateSummary }) {
+    if (template.category === "frontend") {
+        return <Code2 size={16} className="text-blue-500" aria-hidden="true" />;
+    }
+
+    if (template.category === "backend") {
+        return <Server size={16} className="text-green-500" aria-hidden="true" />;
+    }
+
     if (template.category === "fullstack") {
         return <Globe2 size={16} className="text-purple-500" aria-hidden="true" />;
+    }
+
+    if (template.category === "tooling") {
+        return <Terminal size={16} className="text-orange-500" aria-hidden="true" />;
     }
 
     return <Code2 size={16} className="text-blue-500" aria-hidden="true" />;

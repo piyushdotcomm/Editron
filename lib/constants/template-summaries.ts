@@ -1,5 +1,3 @@
-import "server-only";
-
 import { templates } from "@/lib/constants/templates";
 import type { TemplateSummary } from "@/lib/templates/types";
 

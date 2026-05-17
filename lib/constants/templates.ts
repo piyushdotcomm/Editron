@@ -1,5 +1,3 @@
-import "server-only";
-
 import type { TemplateOption } from "@/lib/templates/types";
 
 export const templates: TemplateOption[] = [

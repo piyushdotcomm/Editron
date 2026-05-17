@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
-import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 import { Button } from "@/components/ui/button";
 import { CommitsGrid } from "@/components/ui/commits-grid";
 import { TemplateCard } from "@/components/marketing/template-card";
@@ -11,6 +11,11 @@ import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";
 import type { TemplateSummary } from "@/lib/templates/types";
 import { cn } from "@/lib/utils";
+
+const AnimatedShaderBackground = dynamic(
+  () => import("@/components/ui/animated-shader-background"),
+  { ssr: false },
+);
 
 interface HomePageClientProps {
   popularTemplates: TemplateSummary[];
