@@ -3,6 +3,13 @@ import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 
+class ValidationError extends Error {
+    constructor(message: string, public status: number = 400) {
+        super(message);
+        this.name = "ValidationError";
+    }
+}
+
 interface TemplateFile {
     filename: string;
     fileExtension: string;
@@ -47,20 +54,24 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
             // @ts-ignore - access internal JSZip metadata for safety
-            const size = file._data?.uncompressedSize || 0;
-            
+            const size = file._data?.uncompressedSize;
+
+            if (typeof size !== "number") {
+                throw new ValidationError(`Cannot determine uncompressed size for file: ${relativePath}`, 400);
+            }
+
             if (size > MAX_SINGLE_FILE_SIZE) {
                 console.warn(`Skipping oversized file: ${relativePath} (${size} bytes)`);
                 return;
             }
-            
+
             totalUncompressedSize += size;
             filePaths.push(relativePath);
         }
     });
 
     if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
-        throw new Error(`Total uncompressed size exceeds 100MB limit (${totalUncompressedSize} bytes)`);
+        throw new ValidationError(`Total uncompressed size exceeds 100MB limit (${totalUncompressedSize} bytes)`, 413);
     }
 
     // Detect common root folder (e.g. "my-project/src/..." -> strip "my-project/")
@@ -180,6 +191,14 @@ export async function POST(request: NextRequest) {
         });
     } catch (error: any) {
         console.error("ZIP upload error:", error);
+
+        if (error instanceof ValidationError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status }
+            );
+        }
+
         return NextResponse.json(
             { error: error.message || "Failed to process ZIP file" },
             { status: 500 }
