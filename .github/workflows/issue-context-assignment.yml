@@ -17,10 +17,10 @@ jobs:
   handle-assignment:
     if: >-
       github.event.issue.pull_request == null &&
-      (contains(tolower(github.event.comment.body), '/assign') ||
-       contains(tolower(github.event.comment.body), 'assign me') ||
-       contains(tolower(github.event.comment.body), '/unassign') ||
-       contains(tolower(github.event.comment.body), 'unassign me'))
+      (contains(github.event.comment.body, '/assign') ||
+       contains(github.event.comment.body, 'assign me') ||
+       contains(github.event.comment.body, '/unassign') ||
+       contains(github.event.comment.body, 'unassign me'))
     runs-on: ubuntu-latest
     steps:
       - name: Smart Assignment Validation
