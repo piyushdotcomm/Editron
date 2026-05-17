@@ -41,6 +41,21 @@ jobs:
               return;
             }
 
+            // Ignore GSSoC mentors
+            try {
+              const { data: fileData } = await github.rest.repos.getContent({
+                owner, repo, path: '.github/reviewers/gssoc-mentors.json'
+              });
+              const content = Buffer.from(fileData.content, 'base64').toString('utf8');
+              const mentorsData = JSON.parse(content);
+              if ((mentorsData.reviewers || []).some(m => m.toLowerCase() === username.toLowerCase())) {
+                core.info('Ignoring GSSOC mentor comment.');
+                return;
+              }
+            } catch (e) {
+              core.info('Could not check mentors list: ' + e.message);
+            }
+
             // Skip valid assignment commands (handled by issue-context-assignment workflow)
             // Relaxed the strict matching so comments like "/assign gssoc" or "please assign me" are correctly skipped by the spam detector
             if (body.includes('/assign') || body.includes('assign me') || body.includes('/unassign') || body.includes('unassign me')) {
