@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
+import { Prisma } from "@prisma/client";
 
 class ValidationError extends Error {
     constructor(message: string, public status: number = 400) {
@@ -53,7 +54,7 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
 
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
-            // @ts-ignore - access internal JSZip metadata for safety
+            // @ts-expect-error - access internal JSZip metadata for safety
             const size = file._data?.uncompressedSize;
 
             if (typeof size !== "number") {
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
         await db.templateFile.create({
             data: {
                 playgroundId: playground.id,
-                content: templateData as any,
+                content: templateData as Prisma.InputJsonValue,
             },
         });
 
