@@ -33,6 +33,10 @@ import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useChat } from "@ai-sdk/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface AIChatPanelProps {
     templateData: TemplateFolder | null;
@@ -361,8 +365,8 @@ export default function AIChatPanel({
                         <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-300">
                             {isGenuineUser && (
                                 <div className="flex gap-2 justify-end mb-4">
-                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap">
-                                        {textContent}
+                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap prose prose-invert prose-sm">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{textContent}</ReactMarkdown>
                                     </div>
                                     <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
                                         <User className="h-3.5 w-3.5 text-primary" />
@@ -376,8 +380,38 @@ export default function AIChatPanel({
                                     </div>
                                     <div className="flex-1 space-y-2 min-w-0">
                                         {textContent && (
-                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground shadow-sm">
-                                                {textContent}
+                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed text-foreground shadow-sm prose dark:prose-invert prose-sm prose-p:leading-relaxed prose-pre:p-0 prose-pre:bg-transparent">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        code({ node, inline, className, children, ...props }: any) {
+                                                            const match = /language-(\w+)/.exec(className || "");
+                                                            return !inline && match ? (
+                                                                <div className="rounded-md overflow-hidden my-2">
+                                                                    <SyntaxHighlighter
+                                                                        style={vscDarkPlus}
+                                                                        language={match[1]}
+                                                                        PreTag="div"
+                                                                        customStyle={{
+                                                                            margin: 0,
+                                                                            borderRadius: '0.375rem',
+                                                                            fontSize: '12px',
+                                                                        }}
+                                                                        {...props}
+                                                                    >
+                                                                        {String(children).replace(/\n$/, "")}
+                                                                    </SyntaxHighlighter>
+                                                                </div>
+                                                            ) : (
+                                                                <code className={className} {...props}>
+                                                                    {children}
+                                                                </code>
+                                                            );
+                                                        },
+                                                    }}
+                                                >
+                                                    {textContent}
+                                                </ReactMarkdown>
                                             </div>
                                         )}
                                         {toolParts.map((ti: any) => {
