@@ -2,7 +2,7 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 
-type FallbackRenderProps = {
+export type FallbackRenderProps = {
     error: Error | null;
     reset: () => void;
 };
