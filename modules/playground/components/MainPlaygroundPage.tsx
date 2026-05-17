@@ -117,14 +117,19 @@ const [collaboratorCount, setCollaboratorCount] = useState(0);
   useEffect(() => {
   if (!id) return;
 
-  let cleanup = () => {};
+  let cancelled = false;
 
   void (async () => {
     try {
       const token = await fetchCollabToken(id);
+
+      if (cancelled) return;
+
       const { provider } = getOrCreateYDoc(id, token);
 
       const updateCollaborators = () => {
+        if (cancelled) return;
+
         const states = Array.from(provider.awareness.getStates().values());
 
         const activeUsers = states
@@ -142,16 +147,16 @@ const [collaboratorCount, setCollaboratorCount] = useState(0);
 
       updateCollaborators();
 
-      cleanup = () => {
+      if (cancelled) {
         provider.awareness.off("change", updateCollaborators);
-      };
+      }
     } catch (error) {
       console.error("Failed to track collaborators:", error);
     }
   })();
 
   return () => {
-    cleanup();
+    cancelled = true;
   };
 }, [id]);
 
