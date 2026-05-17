@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
   // Enable gzip compression for all responses
   compress: true,
+  // Allow a custom build output directory via NEXT_DIST_DIR for bundle analysis or other build workflows.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
 
   images: {
     remotePatterns: [
@@ -101,5 +104,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  openAnalyzer: false,
+});
 
+export default withBundleAnalyzer(nextConfig);
