@@ -1,5 +1,6 @@
 "use client";
 
+import { TIMEOUTS } from "@/lib/constants/config";
 import { motion } from "motion/react";
 import { Terminal, Copy, Check, Circle } from "lucide-react";
 import { useState } from "react";
@@ -28,7 +29,7 @@ export function HeroCodeDemo() {
 
     const onCopy = () => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setCopied(false), TIMEOUTS.COPY_RESET);
     };
 
     return (
