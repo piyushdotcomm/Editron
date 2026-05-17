@@ -10,7 +10,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: smart-issue-assignment-${{ github.actor }}
+  group: smart-issue-assignment-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
@@ -124,7 +124,11 @@ jobs:
               }
             }
 
-            let activeIssues = [];
+            // Fetch active issues unconditionally for accurate count
+            const assignedIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', assignee: username, per_page: 100
+            });
+            const activeIssues = assignedIssues.filter(i => !i.pull_request);
 
             if (!isMaintainerOrMentor) {
               const { data: userProfile } = await github.rest.users.getByUsername({ username });
@@ -165,10 +169,6 @@ jobs:
               }
 
               const maxAssignments = mentionsGSSOC ? 2 : 3;
-              const assignedIssues = await github.paginate(github.rest.issues.listForRepo, {
-                owner, repo, state: 'open', assignee: username, per_page: 100
-              });
-              activeIssues = assignedIssues.filter(i => !i.pull_request);
 
               if (activeIssues.length >= maxAssignments) {
                 await github.rest.issues.createComment({ owner, repo, issue_number,
