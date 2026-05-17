@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getTemplateSummaries } from "@/lib/constants/templates";
+import { getTemplateSummariesWithMeta } from "@/lib/constants/templates";
 
 export const dynamic = "force-static";
 
 export function GET() {
-  const summaries = getTemplateSummaries();
+  const summaries = getTemplateSummariesWithMeta();
   return NextResponse.json(summaries);
 }

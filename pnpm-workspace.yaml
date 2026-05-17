@@ -1,7 +1,7 @@
 allowBuilds:
-  '@prisma/client': true
-  '@prisma/engines': true
-  leveldown: true
-  prisma: true
-  sharp: true
-  unrs-resolver: true
+  '@prisma/client': set this to true or false
+  '@prisma/engines': set this to true or false
+  leveldown: set this to true or false
+  prisma: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false

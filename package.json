@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "concurrently \"next dev --turbopack\" \"npm run start:collab\"",
     "build": "next build",
+    "analyze": "ANALYZE=true next build",
     "start": "concurrently \"next start\" \"npm run start:collab\"",
     "start:collab": "npx tsx server/collab.ts",
     "lint": "eslint",
@@ -94,6 +95,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.2.6",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

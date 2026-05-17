@@ -1,14 +1,10 @@
-export interface TemplateOption {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    color: string;
-    popularity: number;
-    tags: string[];
-    features: string[];
-    category: "frontend" | "backend" | "fullstack" | "tooling";
-}
+import "server-only";
+
+import type {
+    TemplateMetadata,
+    TemplateOption,
+    TemplateSummary,
+} from "@/lib/templates/types";
 
 export const templates: TemplateOption[] = [
     // ── Frontend ──────────────────────────────────────────
@@ -506,24 +502,6 @@ export const templates: TemplateOption[] = [
     },
 ];
 
-export interface TemplateMetadata {
-    id?: string;
-    title?: string;
-    description?: string;
-    tags?: string[];
-    icon?: string;
-    color?: string;
-    popularity?: number;
-    category?: TemplateOption["category"];
-}
-
-export interface TemplateSummary {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-}
-
 /**
  * Extract metadata from a TemplateOption or a raw text (supports simple YAML frontmatter).
  */
@@ -555,12 +533,12 @@ export function extractMetadataFromText(content: string): TemplateMetadata {
     const fm = content.match(/^---\n([\s\S]*?)\n---/);
     if (fm) {
         const body = fm[1];
-        const meta: Record<string, any> = {};
+        const meta: Record<string, string | string[] | undefined> = {};
         for (const line of body.split(/\r?\n/)) {
             const m = line.match(/^(\w+)\s*:\s*(.*)$/);
             if (!m) continue;
             const key = m[1];
-            let val: any = m[2].trim();
+            let val: string | string[] | undefined = m[2].trim();
             // array like [a, b]
             if (val.startsWith("[") && val.endsWith("]")) {
                 try {
@@ -609,4 +587,21 @@ export function getTemplateSummaries(): TemplateSummary[] {
         description: template.description,
         icon: template.icon,
     }));
+}
+
+/**
+ * Server-side summaries including small UI metadata (color, popularity, tags, category).
+ * Use only from server components or server API routes to avoid pulling heavy data into client bundles.
+ */
+export function getTemplateSummariesWithMeta(): TemplateSummary[] {
+    return templates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        icon: template.icon,
+        color: template.color,
+        popularity: template.popularity,
+        tags: template.tags,
+        category: template.category,
+    } as TemplateSummary));
 }

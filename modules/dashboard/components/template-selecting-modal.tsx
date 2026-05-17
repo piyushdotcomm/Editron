@@ -19,9 +19,18 @@ import {
   Check,
   Plus,
   Clock,
+  Code,
+  Server,
+  Globe,
+  Terminal,
 } from "lucide-react";
-import Image from "next/image";
 import { useState, useEffect } from "react";
+import type { CSSProperties } from "react";
+import Image from "next/image";
+import type { TemplateSummary } from "@/lib/templates/types";
+
+const ICON_PLACEHOLDER =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3C/svg%3E";
 
 // TemplateSelectionModal.tsx
 type TemplateSelectionModalProps = {
@@ -33,8 +42,6 @@ type TemplateSelectionModalProps = {
     description?: string;
   }) => void;
 };
-
-import type { TemplateSummary } from "@/lib/constants/templates";
 
 const TemplateSelectionModal = ({
   isOpen,
@@ -50,7 +57,7 @@ const TemplateSelectionModal = ({
 
   useEffect(() => {
     let mounted = true;
-    fetch('/api/templates')
+    fetch('/api/templates/meta')
       .then((r) => r.json())
       .then((data) => {
         if (mounted && Array.isArray(data)) setAvailableTemplates(data);
@@ -168,32 +175,38 @@ const TemplateSelectionModal = ({
                           </div>
                         )}
 
-                        <div className="flex gap-4">
-                          <div
-                            className="relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-full"
-                            style={{ backgroundColor: "rgba(233, 63, 63, 0.08)" }}
-                          >
-                            <Image
-                              src={template.icon}
-                              alt={`${template.name} icon`}
-                              width={40}
-                              height={40}
-                              className="object-contain"
-                            />
-                          </div>
-
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-lg font-semibold">
-                                {template.name}
-                              </h3>
+                          <div className="flex gap-4">
+                            <div
+                              className="relative w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-full"
+                              style={getIconTileStyle(template.color)}
+                            >
+                              <IconWithFallback src={template.icon} alt={`${template.name} icon`} size={40} />
                             </div>
 
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {template.description}
-                            </p>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-semibold">
+                                  {template.name}
+                                </h3>
+                                <div className="flex gap-1">
+                                  {(template.category === "frontend") && <Code size={14} className="text-blue-500" />}
+                                  {(template.category === "backend") && <Server size={14} className="text-green-500" />}
+                                  {(template.category === "fullstack") && <Globe size={14} className="text-purple-500" />}
+                                  {(template.category === "tooling") && <Terminal size={14} className="text-orange-500" />}
+                                </div>
+                              </div>
+
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {template.description}
+                              </p>
+
+                              <div className="flex flex-wrap gap-2">
+                                {template.tags?.slice(0,3).map((tag) => (
+                                  <span key={tag} className="text-xs px-2 py-1 bg-muted/20 rounded-full text-muted-foreground">{tag}</span>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        </div>
 
                         <RadioGroupItem
                           value={template.id}
@@ -288,3 +301,39 @@ const TemplateSelectionModal = ({
 };
 
 export default TemplateSelectionModal;
+
+function IconWithFallback({ src, alt, size = 28 }: { src?: string; alt?: string; size?: number }) {
+  const [current, setCurrent] = useState(src || ICON_PLACEHOLDER);
+
+  const tryFallback = () => {
+    setCurrent(ICON_PLACEHOLDER);
+  };
+
+  return (
+    <Image
+      src={current}
+      alt={alt ?? ""}
+      width={size}
+      height={size}
+      className="object-contain"
+      unoptimized
+      onError={tryFallback}
+    />
+  );
+}
+
+function getIconTileStyle(color?: string): CSSProperties {
+  if (!color) {
+    return { backgroundColor: "rgba(233, 63, 63, 0.08)" };
+  }
+
+  if (/^#[0-9a-f]{6}$/i.test(color)) {
+    const red = parseInt(color.slice(1, 3), 16);
+    const green = parseInt(color.slice(3, 5), 16);
+    const blue = parseInt(color.slice(5, 7), 16);
+
+    return { backgroundColor: `rgba(${red}, ${green}, ${blue}, 0.12)` };
+  }
+
+  return { backgroundColor: color };
+}
