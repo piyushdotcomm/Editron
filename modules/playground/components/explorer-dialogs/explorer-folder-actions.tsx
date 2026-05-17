@@ -53,32 +53,24 @@ export function ExplorerFolderActions({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const handleCreateFile = (filename: string, extension: string) => {
-    if (!onAddFile) {
-      return;
-    }
-
     const newFile: TemplateFile = {
       filename,
       fileExtension: extension,
       content: "",
     };
 
-    onAddFile(newFile, currentPath);
+    onAddFile?.(newFile, currentPath);
 
     setIsNewFileDialogOpen(false);
   };
 
   const handleCreateFolder = (folderName: string) => {
-    if (!onAddFolder) {
-      return;
-    }
-
     const newFolder: TemplateFolder = {
       folderName,
       items: [],
     };
 
-    onAddFolder(newFolder, currentPath);
+    onAddFolder?.(newFolder, currentPath);
 
     setIsNewFolderDialogOpen(false);
   };
