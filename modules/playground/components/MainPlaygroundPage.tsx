@@ -2,6 +2,7 @@
 import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { fetchCollabToken, getOrCreateYDoc } from "@/lib/yjs";
 
 import {
   ResizableHandle,
@@ -23,17 +24,10 @@ const PlaygroundEditor = dynamic(
   { ssr: false }
 );
 
-import {
-  AlertCircle,
-  FolderOpen,
-} from "lucide-react";
-import { CollaborationAvatars } from "@/modules/playground/components/collaboration-avatars";
-import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
-import { useParams } from "next/navigation";
 import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
@@ -77,11 +71,13 @@ const MainPlaygroundPage = ({ initialData, id }: MainPlaygroundPageProps) => {
   const [templateData, setTemplateDataState] = useState(parsedTemplate);
   const [error] = useState<string | null>(null);
   const { saveTemplateData } = usePlayground(id);
+  const { toggleChat } = useAI();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 const [showAISettings, setShowAISettings] = useState(false);
 const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
 const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
+const [collaboratorCount, setCollaboratorCount] = useState(0);
   const sidebar = useSidebar();
 
   const {
@@ -118,6 +114,8 @@ const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
       setTemplateData(templateData);
     }
   }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);
+
+  
 
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
@@ -301,7 +299,7 @@ if (!playgroundData && !templateData && !error) {
             handleDownloadZip={handleDownloadZip}
             setShowAISettings={setShowAISettings}
             closeAllFiles={closeAllFiles}
-            toggleAIChat={() => useAI.getState().toggleChat()}
+            toggleAIChat={toggleChat}
           />
 
           {/* ==== CONTENT ==== */}
@@ -366,7 +364,7 @@ if (!playgroundData && !templateData && !error) {
                 <WelcomeScreen
                   projectTitle={playgroundData?.title}
                   onTogglePreview={() => setIsPreviewVisible(true)}
-                  onOpenAI={() => useAI.getState().toggleChat()}
+                  onOpenAI={toggleChat}
                   onDownload={handleDownloadZip}
                   onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
                 />
@@ -378,7 +376,7 @@ if (!playgroundData && !templateData && !error) {
               activeFile={activeFile}
               cursorPosition={cursorPosition}
               containerStatus={containerStatus}
-              collaboratorCount={0}
+              collaboratorCount={collaboratorCount}
               openFileCount={openFiles.length}
             />
           </div>
@@ -402,7 +400,7 @@ if (!playgroundData && !templateData && !error) {
           onSaveAll={handleSaveAll}
           onDownload={handleDownloadZip}
           onTogglePreview={() => setIsPreviewVisible((prev) => !prev)}
-          onToggleAI={() => useAI.getState().toggleChat()}
+          onToggleAI={toggleChat}
           onToggleSidebar={() => sidebar.toggleSidebar()}
           onOpenSettings={() => setShowAISettings(true)}
           onCloseAllFiles={closeAllFiles}
