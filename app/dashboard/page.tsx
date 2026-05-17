@@ -24,16 +24,16 @@ const Page = async () => {
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
 
-      <main className="flex flex-col items-center justify-start pt-6 px-4 w-full max-w-7xl mx-auto space-y-12 pb-20">
+      <main className="flex flex-col items-center justify-start pt-6 px-4 w-full max-w-7xl mx-auto space-y-8 sm:space-y-12 pb-20">
 
         {/* Header Section */}
-        <section className="relative z-10 w-full flex flex-row items-start justify-between animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <section className="relative z-10 w-full flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex flex-col items-start space-y-4">
             <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-500 backdrop-blur-md cursor-default">
               <span className="flex h-2 w-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
               <span className="font-medium">Dashboard</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
               My <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500 italic pr-2">Projects</span>
             </h1>
             <p className="max-w-xl text-lg text-muted-foreground">
