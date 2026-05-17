@@ -1,3 +1,15 @@
+/**
+ * Centralized application configuration constants.
+ *
+ * This file contains shared configuration values used across the application,
+ * including API endpoints, LocalStorage keys, default editor settings,
+ * and reusable timeout durations.
+ *
+ * Centralizing these values improves maintainability, consistency,
+ * and makes future environment/config updates easier.
+ */
+
+
 // API URLs
 export const NPM_REGISTRY_SEARCH_URL =
   "https://registry.npmjs.org/-/v1/search";
