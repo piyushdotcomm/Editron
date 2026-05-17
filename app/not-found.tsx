@@ -37,7 +37,7 @@ export default function NotFound() {
           </div>
 
           <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto pt-2 leading-relaxed">
-            You’ve reached a route that isn’t part of this workspace. Head back to get back on track.
+            You’ve reached a route that isn’t part of this workspace. Return to the dashboard to continue exploring.
           </CardDescription>
         </CardHeader>
 
