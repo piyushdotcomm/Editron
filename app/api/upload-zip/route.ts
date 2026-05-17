@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
+import { Prisma } from "@prisma/client";
+
+class ValidationError extends Error {
+    constructor(message: string, public status: number = 400) {
+        super(message);
+        this.name = "ValidationError";
+    }
+}
 
 interface TemplateFile {
     filename: string;
@@ -30,6 +38,9 @@ const SKIP_FOLDERS = new Set([
     "__pycache__", ".cache", ".DS_Store",
 ]);
 
+const MAX_TOTAL_UNCOMPRESSED_SIZE = 100 * 1024 * 1024; // 100MB cap
+const MAX_SINGLE_FILE_SIZE = 500_000; // 500KB
+
 function isTemplateFolder(item: TemplateFile | TemplateFolder): item is TemplateFolder {
     return "folderName" in item;
 }
@@ -37,13 +48,32 @@ function isTemplateFolder(item: TemplateFile | TemplateFolder): item is Template
 async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
     const root: TemplateFolder = { folderName: "Root", items: [] };
 
-    // Collect all file paths
+    // Collect all file paths and validate sizes before extraction
     const filePaths: string[] = [];
+    let totalUncompressedSize = 0;
+
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
+            // @ts-expect-error - access internal JSZip metadata for safety
+            const size = file._data?.uncompressedSize;
+
+            if (typeof size !== "number") {
+                throw new ValidationError(`Cannot determine uncompressed size for file: ${relativePath}`, 400);
+            }
+
+            if (size > MAX_SINGLE_FILE_SIZE) {
+                console.warn(`Skipping oversized file: ${relativePath} (${size} bytes)`);
+                return;
+            }
+
+            totalUncompressedSize += size;
             filePaths.push(relativePath);
         }
     });
+
+    if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+        throw new ValidationError(`Total uncompressed size exceeds 100MB limit (${totalUncompressedSize} bytes)`, 413);
+    }
 
     // Detect common root folder (e.g. "my-project/src/..." -> strip "my-project/")
     let commonPrefix = "";
@@ -91,8 +121,6 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
             if (!file) continue;
 
             const content = await file.async("string");
-            // Skip very large files (>500KB)
-            if (content.length > 500_000) continue;
 
             const dotIndex = fileName.lastIndexOf(".");
             const name = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
@@ -154,7 +182,7 @@ export async function POST(request: NextRequest) {
         await db.templateFile.create({
             data: {
                 playgroundId: playground.id,
-                content: JSON.stringify(templateData),
+                content: templateData as Prisma.InputJsonValue,
             },
         });
 
@@ -164,6 +192,14 @@ export async function POST(request: NextRequest) {
         });
     } catch (error: any) {
         console.error("ZIP upload error:", error);
+
+        if (error instanceof ValidationError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.status }
+            );
+        }
+
         return NextResponse.json(
             { error: error.message || "Failed to process ZIP file" },
             { status: 500 }
