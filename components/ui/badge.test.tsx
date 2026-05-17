@@ -21,14 +21,22 @@ describe('Badge component', () => {
     expect(badge).toHaveClass('text-foreground');
   });
 
+  it('merges custom classNames correctly', () => {
+    render(<Badge className="custom-class">Badge</Badge>);
+    const badge = screen.getByText(/badge/i);
+    expect(badge).toHaveClass('custom-class');
+    expect(badge).toHaveClass('bg-primary'); // default variant
+  });
+
   it('renders as a different component when asChild is true', () => {
     render(
       <Badge asChild>
-        <a href="#">Link Badge</a>
+        <a href="https://example.com">Link Badge</a>
       </Badge>
     );
     const link = screen.getByRole('link', { name: /link badge/i });
     expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', 'https://example.com');
     expect(link).toHaveClass('bg-primary');
   });
 });

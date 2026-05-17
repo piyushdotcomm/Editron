@@ -22,6 +22,12 @@ describe('Input component', () => {
     expect((input as HTMLInputElement).value).toBe('Hello World');
   });
 
+  it('renders as a password input when type is set', () => {
+    render(<Input type="password" placeholder="Password" />);
+    const input = screen.getByPlaceholderText(/password/i);
+    expect(input).toHaveAttribute('type', 'password');
+  });
+
   it('can be disabled', () => {
     render(<Input placeholder="Disabled input" disabled />);
     const input = screen.getByPlaceholderText(/disabled input/i);
