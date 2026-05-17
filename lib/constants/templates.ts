@@ -603,5 +603,5 @@ export function getTemplateSummariesWithMeta(): TemplateSummary[] {
         popularity: template.popularity,
         tags: template.tags,
         category: template.category,
-    } as TemplateSummary));
+    }));
 }

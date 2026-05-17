@@ -64,7 +64,7 @@ export function TemplateGrid({ templates }: TemplateGridProps) {
                             <Search size={32} className="text-muted-foreground" />
                         </div>
                         <h3 className="text-xl font-bold">No templates found</h3>
-                        <p className="text-muted-foreground mt-2">Try adjusting your search or category filter.</p>
+                        <p className="text-muted-foreground mt-2">Try adjusting your search query.</p>
                         <Button
                             variant="link"
                             onClick={() => {

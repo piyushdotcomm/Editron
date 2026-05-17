@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import type { TemplateSummary } from "@/lib/templates/types";
 import { ArrowRight, Code2, Globe2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,10 @@ function TemplateTypeIcon({ template }: { template: TemplateSummary }) {
 
 function IconWithFallback({ src, alt }: { src?: string; alt?: string }) {
     const [current, setCurrent] = useState(src || ICON_PLACEHOLDER);
+
+    useEffect(() => {
+        setCurrent(src || ICON_PLACEHOLDER);
+    }, [src]);
 
     const tryFallback = () => {
         setCurrent(ICON_PLACEHOLDER);
