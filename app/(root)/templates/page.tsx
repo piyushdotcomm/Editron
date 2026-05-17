@@ -9,6 +9,7 @@ import { Search, Sparkles } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
 
+
 export default function TemplatesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [category, setCategory] = useState<"all" | "frontend" | "backend" | "fullstack" | "tooling">("all");
