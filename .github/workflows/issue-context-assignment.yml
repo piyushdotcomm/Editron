@@ -41,10 +41,11 @@ jobs:
             const validGitHubUsername = /^[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?$/;
             if (!validGitHubUsername.test(username)) return;
 
-            const commentBody = (comment.body || '').toLowerCase();
+            const commentBody = (comment.body || '');
+            const trimmedBody = commentBody.trim();
 
-            const wantsAssign = commentBody.includes('/assign') || commentBody.includes('assign me');
-            const wantsUnassign = commentBody.includes('/unassign') || commentBody.includes('unassign me');
+            const wantsAssign = /^(please\s+|kindly\s+)?(\/assign|assign me)\s*(gssoc|nsoc)?\s*(please)?$/i.test(trimmedBody);
+            const wantsUnassign = /^(please\s+|kindly\s+)?(\/unassign|unassign me)\s*(gssoc|nsoc)?\s*(please)?$/i.test(trimmedBody);
 
             if (!wantsAssign && !wantsUnassign) return;
 
@@ -130,6 +131,13 @@ jobs:
             });
             const activeIssues = assignedIssues.filter(i => !i.pull_request);
 
+            if ((currentIssue.assignees || []).length > 0) {
+              const current = (currentIssue.assignees || []).map(a => a.login).join(', ');
+              await github.rest.issues.createComment({ owner, repo, issue_number,
+                body: `⚠️ This issue is already assigned to: ${current}` });
+              return;
+            }
+
             if (!isMaintainerOrMentor) {
               const { data: userProfile } = await github.rest.users.getByUsername({ username });
               const accountAge = (new Date() - new Date(userProfile.created_at)) / (1000 * 60 * 60 * 24);
@@ -159,13 +167,6 @@ jobs:
                     body: `⏳ @${username}, you were recently unassigned from this issue. Please wait **24 hours** before re-requesting assignment.` });
                   return;
                 }
-              }
-
-              if ((currentIssue.assignees || []).length > 0) {
-                const current = (currentIssue.assignees || []).map(a => a.login).join(', ');
-                await github.rest.issues.createComment({ owner, repo, issue_number,
-                  body: `⚠️ This issue is already assigned to: ${current}` });
-                return;
               }
 
               const maxAssignments = mentionsGSSOC ? 2 : 3;
