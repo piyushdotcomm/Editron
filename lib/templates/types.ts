@@ -12,17 +12,6 @@ export interface TemplateOption {
     category: TemplateCategory;
 }
 
-export interface TemplateMetadata {
-    id?: string;
-    title?: string;
-    description?: string;
-    tags?: string[];
-    icon?: string;
-    color?: string;
-    popularity?: number;
-    category?: TemplateCategory;
-}
-
 export interface TemplateSummary {
     id: string;
     name: string;

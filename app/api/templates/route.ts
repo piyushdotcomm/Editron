@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTemplateSummaries } from "@/lib/constants/templates";
+import { getTemplateSummaries } from "@/lib/constants/template-summaries";
 
 export const dynamic = "force-static";
 

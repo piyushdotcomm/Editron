@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
-import { getTemplateSummariesWithMeta } from "@/lib/constants/templates";
+import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
 import { TemplateGrid } from "@/components/marketing/template-grid";
 
 export default function TemplatesPage() {

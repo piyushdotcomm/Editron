@@ -1,4 +1,4 @@
-import { getTemplateSummariesWithMeta } from "@/lib/constants/templates";
+import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
 import { HomePageClient } from "@/components/marketing/home-page-client";
 
 export default function Home() {
