@@ -19,10 +19,12 @@ export default function HeaderNewProjectButton() {
     }) => {
         try {
             const res = await createPlayground(data);
-            toast.success("Project created successfully");
-            setIsModalOpen(false);
-            if (res?.id) {
-                router.push(`/playground/${res.id}`);
+            if (res?.success) {
+                toast.success("Project created successfully");
+                setIsModalOpen(false);
+                router.push(`/playground/${res.playground.id}`);
+            } else {
+                toast.error(res?.error ?? "Failed to create project");
             }
         } catch (_error) {
             toast.error("Failed to create project");

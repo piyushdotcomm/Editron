@@ -27,7 +27,7 @@ import { useWebContainerStore } from "../hooks/useWebContainer";
 
 /**
  * Extracts the best available run script from a package.json string.
- * Returns "dev", "start", or null.
+ * Returns "dev", "start", "serve", or null.
  */
 const getScriptFromPkg = (pkgJson: string | null): string | null => {
   if (!pkgJson) return null;
@@ -37,7 +37,9 @@ const getScriptFromPkg = (pkgJson: string | null): string | null => {
       ? "dev"
       : parsed.scripts?.start
         ? "start"
-        : null;
+        : parsed.scripts?.serve
+          ? "serve"
+          : null;
   } catch {
     return null;
   }

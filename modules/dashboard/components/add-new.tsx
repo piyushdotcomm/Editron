@@ -22,9 +22,13 @@ const AddNewButton = () => {
   }) => {
 
     const res = await createPlayground(data);
-    toast.success("Playground Created successfully")
-    setIsModalOpen(false)
-    router.push(`/playground/${res?.id}`)
+    if (res?.success) {
+      toast.success("Playground Created successfully")
+      setIsModalOpen(false)
+      router.push(`/playground/${res.playground.id}`)
+    } else {
+      toast.error(res?.error ?? "Failed to create playground")
+    }
   }
 
   return (

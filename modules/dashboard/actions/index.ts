@@ -111,10 +111,10 @@ export const createPlayground = async (data: {
       },
     });
 
-    return playground;
+    return { success: true as const, playground };
   } catch (error) {
     console.error("Error creating playground:", error);
-    return { success: false, error: "Failed to create playground" };
+    return { success: false as const, error: "Failed to create playground" };
   }
 };
 
