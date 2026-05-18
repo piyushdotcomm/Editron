@@ -30,15 +30,16 @@ export interface PlaygroundEditorProps {
   onCursorChange?: (line: number, col: number) => void;
 }
 
-let inlineProviderDisposable: { dispose: () => void } | null = null;
-let formatterDisposable: { dispose: () => void } | null = null;
-
 const PlaygroundEditor = ({
   activeFile,
   content,
   onContentChange,
   onCursorChange,
 }: PlaygroundEditorProps) => {
+  const inlineProviderDisposableRef = useRef<{ dispose: () => void } | null>(
+    null,
+  );
+  const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
   const editorRef = useRef<unknown>(null);
@@ -71,173 +72,185 @@ const PlaygroundEditor = ({
   };
 
   const registerPrettierFormatter = (monaco: Monaco) => {
-    if (formatterDisposable) {
-      formatterDisposable.dispose();
-      formatterDisposable = null;
+    if (formatterDisposableRef.current) {
+      formatterDisposableRef.current.dispose();
+      formatterDisposableRef.current = null;
     }
 
     const languages = ["javascript", "typescript", "html", "css", "json"];
 
-    formatterDisposable = monaco.languages.registerDocumentFormattingEditProvider(languages, {
-      async provideDocumentFormattingEdits(model, options, _token) {
-        const text = model.getValue();
-        const languageId = model.getLanguageId();
+    const disposables = languages.map((lang) =>
+      monaco.languages.registerDocumentFormattingEditProvider(lang, {
+        async provideDocumentFormattingEdits(model, options, _token) {
+          const text = model.getValue();
+          const languageId = model.getLanguageId();
 
-        // Map monaco language ids to prettier parsers
-        let parser = "babel";
-        const plugins = [
-          prettierPluginBabel,
-          prettierPluginEstree,
-          prettierPluginHtml,
-          prettierPluginPostcss,
-          prettierPluginTypeScript
-        ];
+          let parser = "babel";
 
-        switch (languageId) {
-          case "javascript":
-            parser = "babel";
-            break;
-          case "typescript":
-            parser = "typescript";
-            break;
-          case "html":
-            parser = "html";
-            break;
-          case "css":
-            parser = "css";
-            break;
-          case "json":
-            parser = "json";
-            // Prettier json parser is in babel/estree usually for standalone or it needs its own.
-            // Using babel as a fallback, though technically prettier exposes a separate json plugin if needed.
-            // But usually babel handles json well enough in browser standalone.
-            break;
-          default:
-            return [];
-        }
-
-        try {
-          const formatted = await prettier.format(text, {
-            parser,
-            plugins,
-            singleQuote: false,
-            tabWidth: options.tabSize || 2,
-            useTabs: options.insertSpaces === false,
-          });
-
-          return [
-            {
-              range: model.getFullModelRange(),
-              text: formatted,
-            },
+          const plugins = [
+            prettierPluginBabel,
+            prettierPluginEstree,
+            prettierPluginHtml,
+            prettierPluginPostcss,
+            prettierPluginTypeScript,
           ];
-        } catch (error) {
-          console.error("Prettier formatting error:", error);
-          return [];
-        }
-      }
-    });
+
+          switch (languageId) {
+            case "javascript":
+              parser = "babel";
+              break;
+            case "typescript":
+              parser = "typescript";
+              break;
+            case "html":
+              parser = "html";
+              break;
+            case "css":
+              parser = "css";
+              break;
+            case "json":
+              parser = "json";
+              break;
+            default:
+              return [];
+          }
+
+          try {
+            const formatted = await prettier.format(text, {
+              parser,
+              plugins,
+              singleQuote: false,
+              tabWidth: options.tabSize || 2,
+              useTabs: options.insertSpaces === false,
+            });
+
+            return [
+              {
+                range: model.getFullModelRange(),
+                text: formatted,
+              },
+            ];
+          } catch (error) {
+            console.error("Prettier formatting error:", error);
+            return [];
+          }
+        },
+      }),
+    );
+
+    formatterDisposableRef.current = {
+      dispose: () => disposables.forEach((d) => d.dispose()),
+    };
   };
 
   const registerInlineCompletionProvider = (monaco: Monaco) => {
     // Dispose previous provider if exists
-    if (inlineProviderDisposable) {
-      inlineProviderDisposable.dispose();
-      inlineProviderDisposable = null;
+    if (inlineProviderDisposableRef.current) {
+      inlineProviderDisposableRef.current.dispose();
+      inlineProviderDisposableRef.current = null;
     }
 
-    inlineProviderDisposable = monaco.languages.registerInlineCompletionsProvider(
-      { pattern: "**" },
-      {
-        provideInlineCompletions: async (model, position, context, token) => {
-          // Check if inline suggestions are enabled
-          if (!useAI.getState().inlineSuggestionsEnabled) return { items: [] };
-          if (token.isCancellationRequested) return { items: [] };
+    inlineProviderDisposableRef.current =
+      monaco.languages.registerInlineCompletionsProvider(
+        { pattern: "**" },
+        {
+          provideInlineCompletions: async (model, position, context, token) => {
+            // Check if inline suggestions are enabled
+            if (!useAI.getState().inlineSuggestionsEnabled)
+              return { items: [] };
+            if (token.isCancellationRequested) return { items: [] };
 
-          // Gather context: lines around cursor
-          const lineCount = model.getLineCount();
-          const currentLine = model.getLineContent(position.lineNumber);
-          const textBeforeCursor = currentLine.substring(0, position.column - 1);
+            // Gather context: lines around cursor
+            const lineCount = model.getLineCount();
+            const currentLine = model.getLineContent(position.lineNumber);
+            const textBeforeCursor = currentLine.substring(
+              0,
+              position.column - 1,
+            );
 
-          // Don't trigger on empty lines or very short input
-          if (textBeforeCursor.trim().length < 3) return { items: [] };
+            // Don't trigger on empty lines or very short input
+            if (textBeforeCursor.trim().length < 3) return { items: [] };
 
-          // Build context from surrounding lines
-          const startLine = Math.max(1, position.lineNumber - 20);
-          const endLine = Math.min(lineCount, position.lineNumber + 5);
-          const contextLines: string[] = [];
-          for (let i = startLine; i <= endLine; i++) {
-            if (i === position.lineNumber) {
-              contextLines.push(textBeforeCursor + "█"); // cursor marker
-            } else {
-              contextLines.push(model.getLineContent(i));
+            // Build context from surrounding lines
+            const startLine = Math.max(1, position.lineNumber - 20);
+            const endLine = Math.min(lineCount, position.lineNumber + 5);
+            const contextLines: string[] = [];
+            for (let i = startLine; i <= endLine; i++) {
+              if (i === position.lineNumber) {
+                contextLines.push(textBeforeCursor + "█"); // cursor marker
+              } else {
+                contextLines.push(model.getLineContent(i));
+              }
             }
-          }
 
-          const prompt = contextLines.join("\n");
-          const language = model.getLanguageId();
+            const prompt = contextLines.join("\n");
+            const language = model.getLanguageId();
 
-          // Wait with debounce (return promise that resolves after delay)
-          await new Promise<void>((resolve) => {
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = setTimeout(resolve, TIMEOUTS.EDITOR_DEBOUNCE);
-          });
-
-          if (token.isCancellationRequested) return { items: [] };
-
-          try {
-            const { provider, getUserApiKey } = useAI.getState();
-            const userApiKey = getUserApiKey();
-
-            const res = await fetch("/api/completion", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                prompt,
-                language,
-                provider,
-                userApiKey: userApiKey || undefined,
-              }),
+            // Wait with debounce (return promise that resolves after delay)
+            await new Promise<void>((resolve) => {
+              if (debounceTimerRef.current)
+                clearTimeout(debounceTimerRef.current);
+              debounceTimerRef.current = setTimeout(
+                resolve,
+                TIMEOUTS.EDITOR_DEBOUNCE,
+              );
             });
 
-            if (!res.ok) return { items: [] };
+            if (token.isCancellationRequested) return { items: [] };
 
-            const data = await res.json();
-            const completion = data.completion?.trim();
+            try {
+              const { provider, getUserApiKey } = useAI.getState();
+              const userApiKey = getUserApiKey();
 
-            if (!completion) return { items: [] };
+              const res = await fetch("/api/completion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  prompt,
+                  language,
+                  provider,
+                  userApiKey: userApiKey || undefined,
+                }),
+              });
 
-            // Clean up completion - remove markdown code fences if present
-            let cleanCompletion = completion;
-            if (cleanCompletion.startsWith("```")) {
-              const lines = cleanCompletion.split("\n");
-              lines.shift(); // remove opening fence
-              if (lines[lines.length - 1]?.trim() === "```") lines.pop();
-              cleanCompletion = lines.join("\n");
-            }
+              if (!res.ok) return { items: [] };
 
-            return {
-              items: [
-                {
-                  insertText: cleanCompletion,
-                  range: {
-                    startLineNumber: position.lineNumber,
-                    startColumn: position.column,
-                    endLineNumber: position.lineNumber,
-                    endColumn: position.column,
+              const data = await res.json();
+              const completion = data.completion?.trim();
+
+              if (!completion) return { items: [] };
+
+              // Clean up completion - remove markdown code fences if present
+              let cleanCompletion = completion;
+              if (cleanCompletion.startsWith("```")) {
+                const lines = cleanCompletion.split("\n");
+                lines.shift(); // remove opening fence
+                if (lines[lines.length - 1]?.trim() === "```") lines.pop();
+                cleanCompletion = lines.join("\n");
+              }
+
+              return {
+                items: [
+                  {
+                    insertText: cleanCompletion,
+                    range: {
+                      startLineNumber: position.lineNumber,
+                      startColumn: position.column,
+                      endLineNumber: position.lineNumber,
+                      endColumn: position.column,
+                    },
                   },
-                },
-              ],
-            };
-          } catch (error) {
-            console.warn("Inline completion error:", error);
-            return { items: [] };
-          }
-        },
+                ],
+              };
+            } catch (error) {
+              console.warn("Inline completion error:", error);
+              return { items: [] };
+            }
+          },
 
-        freeInlineCompletions: () => { },
-      }
-    );
+          freeInlineCompletions: () => {},
+        },
+      );
   };
 
   const updateEditorLanguage = () => {
@@ -255,12 +268,18 @@ const PlaygroundEditor = ({
 
   useEffect(() => {
     updateEditorLanguage();
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile]);
 
   // Bind Yjs to Monaco
   useEffect(() => {
-    if (!activeFile || !monacoRef.current || !editorRef.current || !playgroundId) return;
+    if (
+      !activeFile ||
+      !monacoRef.current ||
+      !editorRef.current ||
+      !playgroundId
+    )
+      return;
 
     // Check if collaboration enabled ideally... For now we bind unconditionally or check session docs.
     // If the room doesn't exist on server, y-websocket will just act locally until server connects.
@@ -278,7 +297,9 @@ const PlaygroundEditor = ({
         const { doc, provider } = getOrCreateYDoc(playgroundId, token);
         // Use file id if available (contains full path), otherwise fallback to filename+ext
         const fileId = (activeFile as any)?.id;
-        const ext = activeFile.fileExtension ? `.${activeFile.fileExtension}` : "";
+        const ext = activeFile.fileExtension
+          ? `.${activeFile.fileExtension}`
+          : "";
         const fileKey = fileId || `${activeFile.filename}${ext}`;
 
         const yText = doc.getText(fileKey);
@@ -296,14 +317,21 @@ const PlaygroundEditor = ({
           yText,
           model,
           new Set([editorRef.current]),
-          provider.awareness
+          provider.awareness,
         );
 
-        const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+        const userColor = session?.user?.email
+          ? "#" +
+            Math.floor(
+              Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215),
+            )
+              .toString(16)
+              .padEnd(6, "0")
+          : "#30bced";
 
-        provider.awareness.setLocalStateField('user', {
+        provider.awareness.setLocalStateField("user", {
           name: session?.user?.name || "Anonymous",
-          color: userColor
+          color: userColor,
         });
 
         const handleAwarenessUpdate = () => {
@@ -315,7 +343,9 @@ const PlaygroundEditor = ({
             document.head.appendChild(styleEl);
           }
 
-          const states = Array.from(provider.awareness.getStates().entries() as any);
+          const states = Array.from(
+            provider.awareness.getStates().entries() as any,
+          );
           let css = "";
 
           for (const [clientId, state] of states as [number, any][]) {
@@ -385,13 +415,14 @@ const PlaygroundEditor = ({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (inlineProviderDisposable) {
-        inlineProviderDisposable.dispose();
-        inlineProviderDisposable = null;
+      if (inlineProviderDisposableRef.current) {
+        inlineProviderDisposableRef.current.dispose();
+        inlineProviderDisposableRef.current = null;
       }
-      if (formatterDisposable) {
-        formatterDisposable.dispose();
-        formatterDisposable = null;
+
+      if (formatterDisposableRef.current) {
+        formatterDisposableRef.current.dispose();
+        formatterDisposableRef.current = null;
       }
       if (bindingRef.current) {
         bindingRef.current.destroy();
@@ -409,10 +440,15 @@ const PlaygroundEditor = ({
     async function loadTheme() {
       if (!monacoRef.current) return;
 
-      const sanitizeThemeId = (name: string) => name.replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
+      const sanitizeThemeId = (name: string) =>
+        name.replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
       const safeThemeId = sanitizeThemeId(editorTheme);
 
-      if (editorTheme === "vs-dark" || editorTheme === "vs" || editorTheme === "hc-black") {
+      if (
+        editorTheme === "vs-dark" ||
+        editorTheme === "vs" ||
+        editorTheme === "hc-black"
+      ) {
         monacoRef.current.editor.setTheme(editorTheme);
         return;
       }
