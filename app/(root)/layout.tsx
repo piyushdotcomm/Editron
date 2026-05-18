@@ -1,6 +1,8 @@
-import { Footer } from "@/modules/home/footer";
+import RawFooter from "editron-starters/bolt-qwik/src/components/starter/footer/footer";
 // import { cn } from "@/lib/utils";
 import { Header } from "@/modules/home/header";
+
+const Footer = RawFooter as unknown as React.FC;
 
 export default function HomeLayout({
     children
