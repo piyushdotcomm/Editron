@@ -339,7 +339,7 @@ const PlaygroundEditor = ({
 
               css += `
                 .yRemoteSelection-${clientId} {
-                  background-color: ${color}; /* 40 hex is 25% opacity */
+                  background-color: ${color.replace("/ 1)", "/ 0.25)")}; /* 40 hex is 25% opacity */
                 }
                 .yRemoteSelectionHead-${clientId} {
                   border-left: 2px solid ${color};
@@ -355,7 +355,7 @@ const PlaygroundEditor = ({
                   top: -18px;
                   left: -2px;
                   font-size: 11px;
-                  background-color: ${hashStringToColor(name, 0.25)};
+                  background-color: ${color};
                   color: white;
                   padding: 1px 4px;
                   border-radius: 2px;
