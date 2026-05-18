@@ -96,10 +96,17 @@ const WebContainerPreview = ({
 
   const terminalRef = useRef<TerminalRef | null>(null);
   const setupInProgressRef = useRef(false);
+  const serverReadyCleanupRef = useRef<(() => void) | null>(null);
 
   /** Safely write a message to the embedded terminal (no-op if ref is unavailable). */
   const writeTerminal = (msg: string) => {
     terminalRef.current?.writeToTerminal(msg);
+  };
+
+  /** Register a server-ready listener, unsubscribing any prior one to prevent accumulation. */
+  const bindServerReady = (inst: WebContainer, handler: (port: number, url: string) => void) => {
+    serverReadyCleanupRef.current?.();
+    serverReadyCleanupRef.current = inst.on("server-ready", handler as Parameters<WebContainer["on"]>[1]);
   };
 
   // Derive a loading flag for the refresh-spinner icon in the toolbar.
@@ -352,7 +359,7 @@ const WebContainerPreview = ({
               "🔄 Reconnecting to existing WebContainer session...\r\n",
             );
 
-            instance.on("server-ready", (port: number, url: string) => {
+            bindServerReady(instance, (port: number, url: string) => {
               writeTerminal(
                 `🌐 Server ready at ${url} (port ${port})\r\n`,
               );
@@ -698,7 +705,7 @@ const WebContainerPreview = ({
           startCommand.args,
         );
 
-        instance.on("server-ready", (port: number, url: string) => {
+        bindServerReady(instance, (port: number, url: string) => {
           // Surface the active preview URL in the embedded terminal so users can
           // diagnose which WebContainer server was selected when multiple ports start.
           writeTerminal(`🌐 Server ready at ${url} (port ${port})\r\n`);
@@ -757,10 +764,11 @@ const WebContainerPreview = ({
   }, [instance, templateData, isSetupComplete]);
 
   useEffect(() => {
-  return () => {
-    useWebContainerStore.getState().setServerUrl(null);
-  };
-}, []);
+    return () => {
+      serverReadyCleanupRef.current?.();
+      useWebContainerStore.getState().setServerUrl(null);
+    };
+  }, []);
 
  
 
