@@ -37,7 +37,7 @@ const hashStringToColor = (str: string): string => {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
     hash |= 0;
   }
-  const hue = Math.abs(hash) % 360;
+  const hue = ((hash % 360) + 360) % 360;
   return `hsl(${hue}, 70%, 55%)`;
 };
 
