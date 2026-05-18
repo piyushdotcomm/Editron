@@ -12,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
 import type { TemplateCategory } from "@/lib/templates/types";
 import type { TemplateKey } from "@/lib/template";
 import {
@@ -26,7 +25,7 @@ import {
   Globe,
   Terminal,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates/types";
@@ -56,7 +55,18 @@ const TemplateSelectionModal = ({
   const [projectName, setProjectName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | "all">("all");
 
-  const [availableTemplates] = useState<TemplateSummary[]>(() => getTemplateSummariesWithMeta());
+  const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
+
+  useEffect(() => {
+    fetch("/api/templates/meta")
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data: unknown) => {
+        if (Array.isArray(data)) {
+          setAvailableTemplates(data as TemplateSummary[]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const categoryTabs: Array<{ key: TemplateCategory | "all"; label: string }> = [
     { key: "all", label: "All" },

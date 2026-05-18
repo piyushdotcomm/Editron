@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
@@ -22,17 +22,7 @@ interface HomePageClientProps {
 }
 
 export function HomePageClient({ popularTemplates }: HomePageClientProps) {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 3200);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, []);
+  const [isLoading] = useState(false);
 
   return (
     <>
