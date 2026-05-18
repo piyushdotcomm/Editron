@@ -103,6 +103,12 @@ const WebContainerPreview = ({
     terminalRef.current?.writeToTerminal(msg);
   };
 
+  /** Unsubscribe the current server-ready listener, if any. */
+  const cleanupServerReady = () => {
+    serverReadyCleanupRef.current?.();
+    serverReadyCleanupRef.current = null;
+  };
+
   /** Register a server-ready listener, unsubscribing any prior one to prevent accumulation. */
   const bindServerReady = (inst: WebContainer, handler: (port: number, url: string) => void) => {
     serverReadyCleanupRef.current?.();
@@ -323,6 +329,7 @@ const WebContainerPreview = ({
   // Reset setup state when forceResetup changes
   useEffect(() => {
     if (forceResetup) {
+      cleanupServerReady();
       setIsSetupComplete(false);
       setIsSetupInProgress(false);
       setupInProgressRef.current = false;
@@ -765,7 +772,7 @@ const WebContainerPreview = ({
 
   useEffect(() => {
     return () => {
-      serverReadyCleanupRef.current?.();
+      cleanupServerReady();
       useWebContainerStore.getState().setServerUrl(null);
     };
   }, []);
