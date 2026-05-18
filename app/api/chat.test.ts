@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tools } from "./chat/route";
+import { tools, MAX_FILE_CONTENT_CHARS as MAX } from "./tools";
 
 describe("AI tool payload validation", () => {
     const MAX = 100_000;
