@@ -24,6 +24,7 @@ import {
   Server,
   Globe,
   Terminal,
+  Star,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
@@ -32,6 +33,8 @@ import type { TemplateSummary } from "@/lib/templates/types";
 
 const ICON_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3C/svg%3E";
+
+const MAX_STARS = 5;
 
 // TemplateSelectionModal.tsx
 type TemplateSelectionModalProps = {
@@ -235,6 +238,20 @@ const TemplateSelectionModal = ({
                                 </div>
                               </div>
 
+                              <div className="flex items-center gap-1 mb-2" aria-label={`Popularity ${template.popularity ?? 0} out of ${MAX_STARS}`}>
+                                {Array.from({ length: MAX_STARS }, (_, index) => {
+                                  const active = (template.popularity ?? 0) > index;
+
+                                  return (
+                                    <Star
+                                      key={`${template.id}-star-${index}`}
+                                      size={13}
+                                      className={active ? "text-amber-500 fill-amber-500" : "text-muted-foreground/30"}
+                                    />
+                                  );
+                                })}
+                              </div>
+
                               <p className="text-sm text-muted-foreground mb-3">
                                 {template.description}
                               </p>
@@ -242,6 +259,17 @@ const TemplateSelectionModal = ({
                               <div className="flex flex-wrap gap-2">
                                 {template.tags?.slice(0,3).map((tag) => (
                                   <span key={tag} className="text-xs px-2 py-1 bg-muted/20 rounded-full text-muted-foreground">{tag}</span>
+                                ))}
+                              </div>
+
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {template.features.slice(0, 3).map((feature) => (
+                                  <span
+                                    key={`${template.id}-${feature}`}
+                                    className="text-xs px-2 py-1 rounded-full border border-border/70 bg-background/80 text-foreground/80"
+                                  >
+                                    {feature}
+                                  </span>
                                 ))}
                               </div>
                             </div>
@@ -318,6 +346,34 @@ const TemplateSelectionModal = ({
                 <p className="text-sm text-muted-foreground">
                   {selectedTemplateSummary?.description || "Template details will appear here after selection."}
                 </p>
+                {selectedTemplateSummary && (
+                  <>
+                    <div className="mt-3 flex items-center gap-1" aria-label={`Popularity ${selectedTemplateSummary.popularity ?? 0} out of ${MAX_STARS}`}>
+                      {Array.from({ length: MAX_STARS }, (_, index) => {
+                        const active = (selectedTemplateSummary.popularity ?? 0) > index;
+
+                        return (
+                          <Star
+                            key={`${selectedTemplateSummary.id}-summary-star-${index}`}
+                            size={13}
+                            className={active ? "text-amber-500 fill-amber-500" : "text-muted-foreground/30"}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedTemplateSummary.features.map((feature) => (
+                        <span
+                          key={`${selectedTemplateSummary.id}-${feature}`}
+                          className="text-xs px-2 py-1 rounded-full border border-border/70 bg-background/80 text-foreground/80"
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

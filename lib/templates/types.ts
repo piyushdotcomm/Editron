@@ -20,5 +20,6 @@ export interface TemplateSummary {
     color?: string;
     popularity?: number;
     tags?: string[];
+    features: string[];
     category?: TemplateCategory;
 }

@@ -4,7 +4,7 @@ import { templates } from "@/lib/constants/templates";
 import type { TemplateSummary } from "@/lib/templates/types";
 
 /**
- * Server-side summaries including small UI metadata (color, popularity, tags, category).
+ * Server-side summaries including small UI metadata (color, popularity, tags, features, category).
  * Use only from server components or server API routes to avoid pulling heavy data into client bundles.
  */
 export function getTemplateSummariesWithMeta(): TemplateSummary[] {
@@ -16,6 +16,7 @@ export function getTemplateSummariesWithMeta(): TemplateSummary[] {
         color: template.color,
         popularity: template.popularity,
         tags: template.tags,
+        features: template.features,
         category: template.category,
     }));
 }
