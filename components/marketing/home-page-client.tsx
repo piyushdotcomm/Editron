@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CommitsGrid } from "@/components/ui/commits-grid";
 import { TemplateCard } from "@/components/marketing/template-card";
 import { Features } from "@/modules/home/features";
 import { HeroCodeDemo } from "@/modules/home/hero-code";
 import type { TemplateSummary } from "@/lib/templates/types";
-import { cn } from "@/lib/utils";
 
 const AnimatedShaderBackground = dynamic(
   () => import("@/components/ui/animated-shader-background"),
@@ -22,35 +19,15 @@ interface HomePageClientProps {
 }
 
 export function HomePageClient({ popularTemplates }: HomePageClientProps) {
-  const [isLoading] = useState(false);
-
   return (
     <>
-      <div
-        className={cn(
-          "fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-700 ease-in-out",
-          isLoading ? "opacity-100" : "opacity-0 pointer-events-none",
-        )}
-      >
-        <div className="w-full flex justify-center">
-          <CommitsGrid text="EDITRON" />
-        </div>
-      </div>
-
       <div className="relative">
         <AnimatedShaderBackground />
 
         <div className="absolute inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
 
         <main className="flex flex-col items-center justify-start pt-20 md:pt-32 px-4 w-full max-w-7xl mx-auto space-y-24 pb-20">
-          <section
-            className={cn(
-              "relative z-10 w-full flex flex-col items-center text-center space-y-8 fill-mode-both",
-              isLoading
-                ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out",
-            )}
-          >
+          <section className="relative z-10 w-full flex flex-col items-center text-center space-y-8 fill-mode-both animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
             <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-500 backdrop-blur-md hover:bg-red-500/20 transition-colors cursor-default">
               <span className="flex h-2 w-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
               <span className="font-medium">
@@ -92,25 +69,11 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
             </div>
           </section>
 
-          <section
-            className={cn(
-              "w-full relative z-10 fill-mode-both",
-              isLoading
-                ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out",
-            )}
-          >
+          <section className="w-full relative z-10 fill-mode-both animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out">
             <HeroCodeDemo />
           </section>
 
-          <section
-            className={cn(
-              "w-full relative z-10 fill-mode-both",
-              isLoading
-                ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out",
-            )}
-          >
+          <section className="w-full relative z-10 fill-mode-both animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out">
             <div className="mb-8 flex items-center justify-between">
               <h2 className="text-2xl md:text-3xl font-bold">
                 Popular Templates
@@ -132,12 +95,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
 
           <section
             id="features"
-            className={cn(
-              "w-full relative fill-mode-both",
-              isLoading
-                ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 ease-out",
-            )}
+            className="w-full relative fill-mode-both animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 ease-out"
           >
             <div className="mb-16 text-center space-y-4">
               <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
