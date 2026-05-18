@@ -1,4 +1,4 @@
-import { streamText, tool as createTool, convertToModelMessages, jsonSchema } from "ai";
+import { streamText, tool as createTool, convertToModelMessages, type UIMessage } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -194,9 +194,8 @@ export async function POST(request: NextRequest) {
         }
 
         type MessagePart = { type: string; text: string };
-        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
 
-        const sanitizedMessages: ChatMessage[] = [];
+        const sanitizedMessages: Omit<UIMessage, 'id'>[] = [];
         for (const raw of messages) {
             if (!raw || typeof raw !== "object") {
                 return NextResponse.json(
@@ -204,22 +203,22 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
-            const m = raw as ChatMessage;
+            const m = raw as { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
             if (Array.isArray(m.parts)) {
-                sanitizedMessages.push(m);
+                sanitizedMessages.push({ role: m.role, parts: m.parts as UIMessage['parts'] });
                 continue;
             }
             sanitizedMessages.push({
-                ...m,
+                role: m.role,
                 parts: typeof m.content === "string" && m.content.trim()
-                    ? [{ type: "text", text: m.content }]
-                    : [] as MessagePart[],
+                    ? [{ type: "text" as const, text: m.content }]
+                    : [],
             });
         }
 
         const resultStream = streamText({
             model,
-            messages: await convertToModelMessages(sanitizedMessages as any, {
+            messages: await convertToModelMessages(sanitizedMessages, {
                 ignoreIncompleteToolCalls: true
             }),
             system: systemInstruction,

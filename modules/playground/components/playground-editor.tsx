@@ -42,14 +42,14 @@ const PlaygroundEditor = ({
   const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<import("monaco-editor").editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<any>(null);
+  const bindingRef = useRef<MonacoBinding | null>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
-  const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+  const handleEditorDidMount = (editor: import("monaco-editor").editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
     setIsMounted(true);
@@ -57,8 +57,7 @@ const PlaygroundEditor = ({
     editor.updateOptions({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
-      formatOnSave: true,
-    });
+    } as import("monaco-editor").editor.IEditorOptions & import("monaco-editor").editor.IGlobalEditorOptions);
 
     // Cursor position tracking for status bar
     editor.onDidChangeCursorPosition((e: any) => {
@@ -316,7 +315,7 @@ const PlaygroundEditor = ({
         const binding = new MonacoBinding(
           yText,
           model,
-          new Set([editorRef.current]),
+          new Set(editorRef.current ? [editorRef.current] : []),
           provider.awareness,
         );
 
@@ -481,7 +480,6 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // @ts-expect-error - Monaco options typo
         options={{
           ...defaultEditorOptions,
           inlineSuggest: { enabled: true },
