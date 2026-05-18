@@ -8,10 +8,10 @@ vi.mock("next/server", () => ({
     }
 }));
 
-import { tools } from "./chat/route";
+import { tools, MAX_FILE_CONTENT_CHARS } from "./chat/tools";
 
 describe("AI tool payload validation", () => {
-    const MAX = 100_000;
+    const MAX = MAX_FILE_CONTENT_CHARS;
 
     it("accepts content at the limit", () => {
         const content = "a".repeat(MAX);
