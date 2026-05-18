@@ -31,6 +31,16 @@ export interface PlaygroundEditorProps {
 let inlineProviderDisposable: { dispose: () => void } | null = null;
 let formatterDisposable: { dispose: () => void } | null = null;
 
+const hashStringToColor = (str: string): string => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 55%)`;
+};
+
 const PlaygroundEditor = ({
   activeFile,
   content,
@@ -296,8 +306,8 @@ const PlaygroundEditor = ({
           new Set([editorRef.current]),
           provider.awareness
         );
-
-        const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+        
+        const userColor = session?.user?.email ? hashStringToColor(session.user.email): "#3b82f6";
 
         provider.awareness.setLocalStateField('user', {
           name: session?.user?.name || "Anonymous",
