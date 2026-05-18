@@ -15,11 +15,19 @@ const AnimatedShaderBackground = dynamic(
 );
 import { CommitsGrid } from "@/components/ui/commits-grid";
 import { cn } from "@/lib/utils";
-import { templates } from "@/lib/constants/templates";
+import { getTemplates } from "@/lib/actions/templates";
+import type { TemplateOption } from "@/lib/constants/templates";
 import { TemplateCard } from "@/components/marketing/template-card";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
+
+  useEffect(() => {
+    getTemplates()
+      .then(setAllTemplates)
+      .catch(console.error);
+  }, []);
 
   // Schema Markup for AI SEO (Organization & SoftwareApplication)
   const schemaMarkup = {
@@ -166,7 +174,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {templates
+              {allTemplates
                 .filter((t) => t.popularity === 5)
                 .slice(0, 4)
                 .map((template) => (

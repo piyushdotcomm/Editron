@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { templates } from "@/lib/constants/templates";
+import { useState, useEffect } from "react";
+import { getTemplates } from "@/lib/actions/templates";
+import type { TemplateOption } from "@/lib/constants/templates";
 import { TemplateCard } from "@/components/marketing/template-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,15 @@ import AnimatedShaderBackground from "@/components/ui/animated-shader-background
 
 
 export default function TemplatesPage() {
+    const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [category, setCategory] = useState<"all" | "frontend" | "backend" | "fullstack" | "tooling">("all");
 
-    const filteredTemplates = templates.filter((template) => {
+    useEffect(() => {
+        getTemplates().then(setAllTemplates).catch(console.error);
+    }, []);
+
+    const filteredTemplates = allTemplates.filter((template) => {
         const matchesSearch =
             template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||

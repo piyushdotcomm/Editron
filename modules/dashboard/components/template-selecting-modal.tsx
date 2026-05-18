@@ -41,14 +41,23 @@ type TemplateSelectionModalProps = {
   }) => void;
 };
 
-import { templates } from "@/lib/constants/templates";
+import { getTemplates } from "@/lib/actions/templates";
+import type { TemplateOption } from "@/lib/constants/templates";
+import { useEffect } from "react";
 
 const TemplateSelectionModal = ({
   isOpen,
   onClose,
   onSubmit,
 }: TemplateSelectionModalProps) => {
+  const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
   const [step, setStep] = useState<"select" | "configure">("select");
+
+  useEffect(() => {
+    if (isOpen) {
+      getTemplates().then(setAllTemplates).catch(console.error);
+    }
+  }, [isOpen]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<
@@ -56,7 +65,7 @@ const TemplateSelectionModal = ({
   >("all");
   const [projectName, setProjectName] = useState("");
 
-  const filteredTemplates = templates.filter((template) => {
+  const filteredTemplates = allTemplates.filter((template) => {
     const matchesSearch =
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -81,7 +90,7 @@ const TemplateSelectionModal = ({
 
   const handleCreateProject = () => {
     if (selectedTemplate) {
-      const template = templates.find((t) => t.id === selectedTemplate);
+      const template = allTemplates.find((t) => t.id === selectedTemplate);
       onSubmit({
         title: projectName || `New ${template?.name} Project`,
         template: selectedTemplate as TemplateKey,
@@ -309,7 +318,7 @@ const TemplateSelectionModal = ({
                 Configure Your Project
               </DialogTitle>
               <DialogDescription>
-                {templates.find((t) => t.id === selectedTemplate)?.name} project
+                {allTemplates.find((t) => t.id === selectedTemplate)?.name} project
                 configuration
               </DialogDescription>
             </DialogHeader>
@@ -328,7 +337,7 @@ const TemplateSelectionModal = ({
               <div className="p-4 shadow-[0_0_0_1px_#E93F3F,0_8px_20px_rgba(233,63,63,0.15)] rounded-lg border">
                 <h3 className="font-medium mb-2">Selected Template Features</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {templates
+                  {allTemplates
                     .find((t) => t.id === selectedTemplate)
                     ?.features.map((feature) => (
                       <div key={feature} className="flex items-center gap-2">
