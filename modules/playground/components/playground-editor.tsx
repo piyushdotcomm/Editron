@@ -313,11 +313,17 @@ const PlaygroundEditor = ({
           provider.awareness
         );
         
-        const userColor = session?.user?.email ? hashStringToColor(session.user.email): "hsl(210 100% 56% / 1)";
+        const userSeed =
+          session?.user?.email?.trim().toLowerCase() ||
+          (session?.user?.id ? String(session.user.id) : "") ||
+          session?.user?.name?.trim().toLowerCase() ||
+          crypto.randomUUID();
+
+        const userColor = hashStringToColor(userSeed);
 
         provider.awareness.setLocalStateField('user', {
           name: session?.user?.name || "Anonymous",
-          color: userColor
+          color: userColor,
         });
 
         const handleAwarenessUpdate = () => {
@@ -332,6 +338,42 @@ const PlaygroundEditor = ({
           const states = Array.from(provider.awareness.getStates().entries() as any);
           let css = "";
 
+          const withOpacity = (color: string, alpha: number): string => {
+            const normalizedAlpha = Math.max(0, Math.min(alpha, 1));
+
+            if (color.startsWith("hsl(") || color.startsWith("hsla(")) {
+              const hslMatch = color.match(/^hsla?\(([^)]+)\)$/i);
+              if (!hslMatch) return color;
+
+              const params = hslMatch[1].trim();
+              const [hslParts] = params.split("/").map((part) => part.trim());
+              return `hsl(${hslParts} / ${normalizedAlpha})`;
+            }
+
+            if (color.startsWith("#")) {
+              const hex = color.slice(1);
+              const alphaHex = Math.round(normalizedAlpha * 255)
+                .toString(16)
+                .padStart(2, "0");
+
+              if (hex.length === 3) {
+                return `#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}${alphaHex}`;
+              }
+
+              if (hex.length === 4) {
+                return `#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}${alphaHex}`;
+              }
+
+              if (hex.length === 6 || hex.length === 8) {
+                return `#${hex.slice(0, 6)}${alphaHex}`;
+              }
+
+              return color;
+            }
+
+            return `color-mix(in srgb, ${color} ${normalizedAlpha * 100}%, transparent)`;
+          };
+
           for (const [clientId, state] of states as [number, any][]) {
             if (state.user) {
               const color = state.user.color || "orange";
@@ -339,7 +381,7 @@ const PlaygroundEditor = ({
 
               css += `
                 .yRemoteSelection-${clientId} {
-                  background-color: ${color.replace("/ 1)", "/ 0.25)")}; /* 40 hex is 25% opacity */
+                  background-color: ${withOpacity(color, 0.25)};
                 }
                 .yRemoteSelectionHead-${clientId} {
                   border-left: 2px solid ${color};
