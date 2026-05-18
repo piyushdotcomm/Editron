@@ -97,7 +97,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   outputFileTracingIncludes: {
-    '/*': ['./editron-starters/**/*'],
     '/playground/**/*': ['./editron-starters/**/*'],
     '/api/**/*': ['./editron-starters/**/*'],
   },
