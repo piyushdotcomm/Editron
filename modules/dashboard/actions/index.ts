@@ -88,14 +88,14 @@ export const createPlayground = async (data: {
   const { template, title, description } = data;
 
   if (!userId) {
-    throw new Error("User Id is Required");
+    return { success: false as const, error: "User Id is Required" };
   }
 
   // Validate that the requested template key maps to a known starter path.
   // Template files are loaded on-demand via the /api/template/[id] route when
   // the playground is first opened, so we only store the enum value here.
   if (template !== "BLANK" && !templatePaths[template]) {
-    throw new Error(`Unknown template: ${template}`);
+    return { success: false as const, error: `Unknown template: ${template}` };
   }
 
   try {

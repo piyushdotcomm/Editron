@@ -5,23 +5,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-
-// Mirror of getScriptFromPkg from webcontainer-preview.tsx
-const getScriptFromPkg = (pkgJson: string | null): string | null => {
-  if (!pkgJson) return null;
-  try {
-    const parsed = JSON.parse(pkgJson);
-    return parsed.scripts?.dev
-      ? "dev"
-      : parsed.scripts?.start
-        ? "start"
-        : parsed.scripts?.serve
-          ? "serve"
-          : null;
-  } catch {
-    return null;
-  }
-};
+import { getScriptFromPkg } from "./webcontainer-preview";
 
 describe("getScriptFromPkg", () => {
   it("returns 'dev' when dev script exists", () => {

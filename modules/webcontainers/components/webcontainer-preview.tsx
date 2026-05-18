@@ -29,7 +29,7 @@ import { useWebContainerStore } from "../hooks/useWebContainer";
  * Extracts the best available run script from a package.json string.
  * Returns "dev", "start", "serve", or null.
  */
-const getScriptFromPkg = (pkgJson: string | null): string | null => {
+export const getScriptFromPkg = (pkgJson: string | null): string | null => {
   if (!pkgJson) return null;
   try {
     const parsed = JSON.parse(pkgJson);
