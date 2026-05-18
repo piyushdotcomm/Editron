@@ -61,8 +61,8 @@ describe('Card component', () => {
   });
 
   it('applies custom className to components', () => {
-    render(<Card className="my-custom-card" />);
-    const cardElement = document.querySelector('[data-slot="card"]');
+    const { container } = render(<Card className="my-custom-card" />);
+    const cardElement = container.querySelector('[data-slot="card"]');
     expect(cardElement).toHaveClass('my-custom-card');
   });
 });
