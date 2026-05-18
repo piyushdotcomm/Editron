@@ -31,14 +31,20 @@ export interface PlaygroundEditorProps {
 let inlineProviderDisposable: { dispose: () => void } | null = null;
 let formatterDisposable: { dispose: () => void } | null = null;
 
-const hashStringToColor = (str: string): string => {
+const hashStringToColor = (
+  str: string,
+  alpha: number = 1
+): string => {
   let hash = 0;
+
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
     hash |= 0;
   }
+
   const hue = ((hash % 360) + 360) % 360;
-  return `hsl(${hue}, 70%, 55%)`;
+
+  return `hsl(${hue} 70% 55% / ${alpha})`;
 };
 
 const PlaygroundEditor = ({
@@ -307,7 +313,7 @@ const PlaygroundEditor = ({
           provider.awareness
         );
         
-        const userColor = session?.user?.email ? hashStringToColor(session.user.email): "#3b82f6";
+        const userColor = session?.user?.email ? hashStringToColor(session.user.email): "hsl(210 100% 56% / 1)";
 
         provider.awareness.setLocalStateField('user', {
           name: session?.user?.name || "Anonymous",
@@ -333,7 +339,7 @@ const PlaygroundEditor = ({
 
               css += `
                 .yRemoteSelection-${clientId} {
-                  background-color: ${color}40; /* 40 hex is 25% opacity */
+                  background-color: ${color}; /* 40 hex is 25% opacity */
                 }
                 .yRemoteSelectionHead-${clientId} {
                   border-left: 2px solid ${color};
@@ -349,7 +355,7 @@ const PlaygroundEditor = ({
                   top: -18px;
                   left: -2px;
                   font-size: 11px;
-                  background-color: ${color};
+                  background-color: ${hashStringToColor(name, 0.25)};
                   color: white;
                   padding: 1px 4px;
                   border-radius: 2px;
