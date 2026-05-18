@@ -408,43 +408,43 @@ function TemplateNode({
                   >
                     <FolderPlus className="h-3.5 w-3.5" />
                   </Button>
-                </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      aria-label={`More actions for ${folderName}`}
-                    >
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={openNewFileDialog}>
-                      <FilePlus className="h-4 w-4 mr-2" />
-                      New File
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={openNewFolderDialog}>
-                      <FolderPlus className="h-4 w-4 mr-2" />
-                      New Folder
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={openRenameDialog}>
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Rename
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={openDeleteDialog}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                        aria-label={`More actions for ${folderName}`}
+                      >
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={openNewFileDialog}>
+                        <FilePlus className="h-4 w-4 mr-2" />
+                        New File
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={openNewFolderDialog}>
+                        <FolderPlus className="h-4 w-4 mr-2" />
+                        New Folder
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={openRenameDialog}>
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={openDeleteDialog}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               <CollapsibleContent>
