@@ -187,7 +187,7 @@ export default function Home() {
           >
             {/* Section Header */}
             <div className="mb-16 text-center space-y-4">
-              <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+              <h2 className="inline-flex overflow-visible py-1 text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
                 Beyond Just an Editor
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
