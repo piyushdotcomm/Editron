@@ -36,7 +36,7 @@ setPersistence({
             _mdb.storeUpdate(docName, update);
         });
     },
-    writeState: async (docName: string, ydoc: Y.Doc) => {
+    writeState: async (docName: string, _ydoc: Y.Doc) => {
         await _mdb.flushDocument(docName);
     }
 });

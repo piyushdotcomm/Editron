@@ -474,6 +474,7 @@ const WebContainerPreview = ({
         // Write to terminal
         writeTerminal("🔄 Transforming template data...\r\n");
 
+        // @ts-expect-error - WebContainer format uses recursive FileSystemTree which is complex to type accurately
         const files = transformToWebContainerFormat(templateData);
         setLoadingState((prev) => ({
           ...prev,
@@ -904,12 +905,12 @@ const WebContainerPreview = ({
                   onClick={() => setRefreshKey((k) => k + 1)}
                   title="Refresh preview"
                 >
-                  <RefreshCw
-                    size={13}
-                    className={
-                      isLoading ? "animate-spin text-primary" : ""
-                    }
-                  />
+                    <RefreshCw
+                      size={13}
+                      className={
+                        !isSetupComplete ? "animate-spin text-primary" : ""
+                      }
+                    />
                 </Button>
               </div>
             </div>

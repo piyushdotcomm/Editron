@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
         await db.templateFile.create({
             data: {
                 playgroundId: playground.id,
-                content: templateData as Prisma.InputJsonValue,
-            },
+                content: templateData as unknown as Prisma.InputJsonValue,
+              },
         });
 
         return NextResponse.json({

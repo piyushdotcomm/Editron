@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
 
         const resultStream = streamText({
             model,
-            messages: await convertToModelMessages(sanitizedMessages, {
+            messages: await convertToModelMessages(sanitizedMessages as any, {
                 ignoreIncompleteToolCalls: true
             }),
             system: systemInstruction,

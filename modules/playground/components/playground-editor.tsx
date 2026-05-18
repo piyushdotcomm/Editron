@@ -42,10 +42,10 @@ const PlaygroundEditor = ({
   const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<unknown>(null);
+  const editorRef = useRef<any>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<unknown>(null);
+  const bindingRef = useRef<any>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 

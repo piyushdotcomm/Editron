@@ -90,14 +90,14 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  reactStrictMode: false,
+  reactStrictMode: true,
   outputFileTracingRoot: process.cwd(),
 
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   outputFileTracingIncludes: {
     '/playground/**/*': ['./editron-starters/**/*'],
