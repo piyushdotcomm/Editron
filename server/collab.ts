@@ -91,7 +91,7 @@ server.on('upgrade', async (request, socket, head) => {
         });
     } catch (error) {
         console.error('Upgrade error:', error);
-        socket.write('HTTP/1.1 500 Internal Server Error\\r\\n\\r\\n');
+        socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
         socket.destroy();
     }
 });

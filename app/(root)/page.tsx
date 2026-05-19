@@ -39,6 +39,6 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaMarkup) }}
       />
       <HomePageClient popularTemplates={popularTemplates} />
-    </div>
-  );
+        </div>
+   );
 }

@@ -394,7 +394,6 @@ if (!playgroundData && !templateData && !error) {
         {/* Command Palette */}
         <CommandPalette
           open={isCommandPaletteOpen}
-          // ... existing props
           onOpenChange={setIsCommandPaletteOpen}
           templateData={templateData}
           onFileSelect={handleFileSelect}

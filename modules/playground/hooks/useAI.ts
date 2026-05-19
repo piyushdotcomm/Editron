@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  STORAGE_KEYS,
+  DEFAULT_EDITOR_THEME,
+} from "@/lib/constants/config";
+
 import { create } from "zustand";
 import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
 
@@ -45,9 +50,9 @@ function loadUserKeys() {
     if (typeof window === "undefined") return { gemini: "", groq: "", mistral: "" };
     try {
         return {
-            gemini: localStorage.getItem("editron_gemini_key") || "",
-            groq: localStorage.getItem("editron_groq_key") || "",
-            mistral: localStorage.getItem("editron_mistral_key") || "",
+            gemini: localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY) || "",
+            groq: localStorage.getItem(STORAGE_KEYS.GROQ_API_KEY) || "",
+            mistral: localStorage.getItem(STORAGE_KEYS.MISTRAL_API_KEY) || "",
         };
     } catch {
         return { gemini: "", groq: "", mistral: "" };
@@ -57,7 +62,7 @@ function loadUserKeys() {
 export const useAI = create<AIState>((set, get) => {
     const keys = loadUserKeys();
     const inlineEnabled = typeof window !== "undefined"
-        ? localStorage.getItem("editron_inline_suggestions") !== "false"
+        ? localStorage.getItem(STORAGE_KEYS.INLINE_SUGGESTIONS) !== "false"
         : true;
 
     return {
@@ -66,7 +71,7 @@ export const useAI = create<AIState>((set, get) => {
         chatMessages: [],
         isGenerating: false,
         inlineSuggestionsEnabled: inlineEnabled,
-        editorTheme: typeof window !== "undefined" ? localStorage.getItem("editron_editor_theme") || "vs-dark" : "vs-dark",
+        editorTheme: typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.EDITOR_THEME) || DEFAULT_EDITOR_THEME : DEFAULT_EDITOR_THEME,
         userGeminiKey: keys.gemini,
         userGroqKey: keys.groq,
         userMistralKey: keys.mistral,
@@ -93,20 +98,20 @@ export const useAI = create<AIState>((set, get) => {
 
         toggleInlineSuggestions: () => {
             const next = !get().inlineSuggestionsEnabled;
-            try { localStorage.setItem("editron_inline_suggestions", String(next)); } catch { }
+            try { localStorage.setItem(STORAGE_KEYS.INLINE_SUGGESTIONS, String(next)); } catch { }
             set({ inlineSuggestionsEnabled: next });
         },
 
         setEditorTheme: (theme: string) => {
-            try { localStorage.setItem("editron_editor_theme", theme); } catch { }
+            try { localStorage.setItem(STORAGE_KEYS.EDITOR_THEME, theme); } catch { }
             set({ editorTheme: theme });
         },
 
         setUserApiKey: (provider, key) => {
             const storageKeys: Record<AIProvider, string> = {
-                gemini: "editron_gemini_key",
-                groq: "editron_groq_key",
-                mistral: "editron_mistral_key",
+                gemini: STORAGE_KEYS.GEMINI_API_KEY,
+                groq: STORAGE_KEYS.GROQ_API_KEY,
+                mistral: STORAGE_KEYS.MISTRAL_API_KEY,
             };
             try {
                 localStorage.setItem(storageKeys[provider], key);

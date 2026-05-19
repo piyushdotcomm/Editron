@@ -15,7 +15,12 @@ concurrency:
 
 jobs:
   handle-assignment:
-    if: github.event.issue.pull_request == null
+    if: >-
+      github.event.issue.pull_request == null &&
+      (contains(github.event.comment.body, '/assign') ||
+       contains(github.event.comment.body, 'assign me') ||
+       contains(github.event.comment.body, '/unassign') ||
+       contains(github.event.comment.body, 'unassign me'))
     runs-on: ubuntu-latest
     steps:
       - name: Smart Assignment Validation
@@ -36,10 +41,11 @@ jobs:
             const validGitHubUsername = /^[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?$/;
             if (!validGitHubUsername.test(username)) return;
 
-            const commentBody = (comment.body || '').toLowerCase();
+            const commentBody = (comment.body || '');
+            const trimmedBody = commentBody.trim();
 
-            const wantsAssign = commentBody.includes('/assign') || commentBody.includes('assign me');
-            const wantsUnassign = commentBody.includes('/unassign') || commentBody.includes('unassign me');
+            const wantsAssign = /^(please\s+|kindly\s+)?(\/assign|assign me)\s*(gssoc|nsoc)?\s*(please)?$/i.test(trimmedBody);
+            const wantsUnassign = /^(please\s+|kindly\s+)?(\/unassign|unassign me)\s*(gssoc|nsoc)?\s*(please)?$/i.test(trimmedBody);
 
             if (!wantsAssign && !wantsUnassign) return;
 
@@ -101,35 +107,29 @@ jobs:
               return;
             }
 
-            const { data: userProfile } = await github.rest.users.getByUsername({ username });
-            const accountAge = (new Date() - new Date(userProfile.created_at)) / (1000 * 60 * 60 * 24);
-            if (accountAge < 7) {
-              await github.rest.issues.createComment({ owner, repo, issue_number,
-                body: `❌ @${username}, your GitHub account must be at least **7 days old** to request assignments. This helps prevent spam.` });
-              return;
-            }
-
-            if ((issue.title || '').trim().length < 10) {
-              await github.rest.issues.createComment({ owner, repo, issue_number,
-                body: `❌ Issue title is too short. Please improve it before requesting assignment.` });
-              return;
-            }
-
-            const issueEvents = await github.paginate(github.rest.issues.listEventsForTimeline, {
-              owner, repo, issue_number, per_page: 100
-            });
-            const recentUnassign = issueEvents
-              .filter(e => e.event === 'unassigned' && e.assignee && e.assignee.login === username)
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-
-            if (recentUnassign) {
-              const hoursSinceUnassign = (new Date() - new Date(recentUnassign.created_at)) / (1000 * 60 * 60);
-              if (hoursSinceUnassign < 24) {
-                await github.rest.issues.createComment({ owner, repo, issue_number,
-                  body: `⏳ @${username}, you were recently unassigned from this issue. Please wait **24 hours** before re-requesting assignment.` });
-                return;
+            let isMaintainerOrMentor = false;
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(comment.author_association || '')) {
+              isMaintainerOrMentor = true;
+            } else {
+              try {
+                const { data: fileData } = await github.rest.repos.getContent({
+                  owner, repo, path: '.github/reviewers/gssoc-mentors.json'
+                });
+                const content = Buffer.from(fileData.content, 'base64').toString('utf8');
+                const mentorsData = JSON.parse(content);
+                if ((mentorsData.reviewers || []).some(m => m.toLowerCase() === username.toLowerCase())) {
+                  isMaintainerOrMentor = true;
+                }
+              } catch (e) {
+                core.info('Could not check mentors list: ' + e.message);
               }
             }
+
+            // Fetch active issues unconditionally for accurate count
+            const assignedIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', assignee: username, per_page: 100
+            });
+            const activeIssues = assignedIssues.filter(i => !i.pull_request);
 
             if ((currentIssue.assignees || []).length > 0) {
               const current = (currentIssue.assignees || []).map(a => a.login).join(', ');
@@ -138,35 +138,62 @@ jobs:
               return;
             }
 
-            const maxAssignments = mentionsGSSOC ? 2 : 3;
-            const assignedIssues = await github.paginate(github.rest.issues.listForRepo, {
-              owner, repo, state: 'open', assignee: username, per_page: 100
-            });
-            const activeIssues = assignedIssues.filter(i => !i.pull_request);
+            if (!isMaintainerOrMentor) {
+              const { data: userProfile } = await github.rest.users.getByUsername({ username });
+              const accountAge = (new Date() - new Date(userProfile.created_at)) / (1000 * 60 * 60 * 24);
+              if (accountAge < 7) {
+                await github.rest.issues.createComment({ owner, repo, issue_number,
+                  body: `❌ @${username}, your GitHub account must be at least **7 days old** to request assignments. This helps prevent spam.` });
+                return;
+              }
 
-            if (activeIssues.length >= maxAssignments) {
-              await github.rest.issues.createComment({ owner, repo, issue_number,
-                body: `❌ @${username} already has ${activeIssues.length} active assignment(s).\n\nMaximum allowed for ${mentionsGSSOC ? 'GSSOC' : 'NSOC'}: **${maxAssignments}**\n\nPlease complete or unassign existing issues first.` });
-              return;
-            }
+              if ((issue.title || '').trim().length < 10) {
+                await github.rest.issues.createComment({ owner, repo, issue_number,
+                  body: `❌ Issue title is too short. Please improve it before requesting assignment.` });
+                return;
+              }
 
-            const sanitizedUsername = encodeURIComponent(username);
-            const { data: spamResult } = await github.rest.search.issuesAndPullRequests({
-              q: `repo:${owner}/${repo} is:pr author:${sanitizedUsername} label:"gssoc:spam"`
-            });
-            const { data: slopResult } = await github.rest.search.issuesAndPullRequests({
-              q: `repo:${owner}/${repo} is:pr author:${sanitizedUsername} label:"gssoc:ai-slop"`
-            });
-            const spamSet = new Set([
-              ...(spamResult.items || []).map(i => i.number),
-              ...(slopResult.items || []).map(i => i.number)
-            ]);
-            const spamPRs = { length: spamSet.size };
+              const issueEvents = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                owner, repo, issue_number, per_page: 100
+              });
+              const recentUnassign = issueEvents
+                .filter(e => e.event === 'unassigned' && e.assignee && e.assignee.login === username)
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
-            if (spamPRs.length >= 2) {
-              await github.rest.issues.createComment({ owner, repo, issue_number,
-                body: `🚫 @${username}, your assignment request has been **denied**.\n\nYou have ${spamPRs.length} PRs previously flagged as spam/AI-slop. Please contact a maintainer to appeal.` });
-              return;
+              if (recentUnassign) {
+                const hoursSinceUnassign = (new Date() - new Date(recentUnassign.created_at)) / (1000 * 60 * 60);
+                if (hoursSinceUnassign < 24) {
+                  await github.rest.issues.createComment({ owner, repo, issue_number,
+                    body: `⏳ @${username}, you were recently unassigned from this issue. Please wait **24 hours** before re-requesting assignment.` });
+                  return;
+                }
+              }
+
+              const maxAssignments = mentionsGSSOC ? 2 : 3;
+
+              if (activeIssues.length >= maxAssignments) {
+                await github.rest.issues.createComment({ owner, repo, issue_number,
+                  body: `❌ @${username} already has ${activeIssues.length} active assignment(s).\n\nMaximum allowed for ${mentionsGSSOC ? 'GSSOC' : 'NSOC'}: **${maxAssignments}**\n\nPlease complete or unassign existing issues first.` });
+                return;
+              }
+
+              const sanitizedUsername = encodeURIComponent(username);
+              const { data: spamResult } = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} is:pr author:${sanitizedUsername} label:"gssoc:spam"`
+              });
+              const { data: slopResult } = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} is:pr author:${sanitizedUsername} label:"gssoc:ai-slop"`
+              });
+              const spamSet = new Set([
+                ...(spamResult.items || []).map(i => i.number),
+                ...(slopResult.items || []).map(i => i.number)
+              ]);
+
+              if (spamSet.size >= 2) {
+                await github.rest.issues.createComment({ owner, repo, issue_number,
+                  body: `🚫 @${username}, your assignment request has been **denied**.\n\nYou have ${spamSet.size} PRs previously flagged as spam/AI-slop. Please contact a maintainer to appeal.` });
+                return;
+              }
             }
 
             await github.rest.issues.addAssignees({

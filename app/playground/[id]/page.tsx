@@ -518,7 +518,22 @@ if (containerSynced) {
                       className="h-full"
                     >
                       <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
-                        <ErrorBoundary name="MonacoEditor">
+                        <ErrorBoundary
+                          name="MonacoEditor"
+                          fallback={({ reset }) => (
+                            <div className="flex h-full min-h-[200px] items-center justify-center p-6">
+                              <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center">
+                                <h3 className="mb-2 text-lg font-semibold text-destructive">
+                                  Editor crashed
+                                </h3>
+                                <p className="mb-4 text-sm text-muted-foreground">
+                                  The editor failed, but the rest of the playground is still available.
+                                </p>
+                                <Button onClick={reset}>Reload Editor</Button>
+                              </div>
+                            </div>
+                          )}
+                        >
                           <PlaygroundEditor
                             activeFile={activeFile}
                             content={activeFile?.content || ""}

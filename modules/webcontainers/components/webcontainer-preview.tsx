@@ -25,6 +25,26 @@ import { WebContainer } from "@webcontainer/api";
 import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useWebContainerStore } from "../hooks/useWebContainer";
 
+/**
+ * Extracts the best available run script from a package.json string.
+ * Returns "dev", "start", "serve", or null.
+ */
+export const getScriptFromPkg = (pkgJson: string | null): string | null => {
+  if (!pkgJson) return null;
+  try {
+    const parsed = JSON.parse(pkgJson);
+    return parsed.scripts?.dev
+      ? "dev"
+      : parsed.scripts?.start
+        ? "start"
+        : parsed.scripts?.serve
+          ? "serve"
+          : null;
+  } catch {
+    return null;
+  }
+};
+
 interface WebContainerPreviewProps {
   templateData: TemplateFolder;
   serverUrl: string;
@@ -32,7 +52,7 @@ interface WebContainerPreviewProps {
   error: string | null;
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
-  forceResetup?: boolean; // Optional prop to force re-setup
+  forceResetup?: boolean;
 }
 const WebContainerPreview = ({
   templateData,
@@ -76,6 +96,27 @@ const WebContainerPreview = ({
 
   const terminalRef = useRef<TerminalRef | null>(null);
   const setupInProgressRef = useRef(false);
+  const serverReadyCleanupRef = useRef<(() => void) | null>(null);
+
+  /** Safely write a message to the embedded terminal (no-op if ref is unavailable). */
+  const writeTerminal = (msg: string) => {
+    terminalRef.current?.writeToTerminal(msg);
+  };
+
+  /** Unsubscribe the current server-ready listener, if any. */
+  const cleanupServerReady = () => {
+    serverReadyCleanupRef.current?.();
+    serverReadyCleanupRef.current = null;
+  };
+
+  /** Register a server-ready listener, unsubscribing any prior one to prevent accumulation. */
+  const bindServerReady = (inst: WebContainer, handler: (port: number, url: string) => void) => {
+    serverReadyCleanupRef.current?.();
+    serverReadyCleanupRef.current = inst.on("server-ready", handler as Parameters<WebContainer["on"]>[1]);
+  };
+
+  // Derive a loading flag for the refresh-spinner icon in the toolbar.
+  const isLoading = currentStep > 0 && !isSetupComplete;
 
   // Helper to count dependencies from package.json content
   const countDependencies = (pkgContent: string): number => {
@@ -95,8 +136,8 @@ const WebContainerPreview = ({
 
     return new WritableStream({
       write(data: string) {
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(data);
+        if (terminalRef.current) {
+          writeTerminal(data);
         } else {
           console.log("[WebContainer Install] ", data.trim());
         }
@@ -288,6 +329,7 @@ const WebContainerPreview = ({
   // Reset setup state when forceResetup changes
   useEffect(() => {
     if (forceResetup) {
+      cleanupServerReady();
       setIsSetupComplete(false);
       setIsSetupInProgress(false);
       setupInProgressRef.current = false;
@@ -320,18 +362,14 @@ const WebContainerPreview = ({
 
           if (packageJsonExists) {
             // Files are already mounted, restart the server
-            if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal(
-                "🔄 Reconnecting to existing WebContainer session...\r\n",
-              );
-            }
+            writeTerminal(
+              "🔄 Reconnecting to existing WebContainer session...\r\n",
+            );
 
-            instance.on("server-ready", (port: number, url: string) => {
-              if (terminalRef.current?.writeToTerminal) {
-                terminalRef.current.writeToTerminal(
-                  `🌐 Server ready at ${url} (port ${port})\r\n`,
-                );
-              }
+            bindServerReady(instance, (port: number, url: string) => {
+              writeTerminal(
+                `🌐 Server ready at ${url} (port ${port})\r\n`,
+              );
 
               const isCommonFrontendPort = [
                 3000, 5173, 8080, 4200, 8000,
@@ -374,11 +412,9 @@ const WebContainerPreview = ({
               statusText: "Starting install...",
             });
 
-            if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal(
-                `📦 Reinstalling dependencies using \x1b[33m${pkgManager}\x1b[0m (${reconnectTotalDeps} packages)...\r\n`,
-              );
-            }
+            writeTerminal(
+              `📦 Reinstalling dependencies using \x1b[33m${pkgManager}\x1b[0m (${reconnectTotalDeps} packages)...\r\n`,
+            );
 
             const installArgs =
               pkgManager === "npm"
@@ -393,17 +429,11 @@ const WebContainerPreview = ({
             );
             const reinstallExitCode = await reinstallProcess.exit;
             if (reinstallExitCode !== 0) {
-              if (terminalRef.current?.writeToTerminal) {
-                terminalRef.current.writeToTerminal(
-                  `⚠️ ${pkgManager} install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`,
-                );
-              }
+              writeTerminal(
+                `⚠️ ${pkgManager} install exited with code ${reinstallExitCode}, attempting to start anyway...\r\n`,
+              );
             } else {
-              if (terminalRef.current?.writeToTerminal) {
-                terminalRef.current.writeToTerminal(
-                  "✅ Dependencies ready\r\n",
-                );
-              }
+              writeTerminal("✅ Dependencies ready\r\n");
             }
 
             setLoadingState((prev) => ({
@@ -420,11 +450,9 @@ const WebContainerPreview = ({
               pkgContent,
             );
 
-            if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal(
-                `🚀 Restarting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
-              );
-            }
+            writeTerminal(
+              `🚀 Restarting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
+            );
             const startProcess = await instance.spawn(
               startCommand.cmd,
               startCommand.args,
@@ -432,9 +460,7 @@ const WebContainerPreview = ({
             startProcess.output.pipeTo(
               new WritableStream({
                 write(data) {
-                  if (terminalRef.current?.writeToTerminal) {
-                    terminalRef.current.writeToTerminal(data);
-                  }
+                  writeTerminal(data);
                 },
               }),
             );
@@ -446,11 +472,7 @@ const WebContainerPreview = ({
         setLoadingState((prev) => ({ ...prev, transforming: true }));
         setCurrentStep(1);
         // Write to terminal
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            "🔄 Transforming template data...\r\n",
-          );
-        }
+        writeTerminal("🔄 Transforming template data...\r\n");
 
         // @ts-ignore
         const files = transformToWebContainerFormat(templateData);
@@ -463,18 +485,10 @@ const WebContainerPreview = ({
 
         //  Step-2 Mount Files
 
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            "📁 Mounting files to WebContainer...\r\n",
-          );
-        }
+        writeTerminal("📁 Mounting files to WebContainer...\r\n");
         await instance.mount(files);
 
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            "✅ Files mounted successfully\r\n",
-          );
-        }
+        writeTerminal("✅ Files mounted successfully\r\n");
 
         // Check if package.json exists, if not create a default one for static serving
         try {
@@ -483,11 +497,9 @@ const WebContainerPreview = ({
             .catch(() => null);
 
           if (!packageJsonContent) {
-            if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal(
-                "⚠️ No package.json found. Creating default configuration for static site...\r\n",
-              );
-            }
+            writeTerminal(
+              "⚠️ No package.json found. Creating default configuration for static site...\r\n",
+            );
             await instance.fs.writeFile(
               "package.json",
               JSON.stringify(
@@ -535,11 +547,9 @@ const WebContainerPreview = ({
                 }
 
                 if (entryFile) {
-                  if (terminalRef.current?.writeToTerminal) {
-                    terminalRef.current.writeToTerminal(
-                      `⚠️ No start script found. Auto-detected entry point: ${entryFile}. Injecting start script...\r\n`,
-                    );
-                  }
+                  writeTerminal(
+                    `⚠️ No start script found. Auto-detected entry point: ${entryFile}. Injecting start script...\r\n`,
+                  );
 
                   pkg.scripts = pkg.scripts || {};
                   pkg.scripts.start = `node ${entryFile}`;
@@ -565,34 +575,17 @@ const WebContainerPreview = ({
                     pkg.workspaces = workspaces;
                     pkg.scripts = pkg.scripts || {};
 
-                    // Construct start script
-                    // Helper to find valid script
-                    const getScript = (pkgJson: string | null) => {
-                      if (!pkgJson) return null;
-                      try {
-                        const parsed = JSON.parse(pkgJson);
-                        return parsed.scripts?.dev
-                          ? "dev"
-                          : parsed.scripts?.start
-                            ? "start"
-                            : null;
-                      } catch {
-                        return null;
-                      }
-                    };
+                    const clientScript = getScriptFromPkg(hasClient);
+                    const serverScript = getScriptFromPkg(hasServer);
 
-                    const clientScript = getScript(hasClient);
-                    const serverScript = getScript(hasServer);
-
-                    // Construct start script
                     if (
                       hasClient &&
                       hasServer &&
                       clientScript &&
                       serverScript
                     ) {
-                      // Attempt to start client last to capture its port, or use a tool like concurrently if available.
-                      // For now, valid method is:
+                      // Run server in background, then client in foreground so its port is captured by WebContainer.
+                      // NOTE: Shell `&` works in WebContainer's jsh; for production monorepos consider `concurrently`.
                       pkg.scripts.start = `npm run ${serverScript} --prefix server & npm run ${clientScript} --prefix client`;
                     } else if (hasClient && clientScript) {
                       pkg.scripts.start = `npm run ${clientScript} --prefix client`;
@@ -603,11 +596,9 @@ const WebContainerPreview = ({
                       pkg.scripts.start = "echo 'No runnable scripts found'";
                     }
 
-                    if (terminalRef.current?.writeToTerminal) {
-                      terminalRef.current.writeToTerminal(
-                        `⚠️ Detected monorepo structure (${workspaces.join(", ")}). Configuring workspaces and start script...\r\n`,
-                      );
-                    }
+                    writeTerminal(
+                      `⚠️ Detected monorepo structure (${workspaces.join(", ")}). Configuring workspaces and start script...\r\n`,
+                    );
 
                     // Ensure name and version exist for valid workspace root
                     if (!pkg.name) pkg.name = "monorepo-root";
@@ -652,11 +643,9 @@ const WebContainerPreview = ({
           statusText: "Starting install...",
         });
 
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            `📦 Installing dependencies using \x1b[33m${pkgManager}\x1b[0m (${totalDeps} packages)...\r\n`,
-          );
-        }
+        writeTerminal(
+          `📦 Installing dependencies using \x1b[33m${pkgManager}\x1b[0m (${totalDeps} packages)...\r\n`,
+        );
 
         // Prefer npm ci (reads lockfile, skips registry metadata = no JSON truncation in WebContainer)
         // Fall back to npm install if no lockfile is present
@@ -667,11 +656,9 @@ const WebContainerPreview = ({
             .catch(() => null);
           if (hasLockfile) {
             freshInstallArgs = ["ci", "--no-audit", "--no-fund"];
-            if (terminalRef.current?.writeToTerminal) {
-              terminalRef.current.writeToTerminal(
-                "🔒 Lockfile found — using \x1b[32mnpm ci\x1b[0m for faster, reliable install...\r\n",
-              );
-            }
+            writeTerminal(
+              "🔒 Lockfile found — using \x1b[32mnpm ci\x1b[0m for faster, reliable install...\r\n",
+            );
           } else {
             freshInstallArgs = [
               "install",
@@ -693,18 +680,12 @@ const WebContainerPreview = ({
         const installExitCode = await installProcess.exit;
 
         if (installExitCode !== 0) {
-          if (terminalRef.current?.writeToTerminal) {
-            terminalRef.current.writeToTerminal(
-              `⚠️ Dependencies install exited with code ${installExitCode}, attempting to start anyway...\r\n`,
-            );
-          }
+          writeTerminal(
+            `⚠️ Dependencies install exited with code ${installExitCode}, attempting to start anyway...\r\n`,
+          );
           console.warn(`npm install exited with code ${installExitCode}`);
         } else {
-          if (terminalRef.current?.writeToTerminal) {
-            terminalRef.current.writeToTerminal(
-              "✅ Dependencies installed successfully\r\n",
-            );
-          }
+          writeTerminal("✅ Dependencies installed successfully\r\n");
         }
 
         setLoadingState((prev) => ({
@@ -722,25 +703,19 @@ const WebContainerPreview = ({
           pckgContent,
         );
 
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(
-            `🚀 Starting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
-          );
-        }
+        writeTerminal(
+          `🚀 Starting development server via \x1b[32m${startCommand.cmd} ${startCommand.args.join(" ")}\x1b[0m...\r\n`,
+        );
 
         const startProcess = await instance.spawn(
           startCommand.cmd,
           startCommand.args,
         );
 
-        instance.on("server-ready", (port: number, url: string) => {
+        bindServerReady(instance, (port: number, url: string) => {
           // Surface the active preview URL in the embedded terminal so users can
           // diagnose which WebContainer server was selected when multiple ports start.
-          if (terminalRef.current?.writeToTerminal) {
-            terminalRef.current.writeToTerminal(
-              `🌐 Server ready at ${url} (port ${port})\r\n`,
-            );
-          }
+          writeTerminal(`🌐 Server ready at ${url} (port ${port})\r\n`);
 
           // Heuristic: Prefer port 5173 (Vite) or 3000 (Create React App / Next.js) over others (often backend)
           // valid ports for frontend usually: 3000, 3001, 3002, 5173, 5174, 8080, 4200 (Angular), 8000 (Gatsby)
@@ -770,18 +745,14 @@ const WebContainerPreview = ({
         startProcess.output.pipeTo(
           new WritableStream({
             write(data) {
-              if (terminalRef.current?.writeToTerminal) {
-                terminalRef.current.writeToTerminal(data);
-              }
+              writeTerminal(data);
             },
           }),
         );
       } catch (err) {
         console.error("Error setting up container:", err);
         const errorMessage = err instanceof Error ? err.message : String(err);
-        if (terminalRef.current?.writeToTerminal) {
-          terminalRef.current.writeToTerminal(`❌ Error: ${errorMessage}\r\n`);
-        }
+        writeTerminal(`❌ Error: ${errorMessage}\r\n`);
         setSetupError(errorMessage);
         setIsSetupInProgress(false);
         setupInProgressRef.current = false;
@@ -800,10 +771,11 @@ const WebContainerPreview = ({
   }, [instance, templateData, isSetupComplete]);
 
   useEffect(() => {
-  return () => {
-    useWebContainerStore.getState().setServerUrl(null);
-  };
-}, []);
+    return () => {
+      cleanupServerReady();
+      useWebContainerStore.getState().setServerUrl(null);
+    };
+  }, []);
 
  
 
