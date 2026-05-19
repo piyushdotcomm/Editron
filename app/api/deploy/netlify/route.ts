@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import JSZip from "jszip";
-import { rateLimit, getClientIp } from "@/lib/api-utils";
+import { rateLimit } from "@/lib/api-utils";
 
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const ip = getClientIp(req);
-        const { allowed, remaining } = await rateLimit(`deploy-netlify:${ip}`, 5, 60_000); // Max 5 deploys per minute
+        const { allowed, remaining } = await rateLimit(`deploy-netlify:${session.user.id}`, 5, 60_000); // Max 5 deploys per minute
 
         if (!allowed) {
             return NextResponse.json(
@@ -20,6 +19,7 @@ export async function POST(req: NextRequest) {
                     status: 429,
                     headers: {
                         "Retry-After": "60",
+                        "X-RateLimit-Limit": "5",
                         "X-RateLimit-Remaining": String(remaining),
                     },
                 }
