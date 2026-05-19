@@ -135,10 +135,18 @@ export const editProjectById = async (
   id: string,
   data: { title: string; description: string }
 ) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.update({
+    await db.playground.updateMany({
       where: {
         id,
+        userId,
       },
       data: data,
     });
