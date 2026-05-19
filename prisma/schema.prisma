@@ -28,7 +28,7 @@ model User{
   accounts Account[]
   role UserRole @default(USER)
 
-  myPlaground Playground[]
+  myPlayground Playground[]
   staredPlayground StarMark[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
