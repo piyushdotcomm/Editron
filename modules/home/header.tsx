@@ -121,7 +121,7 @@ export function Header() {
                                             <Link
                                                 href="/docs"
                                                 onClick={() => setOpen(false)}
-                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-all duration-200"
+                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-red-500/5 hover:translate-x-1 border border-transparent hover:border-red-500/20 transition-all duration-300"
                                             >
                                                 Documentation
                                             </Link>
@@ -129,7 +129,7 @@ export function Header() {
                                             <Link
                                                 href="/#features"
                                                 onClick={() => setOpen(false)}
-                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-all duration-200"
+                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-red-500/5 hover:translate-x-1 border border-transparent hover:border-red-500/20 transition-all duration-300"
                                             >
                                                 Features
                                             </Link>
@@ -137,7 +137,7 @@ export function Header() {
                                             <Link
                                                 href="/templates"
                                                 onClick={() => setOpen(false)}
-                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-all duration-200"
+                                                className="rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-red-500/5 hover:translate-x-1 border border-transparent hover:border-red-500/20 transition-all duration-300"
                                             >
                                                 Templates
                                             </Link>
@@ -187,7 +187,37 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     return (
         <Link
             href={href}
-            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-all duration-200"
+            className="
+                relative
+                px-3
+                py-2
+                text-sm
+                font-medium
+                text-muted-foreground
+                hover:text-red-500
+                rounded-md
+                transition-all
+                duration-300
+
+                after:content-['']
+                after:absolute
+                after:left-1/2
+                after:bottom-1
+                after:h-[2px]
+                after:w-[70%]
+                after:-translate-x-1/2
+                after:scale-x-0
+                after:origin-center
+                after:rounded-full
+                after:bg-gradient-to-r
+                after:from-red-900
+                after:via-red-600
+                after:to-red-400
+                after:transition-transform
+                after:duration-300
+
+                hover:after:scale-x-100
+                "
         >
             {children}
         </Link>
