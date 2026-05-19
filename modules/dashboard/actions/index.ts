@@ -119,12 +119,25 @@ export const createPlayground = async (data: {
 };
 
 export const deleteProjectById = async (id: string) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.delete({
+    const result = await db.playground.deleteMany({
       where: {
         id,
+        userId,
       },
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
