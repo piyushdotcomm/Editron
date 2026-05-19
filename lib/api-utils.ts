@@ -5,17 +5,32 @@ import { Redis } from "@upstash/redis";
 
 // --- Rate Limiter ---
 const rateLimitMap = new Map<string, number[]>();
+const redisLimiterCache = new Map<string, Ratelimit>();
 
-let redisRatelimit: Ratelimit | null = null;
+let isRedisConfigured = false;
 try {
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-        redisRatelimit = new Ratelimit({
-            redis: Redis.fromEnv(),
-            limiter: Ratelimit.slidingWindow(20, "1 m"),
-        });
+        isRedisConfigured = true;
     }
 } catch (error) {
-    console.warn("Failed to initialize Upstash Redis rate limiter, falling back to memory:", error);
+    console.warn("Failed to check Upstash Redis env config:", error);
+}
+
+function getRedisRatelimit(maxRequests: number, windowMs: number): Ratelimit | null {
+    if (!isRedisConfigured) return null;
+    
+    const cacheKey = `${maxRequests}_${windowMs}`;
+    if (!redisLimiterCache.has(cacheKey)) {
+        redisLimiterCache.set(
+            cacheKey,
+            new Ratelimit({
+                redis: Redis.fromEnv(),
+                // @upstash/ratelimit allows durations like "10 s", "60000 ms"
+                limiter: Ratelimit.slidingWindow(maxRequests, `${windowMs} ms` as any),
+            })
+        );
+    }
+    return redisLimiterCache.get(cacheKey)!;
 }
 
 export async function rateLimit(
@@ -23,9 +38,11 @@ export async function rateLimit(
     maxRequests: number = 20,
     windowMs: number = 60_000
 ): Promise<{ allowed: boolean; remaining: number }> {
-    if (redisRatelimit) {
+    const redisLimiter = getRedisRatelimit(maxRequests, windowMs);
+    
+    if (redisLimiter) {
         try {
-            const { success, remaining } = await redisRatelimit.limit(identifier);
+            const { success, remaining } = await redisLimiter.limit(identifier);
             return { allowed: success, remaining };
         } catch (error) {
             console.warn("Redis rate limiter failed, falling back to in-memory limit for this request", error);
