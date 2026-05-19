@@ -38,7 +38,7 @@ const SKIP_FOLDERS = new Set([
     "__pycache__", ".cache", ".DS_Store",
 ]);
 
-const MAX_TOTAL_UNCOMPRESSED_SIZE = 100 * 1024 * 1024; // 100MB cap
+const MAX_TOTAL_UNCOMPRESSED_SIZE = 10 * 1024 * 1024; // 10MB cap to fit safely in MongoDB 16MB limit
 const MAX_SINGLE_FILE_SIZE = 500_000; // 500KB
 
 function isTemplateFolder(item: TemplateFile | TemplateFolder): item is TemplateFolder {
@@ -72,7 +72,7 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
     });
 
     if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
-        throw new ValidationError(`Total uncompressed size exceeds 100MB limit (${totalUncompressedSize} bytes)`, 413);
+        throw new ValidationError(`Total uncompressed size exceeds 10MB limit (${totalUncompressedSize} bytes)`, 413);
     }
 
     // Detect common root folder (e.g. "my-project/src/..." -> strip "my-project/")
