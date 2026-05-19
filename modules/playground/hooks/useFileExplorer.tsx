@@ -445,7 +445,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
- updateFileContent: (fileId, content) => {
+updateFileContent: (fileId, content) => {
     set((state) => ({
       openFiles: state.openFiles.map((file) =>
         file.id === fileId
