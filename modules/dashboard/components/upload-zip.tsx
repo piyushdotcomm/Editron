@@ -62,8 +62,12 @@ const UploadZip = () => {
     };
 
     return (
-        <div
+        <>
+        <button
+            type="button"
             onClick={handleClick}
+            disabled={isUploading}
+            aria-describedby="upload-zip-description"
             className={`group relative px-4 py-5 sm:px-6 sm:py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer
         transition-all duration-300 ease-out
         hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 hover:-translate-y-1 ${isUploading ? "pointer-events-none opacity-70" : ""
@@ -81,7 +85,7 @@ const UploadZip = () => {
                     <h1 className="text-xl font-bold text-foreground group-hover:text-orange-500 transition-colors">
                         {isUploading ? "Uploading..." : "Upload ZIP"}
                     </h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p id="upload-zip-description" className="text-sm text-muted-foreground text-left">
                         {isUploading
                             ? "Processing your project files..."
                             : "Import a project from a ZIP file"}
@@ -92,15 +96,16 @@ const UploadZip = () => {
             <div className="relative hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity">
                 <FileArchive className="h-20 w-20 text-orange-500/20 group-hover:text-orange-500/30 transition-all duration-500 group-hover:scale-110" />
             </div>
+        </button>
 
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept=".zip"
-                className="hidden"
-                onChange={handleFileChange}
-            />
-        </div>
+        <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            className="hidden"
+            onChange={handleFileChange}
+        />
+        </>
     );
 };
 
