@@ -1,14 +1,38 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 // --- Rate Limiter ---
 const rateLimitMap = new Map<string, number[]>();
 
-export function rateLimit(
+let redisRatelimit: Ratelimit | null = null;
+try {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        redisRatelimit = new Ratelimit({
+            redis: Redis.fromEnv(),
+            limiter: Ratelimit.slidingWindow(20, "1 m"),
+        });
+    }
+} catch (error) {
+    console.warn("Failed to initialize Upstash Redis rate limiter, falling back to memory:", error);
+}
+
+export async function rateLimit(
     identifier: string,
     maxRequests: number = 20,
     windowMs: number = 60_000
-): { allowed: boolean; remaining: number } {
+): Promise<{ allowed: boolean; remaining: number }> {
+    if (redisRatelimit) {
+        try {
+            const { success, remaining } = await redisRatelimit.limit(identifier);
+            return { allowed: success, remaining };
+        } catch (error) {
+            console.warn("Redis rate limiter failed, falling back to in-memory limit for this request", error);
+        }
+    }
+
+    // In-memory fallback
     const now = Date.now();
 
     // Prevent memory leak in long-running processes by capping map size
