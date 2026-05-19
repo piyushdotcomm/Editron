@@ -156,16 +156,22 @@ export const editProjectById = async (
   }
 
   try {
-    await db.playground.updateMany({
+    const result = await db.playground.updateMany({
       where: {
         id,
         userId,
       },
       data: data,
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
