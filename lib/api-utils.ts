@@ -13,7 +13,26 @@ export function rateLimit(
 
     // Prevent memory leak in long-running processes by capping map size
     if (rateLimitMap.size > 10000) {
-        rateLimitMap.clear();
+        // 1) prune expired timestamps per key
+        for (const [key, ts] of rateLimitMap) {
+            const recentTs = ts.filter((t) => now - t < windowMs);
+            if (recentTs.length === 0) rateLimitMap.delete(key);
+            else rateLimitMap.set(key, recentTs);
+        }
+        // 2) if still above cap, evict oldest keys first
+        while (rateLimitMap.size > 10000) {
+            let oldestKey: string | undefined;
+            let oldest = Infinity;
+            for (const [key, ts] of rateLimitMap) {
+                const last = ts[ts.length - 1] ?? Infinity;
+                if (last < oldest) {
+                    oldest = last;
+                    oldestKey = key;
+                }
+            }
+            if (!oldestKey) break;
+            rateLimitMap.delete(oldestKey);
+        }
     }
 
     const timestamps = rateLimitMap.get(identifier) || [];
