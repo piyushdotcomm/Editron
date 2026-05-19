@@ -23,6 +23,15 @@ import { fetchCollabToken, getOrCreateYDoc, destroyYDoc } from "@/lib/yjs";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+function hashStringToColor(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0; // force 32-bit integer
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 55%)`; // high saturation + mid lightness = always visible, always distinct
+}
 export interface PlaygroundEditorProps {
   activeFile: TemplateFile | undefined;
   content: string;
@@ -299,7 +308,7 @@ const PlaygroundEditor = ({
           provider.awareness
         );
 
-        const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+        const userColor = session?.user?.email? hashStringToColor(session.user.email) : "#30bced";
 
         provider.awareness.setLocalStateField('user', {
           name: session?.user?.name || "Anonymous",
