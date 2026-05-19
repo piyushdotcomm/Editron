@@ -33,15 +33,21 @@ export async function GET(
 
         const zip = new JSZip();
 
-        // Helper function to add files recursively
+        // Helper function to add files recursively from TemplateFolder structure
         const addFilesToZip = (folder: any, currentPath: string = "") => {
-            Object.entries(folder).forEach(([key, value]: [string, any]) => {
-                const path = currentPath ? `${currentPath}/${key}` : key;
+            if (!folder || !Array.isArray(folder.items)) return;
 
-                if (value.file && value.file.contents) {
-                    zip.file(path, value.file.contents);
-                } else if (value.directory) {
-                    addFilesToZip(value.directory, path);
+            folder.items.forEach((item: any) => {
+                if ("folderName" in item) {
+                    // It's a folder
+                    const newPath = currentPath ? `${currentPath}/${item.folderName}` : item.folderName;
+                    addFilesToZip(item, newPath);
+                } else if ("filename" in item) {
+                    // It's a file
+                    const ext = item.fileExtension ? `.${item.fileExtension}` : "";
+                    const fullFilename = `${item.filename}${ext}`;
+                    const filePath = currentPath ? `${currentPath}/${fullFilename}` : fullFilename;
+                    zip.file(filePath, item.content || "");
                 }
             });
         };
