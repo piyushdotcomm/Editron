@@ -1,8 +1,12 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireCurrentUserId } from "@/lib/playground-auth";
 import JSZip from "jszip";
+import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
+
+function sanitizePathSegment(segment: string): string {
+    return segment.replace(/\.\.+/g, "").replace(/[/\\]/g, "").replace(/\0/g, "").trim();
+}
 
 export async function GET(
     req: NextRequest,
@@ -34,18 +38,24 @@ export async function GET(
         const zip = new JSZip();
 
         // Helper function to add files recursively from TemplateFolder structure
-        const addFilesToZip = (folder: any, currentPath: string = "") => {
-            if (!folder || !Array.isArray(folder.items)) return;
+        const addFilesToZip = (folder: TemplateFolder, currentPath: string = "") => {
+            if (!folder || !Array.isArray(folder.items)) {
+                throw new Error("Invalid template schema detected. The project could not be exported.");
+            }
 
-            folder.items.forEach((item: any) => {
+            folder.items.forEach((item: TemplateFile | TemplateFolder) => {
                 if ("folderName" in item) {
                     // It's a folder
-                    const newPath = currentPath ? `${currentPath}/${item.folderName}` : item.folderName;
+                    const cleanFolderName = sanitizePathSegment(item.folderName);
+                    if (!cleanFolderName) return;
+                    const newPath = currentPath ? `${currentPath}/${cleanFolderName}` : cleanFolderName;
                     addFilesToZip(item, newPath);
                 } else if ("filename" in item) {
                     // It's a file
-                    const ext = item.fileExtension ? `.${item.fileExtension}` : "";
-                    const fullFilename = `${item.filename}${ext}`;
+                    const cleanFilename = sanitizePathSegment(item.filename);
+                    if (!cleanFilename) return;
+                    const cleanExt = item.fileExtension ? sanitizePathSegment(item.fileExtension) : "";
+                    const fullFilename = cleanExt ? `${cleanFilename}.${cleanExt}` : cleanFilename;
                     const filePath = currentPath ? `${currentPath}/${fullFilename}` : fullFilename;
                     zip.file(filePath, item.content || "");
                 }
@@ -53,14 +63,13 @@ export async function GET(
         };
 
         if (project.templateFiles && project.templateFiles.length > 0) {
-            // Assuming content is stored in the first templateFile (based on schema relation)
-            // The schema has templateFiles as an array but relation implies one-to-one via unique playgroundId?
-            // Wait, schema says `templateFiles TemplateFile[]` but TemplateFile has `playgroundId String @unique`
-            // This means a playground can have at most ONE TemplateFile record? 
-            // Yes, one-to-one effectively.
             const fileRecord = project.templateFiles[0];
             if (fileRecord && fileRecord.content) {
-                addFilesToZip(fileRecord.content);
+                try {
+                    addFilesToZip(fileRecord.content as unknown as TemplateFolder);
+                } catch (schemaError: any) {
+                    return NextResponse.json({ error: schemaError.message || "Invalid schema" }, { status: 500 });
+                }
             }
         }
 
