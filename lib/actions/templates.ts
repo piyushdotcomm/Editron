@@ -8,5 +8,6 @@ import { templates, TemplateOption } from "@/lib/constants/templates";
  * keeping the bundles light and optimizing page-load performance.
  */
 export async function getTemplates(): Promise<TemplateOption[]> {
+  "use cache";
   return templates;
 }

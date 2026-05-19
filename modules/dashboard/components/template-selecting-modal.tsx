@@ -51,11 +51,16 @@ const TemplateSelectionModal = ({
   onSubmit,
 }: TemplateSelectionModalProps) => {
   const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
+  const [isFetchingTemplates, setIsFetchingTemplates] = useState(false);
   const [step, setStep] = useState<"select" | "configure">("select");
 
   useEffect(() => {
     if (isOpen) {
-      getTemplates().then(setAllTemplates).catch(console.error);
+      setIsFetchingTemplates(true);
+      getTemplates()
+        .then(setAllTemplates)
+        .catch(console.error)
+        .finally(() => setIsFetchingTemplates(false));
     }
   }, [isOpen]);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -184,7 +189,14 @@ const TemplateSelectionModal = ({
                 onValueChange={handleSelectTemplate}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredTemplates.length > 0 ? (
+                  {isFetchingTemplates ? (
+                    <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
+                      <div className="h-8 w-8 rounded-full border-2 border-[#E93F3F] border-t-transparent animate-spin mb-4"></div>
+                      <p className="text-sm text-muted-foreground">
+                        Loading templates...
+                      </p>
+                    </div>
+                  ) : filteredTemplates.length > 0 ? (
                     filteredTemplates.map((template) => (
                       <div
                         key={template.id}

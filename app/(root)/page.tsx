@@ -21,12 +21,21 @@ import { TemplateCard } from "@/components/marketing/template-card";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingTemplates, setIsFetchingTemplates] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
 
   useEffect(() => {
+    setIsFetchingTemplates(true);
     getTemplates()
       .then(setAllTemplates)
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setFetchError(err.message || "Failed to load templates");
+      })
+      .finally(() => {
+        setIsFetchingTemplates(false);
+      });
   }, []);
 
   // Schema Markup for AI SEO (Organization & SoftwareApplication)
@@ -174,12 +183,26 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {allTemplates
-                .filter((t) => t.popularity === 5)
-                .slice(0, 4)
-                .map((template) => (
-                  <TemplateCard key={template.id} template={template} />
-                ))}
+              {isFetchingTemplates ? (
+                <div className="col-span-full flex justify-center py-8">
+                  <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+                </div>
+              ) : fetchError ? (
+                <div className="col-span-full text-center text-muted-foreground py-8">
+                  Failed to load popular templates.
+                </div>
+              ) : allTemplates.length > 0 ? (
+                allTemplates
+                  .filter((t) => t.popularity === 5)
+                  .slice(0, 4)
+                  .map((template) => (
+                    <TemplateCard key={template.id} template={template} />
+                  ))
+              ) : (
+                <div className="col-span-full text-center text-muted-foreground py-8">
+                  No popular templates found.
+                </div>
+              )}
             </div>
           </section>
 

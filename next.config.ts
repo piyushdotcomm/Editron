@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
 
   // Performance: tree-shake icon/utility libraries (only bundle used exports)
   experimental: {
+    useCache: true,
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",

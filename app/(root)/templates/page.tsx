@@ -13,11 +13,16 @@ import AnimatedShaderBackground from "@/components/ui/animated-shader-background
 
 export default function TemplatesPage() {
     const [allTemplates, setAllTemplates] = useState<TemplateOption[]>([]);
+    const [isFetchingTemplates, setIsFetchingTemplates] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [category, setCategory] = useState<"all" | "frontend" | "backend" | "fullstack" | "tooling">("all");
 
     useEffect(() => {
-        getTemplates().then(setAllTemplates).catch(console.error);
+        setIsFetchingTemplates(true);
+        getTemplates()
+            .then(setAllTemplates)
+            .catch(console.error)
+            .finally(() => setIsFetchingTemplates(false));
     }, []);
 
     const filteredTemplates = allTemplates.filter((template) => {
@@ -76,7 +81,11 @@ export default function TemplatesPage() {
 
             {/* Grid */}
             <div className="max-w-7xl mx-auto px-4 pb-24">
-                {filteredTemplates.length > 0 ? (
+                {isFetchingTemplates ? (
+                    <div className="flex justify-center py-24">
+                        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+                    </div>
+                ) : filteredTemplates.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredTemplates.map((template) => (
                             <TemplateCard key={template.id} template={template} />
