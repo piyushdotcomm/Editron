@@ -10,6 +10,12 @@ export function rateLimit(
     windowMs: number = 60_000
 ): { allowed: boolean; remaining: number } {
     const now = Date.now();
+
+    // Prevent memory leak in long-running processes by capping map size
+    if (rateLimitMap.size > 10000) {
+        rateLimitMap.clear();
+    }
+
     const timestamps = rateLimitMap.get(identifier) || [];
     const recent = timestamps.filter((t) => now - t < windowMs);
 
