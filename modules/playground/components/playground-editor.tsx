@@ -33,6 +33,22 @@ export interface PlaygroundEditorProps {
 let inlineProviderDisposable: { dispose: () => void } | null = null;
 let formatterDisposable: { dispose: () => void } | null = null;
 
+const hashStringToColor = (
+  str: string,
+  alpha: number = 1
+): string => {
+  let hash = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0;
+  }
+
+  const hue = ((hash % 360) + 360) % 360;
+
+  return `hsl(${hue} 70% 55% / ${alpha})`;
+};
+
 const PlaygroundEditor = ({
   activeFile,
   content,
@@ -298,12 +314,18 @@ const PlaygroundEditor = ({
           new Set([editorRef.current]),
           provider.awareness
         );
+        
+        const userSeed =
+          session?.user?.email?.trim().toLowerCase() ||
+          (session?.user?.id ? String(session.user.id) : "") ||
+          session?.user?.name?.trim().toLowerCase() ||
+          crypto.randomUUID();
 
-        const userColor = session?.user?.email ? "#" + Math.floor(Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215)).toString(16).padEnd(6, '0') : "#30bced";
+        const userColor = hashStringToColor(userSeed);
 
         provider.awareness.setLocalStateField('user', {
           name: session?.user?.name || "Anonymous",
-          color: userColor
+          color: userColor,
         });
 
         const handleAwarenessUpdate = () => {
@@ -318,6 +340,42 @@ const PlaygroundEditor = ({
           const states = Array.from(provider.awareness.getStates().entries() as any);
           let css = "";
 
+          const withOpacity = (color: string, alpha: number): string => {
+            const normalizedAlpha = Math.max(0, Math.min(alpha, 1));
+
+            if (color.startsWith("hsl(") || color.startsWith("hsla(")) {
+              const hslMatch = color.match(/^hsla?\(([^)]+)\)$/i);
+              if (!hslMatch) return color;
+
+              const params = hslMatch[1].trim();
+              const [hslParts] = params.split("/").map((part) => part.trim());
+              return `hsl(${hslParts} / ${normalizedAlpha})`;
+            }
+
+            if (color.startsWith("#")) {
+              const hex = color.slice(1);
+              const alphaHex = Math.round(normalizedAlpha * 255)
+                .toString(16)
+                .padStart(2, "0");
+
+              if (hex.length === 3) {
+                return `#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}${alphaHex}`;
+              }
+
+              if (hex.length === 4) {
+                return `#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}${alphaHex}`;
+              }
+
+              if (hex.length === 6 || hex.length === 8) {
+                return `#${hex.slice(0, 6)}${alphaHex}`;
+              }
+
+              return color;
+            }
+
+            return `color-mix(in srgb, ${color} ${normalizedAlpha * 100}%, transparent)`;
+          };
+
           for (const [clientId, state] of states as [number, any][]) {
             if (state.user) {
               const color = state.user.color || "orange";
@@ -325,7 +383,7 @@ const PlaygroundEditor = ({
 
               css += `
                 .yRemoteSelection-${clientId} {
-                  background-color: ${color}40; /* 40 hex is 25% opacity */
+                  background-color: ${withOpacity(color, 0.25)};
                 }
                 .yRemoteSelectionHead-${clientId} {
                   border-left: 2px solid ${color};
