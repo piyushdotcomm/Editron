@@ -32,12 +32,7 @@
   font-weight: 700;
   margin-bottom: 1rem;
 
-  background: linear-gradient(
-    90deg,
-    #7f1d1d,
-    #991b1b,
-    #dc2626
-  );
+  background: linear-gradient(90deg, #7f1d1d, #991b1b, #dc2626);
 
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -77,12 +72,7 @@
   width: 75%;
   height: 2px;
 
-  background: linear-gradient(
-    90deg,
-    #7f1d1d,
-    #dc2626,
-    #ef4444
-  );
+  background: linear-gradient(90deg, #7f1d1d, #dc2626, #ef4444);
 
   border-radius: 999px;
 

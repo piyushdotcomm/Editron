@@ -36,6 +36,7 @@ export default function Footer() {
             <a
               href="https://github.com/piyushdotcomm/Editron"
               target="_blank"
+              rel="noopener noreferrer"
               class={styles.link}
             >
               GitHub
@@ -44,6 +45,7 @@ export default function Footer() {
             <a
               href="https://qwik.builder.io/"
               target="_blank"
+              rel="noopener noreferrer"
               class={styles.link}
             >
               Qwik Docs
@@ -56,6 +58,7 @@ export default function Footer() {
             <a
               href="https://github.com/piyushdotcomm/Editron/discussions"
               target="_blank"
+              rel="noopener noreferrer"
               class={styles.link}
             >
               Discussions
@@ -64,6 +67,7 @@ export default function Footer() {
             <a
               href="https://github.com/piyushdotcomm/Editron/issues"
               target="_blank"
+              rel="noopener noreferrer"
               class={styles.link}
             >
               Issues
@@ -74,6 +78,8 @@ export default function Footer() {
             <a
               href="https://linkedin.com"
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
               class={styles.socialIcon}
             >
               <svg
@@ -96,6 +102,8 @@ export default function Footer() {
             <a
               href="https://github.com"
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
               class={styles.socialIcon}
             >
               <svg
@@ -115,6 +123,9 @@ export default function Footer() {
 
             <a
               href="mailto:hello@editron.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Email"
               class={styles.socialIcon}
             >
               <svg
