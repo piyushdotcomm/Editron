@@ -23,7 +23,7 @@ export function EnvManager({
 }: {
     templateData: any;
     instance: any;
-    writeFileSync: (path: string, content: string) => Promise<void>;
+    writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
 }) {
     const [envVars, setEnvVars] = useState<EnvVar[]>([]);
     const [isSaving, setIsSaving] = useState(false);

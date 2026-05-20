@@ -30,8 +30,13 @@ export function useWrappedFileOperations() {
     usePlaygroundContext();
 
   const wrappedHandleAddFile = useCallback(
-    (newFile: TemplateFile, parentPath: string) =>
-      handleAddFile(newFile, parentPath, writeFileSync!, instance, saveTemplateData),
+    (newFile: TemplateFile, parentPath: string) => {
+      if (!writeFileSync) {
+        console.warn("writeFileSync is not available yet");
+        return;
+      }
+      return handleAddFile(newFile, parentPath, writeFileSync, instance, saveTemplateData);
+    },
     [handleAddFile, writeFileSync, instance, saveTemplateData]
   );
 

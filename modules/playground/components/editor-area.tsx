@@ -181,15 +181,25 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
                   <>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={50}>
-                      <WebContainerPreview
-                        templateData={templateData!}
-                        instance={instance}
-                        writeFileSync={writeFileSync}
-                        isLoading={containerLoading}
-                        error={containerError}
-                        serverUrl={serverUrl!}
-                        forceResetup={false}
-                      />
+                      {templateData && serverUrl ? (
+                        <WebContainerPreview
+                          templateData={templateData}
+                          instance={instance}
+                          writeFileSync={writeFileSync}
+                          isLoading={containerLoading}
+                          error={containerError}
+                          serverUrl={serverUrl}
+                          forceResetup={false}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center p-6 bg-muted/10">
+                          {containerError ? (
+                            <p className="text-destructive text-sm font-medium">Failed to load preview container.</p>
+                          ) : (
+                            <p className="text-muted-foreground text-sm">Loading preview environment...</p>
+                          )}
+                        </div>
+                      )}
                     </ResizablePanel>
                   </>
                 )}

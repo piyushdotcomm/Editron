@@ -4,6 +4,14 @@ import React, { createContext, useContext } from "react";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import type { WebContainer } from "@webcontainer/api";
 
+export interface PlaygroundData {
+  id?: string;
+  title: string;
+  description?: string;
+  createdAt?: string | Date;
+  [key: string]: any;
+}
+
 /**
  * Shared playground dependencies provided to all children.
  * Eliminates prop-drilling of templateData, saveTemplateData,
@@ -17,7 +25,7 @@ export interface PlaygroundContextValue {
   templateData: TemplateFolder | null;
 
   /** High-level playground metadata (title, etc.) */
-  playgroundData: any;
+  playgroundData: PlaygroundData;
 
   /** Persist template data to the server */
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
