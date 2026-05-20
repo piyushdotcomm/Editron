@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Copy, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function PreviewPage() {

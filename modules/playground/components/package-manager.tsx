@@ -1,5 +1,7 @@
 "use client";
 
+
+import { NPM_REGISTRY_SEARCH_URL } from "@/lib/constants/config";
 import React, { useState, useEffect } from "react";
 import {
   SidebarGroup,
@@ -61,7 +63,7 @@ export function PackageManager({
         const parsed = JSON.parse(pkgFile.content);
         setDependencies(parsed.dependencies || {});
         setDevDependencies(parsed.devDependencies || {});
-      } catch (e) {
+      } catch (_e) {
         console.error("Failed to parse package.json");
       }
     }
@@ -77,10 +79,17 @@ export function PackageManager({
 
     setIsSearching(true);
     try {
-      const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchQuery)}&size=10`);
+      // Before
+      // const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchQuery)}&size=10`);
+
+      //After Refactoring 
+      const res = await fetch(
+      `${NPM_REGISTRY_SEARCH_URL}?text=${encodeURIComponent(searchQuery)}&size=10`
+      );
+
       const data = await res.json();
       setSearchResults(data.objects);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to search NPM registry");
     } finally {
       setIsSearching(false);

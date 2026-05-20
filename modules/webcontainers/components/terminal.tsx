@@ -1,21 +1,23 @@
 "use client";
 
+import { ErrorBoundary } from "@/components/error-boundary";
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import { WebLinksAddon } from "xterm-addon-web-links";
-import { SearchAddon } from "xterm-addon-search";
-import "xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { SearchAddon } from "@xterm/addon-search";
+import "@xterm/xterm/css/xterm.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Copy, Trash2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
 interface TerminalProps {
   webcontainerUrl?: string;
   className?: string;
   theme?: "dark" | "light";
-  webContainerInstance?: any;
+  webContainerInstance?: WebContainer | null;
 }
 
 // Define the methods that will be exposed through the ref
@@ -26,8 +28,8 @@ export interface TerminalRef {
 }
 
 const
-  TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
-    webcontainerUrl,
+  TerminalInner = forwardRef<TerminalRef, TerminalProps>(({
+    webcontainerUrl: _webcontainerUrl,
     className,
     theme = "dark",
     webContainerInstance
@@ -45,8 +47,8 @@ const
     const cursorPosition = useRef<number>(0);
     const commandHistory = useRef<string[]>([]);
     const historyIndex = useRef<number>(-1);
-    const currentProcess = useRef<any>(null);
-    const shellProcess = useRef<any>(null);
+    const currentProcess = useRef<WebContainerProcess | null>(null);
+    const shellProcess = useRef<WebContainerProcess | null>(null);
 
     const terminalThemes = {
       dark: {
@@ -178,13 +180,13 @@ const
         }));
 
         // Wait for process to complete
-        const exitCode = await process.exit;
+        const _exitCode = await process.exit;
         currentProcess.current = null;
 
         // Show new prompt
         writePrompt();
 
-      } catch (error) {
+      } catch (_error) {
         if (term.current) {
           term.current.writeln(`\r\nCommand not found: ${command}`);
           writePrompt();
@@ -323,6 +325,7 @@ const
       writePrompt();
 
       return terminal;
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme, handleTerminalInput, writePrompt]);
 
     const connectToWebContainer = useCallback(async () => {
@@ -417,6 +420,7 @@ const
           currentProcess.current.kill();
         }
         if (shellProcess.current) {
+// eslint-disable-next-line react-hooks/exhaustive-deps
           shellProcess.current.kill();
         }
         if (term.current) {
@@ -518,6 +522,31 @@ const
     );
   });
 
-TerminalComponent.displayName = "TerminalComponent";
+TerminalInner.displayName = "TerminalComponent";
+
+const TerminalComponent = forwardRef<TerminalRef, TerminalProps>((props, ref) => (
+  <ErrorBoundary
+    name="WebContainerTerminal"
+    fallback={({ reset }) => (
+      <div className={cn("flex h-full min-h-[200px] items-center justify-center p-6 text-center", props.className)}>
+        <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-6">
+          <h3 className="mb-2 text-lg font-semibold text-destructive">
+            Terminal crashed
+          </h3>
+          <p className="mb-4 text-sm text-muted-foreground">
+            The terminal failed, but the rest of the playground is still available.
+          </p>
+          <Button onClick={reset}>
+            Reconnect Terminal
+          </Button>
+        </div>
+      </div>
+    )}
+  >
+    <TerminalInner ref={ref} {...props} />
+  </ErrorBoundary>
+));
+
+TerminalComponent.displayName = "TerminalComponentWithErrorBoundary";
 
 export default TerminalComponent;

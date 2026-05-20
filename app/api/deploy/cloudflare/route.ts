@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
     try {
         const session = await auth();
         if (!session?.user) {

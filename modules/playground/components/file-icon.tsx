@@ -13,6 +13,8 @@ import {
     Lock,
     Database,
     Braces,
+    FolderOpen,
+    Folder,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,18 +78,14 @@ export function FileIcon({ extension, className }: FileIconProps) {
 }
 
 export function FolderIcon({ isOpen, className }: { isOpen?: boolean; className?: string }) {
+    const Icon = isOpen ? FolderOpen : Folder;
     return (
-        <svg
-            className={cn("h-3.5 w-3.5 shrink-0", isOpen ? "text-amber-400" : "text-amber-500/70", className)}
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            {isOpen ? (
-                <path d="M2 6a2 2 0 012-2h5l2 2h9a2 2 0 012 2v2H10a3 3 0 00-2.83 2L4 20V6z" />
-            ) : (
-                <path d="M2 6a2 2 0 012-2h5l2 2h9a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+        <Icon
+            className={cn(
+                "h-3.5 w-3.5 shrink-0",
+                isOpen ? "text-amber-400" : "text-amber-500/70",
+                className
             )}
-        </svg>
+        />
     );
 }

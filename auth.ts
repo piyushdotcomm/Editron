@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 
 import authConfig from "./auth.config"
 import { db } from "./lib/db";
-import { getAccountByUserId, getUserById } from "./lib/user-data";
+import { getUserById } from "./lib/user-data";
 
 
 
@@ -31,7 +31,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             image: user.image,
 
             accounts: {
-              // @ts-ignore
+              // @ts-expect-error
               create: {
                 type: account.type,
                 provider: account.provider,
@@ -74,7 +74,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               tokenType: account.token_type,
               scope: account.scope,
               idToken: account.id_token,
-              // @ts-ignore
+              // @ts-expect-error
               sessionState: account.session_state,
             },
           });
@@ -88,7 +88,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               expiresAt: account.expires_at,
               scope: account.scope,
               idToken: account.id_token,
-              // @ts-ignore
+              // @ts-expect-error
               sessionState: account.session_state,
             }
           });
@@ -98,7 +98,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return true;
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({ token,user: _user, account: _account }) {
       if (!token.sub) return token;
 
       // Optimization: If token already has role and picture, skip DB call
@@ -110,7 +110,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       if (!existingUser) return token;
 
-      const exisitingAccount = await getAccountByUserId(existingUser.id);
 
       token.name = existingUser.name;
       token.email = existingUser.email;

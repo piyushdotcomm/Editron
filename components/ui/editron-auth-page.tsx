@@ -8,7 +8,7 @@ import {
     GithubIcon,
     Chrome,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { _cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -121,19 +121,19 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
                     {/* Terms & Privacy */}
                     <p className="text-muted-foreground mt-8 text-sm text-center">
                         By continuing, you agree to our{' '}
-                        <a
-                            href="#"
+                        <Link
+                            href="/terms"
                             className="hover:text-red-500 underline underline-offset-4 transition-colors"
                         >
                             Terms of Service
-                        </a>{' '}
+                        </Link>{' '}
                         and{' '}
-                        <a
-                            href="#"
+                        <Link
+                            href="/privacy"
                             className="hover:text-red-500 underline underline-offset-4 transition-colors"
                         >
                             Privacy Policy
-                        </a>
+                        </Link>
                         .
                     </p>
                 </div>

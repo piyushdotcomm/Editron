@@ -1,7 +1,6 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileIcon } from "./file-icon";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 interface PlaygroundTabBarProps {

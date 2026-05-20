@@ -6,6 +6,8 @@
 
 export const publicRoutes: string[] = [
     "/",
+    "/terms",
+    "/privacy",
 ]
 
 /**

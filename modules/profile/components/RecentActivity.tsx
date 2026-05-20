@@ -2,11 +2,7 @@
 
 import {
     FileCode,
-    Terminal,
-    UploadCloud,
-    Package,
     PlusCircle,
-    Monitor,
     Star
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

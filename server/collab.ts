@@ -1,7 +1,8 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
 // @ts-ignore
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
+import * as Y from 'yjs';
 import { db } from '../lib/db';
 import { verifyCollabToken } from '../lib/collab-token';
 import { MongodbPersistence } from 'y-mongodb-provider';
@@ -20,28 +21,97 @@ const server = http.createServer((request, response) => {
 const wss = new WebSocketServer({ noServer: true });
 
 // Setup MongoDB persistence
-const mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
+const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
     collectionName: 'yjs-transactions',
     flushSize: 100,
     multipleCollections: false,
 });
 
+setPersistence({
+    bindState: async (docName: string, ydoc: Y.Doc) => {
+        const persistedYdoc = await _mdb.getYDoc(docName);
+        const newUpdates = Y.encodeStateAsUpdate(ydoc);
+        _mdb.storeUpdate(docName, newUpdates);
+        Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc));
+        ydoc.on('update', async (update: Uint8Array) => {
+            _mdb.storeUpdate(docName, update);
+        });
+    },
+    writeState: async (docName: string, ydoc: Y.Doc) => {
+        await _mdb.flushDocument(docName);
+    }
+});
+
+let isShuttingDown = false;
+
+async function gracefulShutdown(signal: string) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+
+    console.log(`[collab] Received ${signal}. Starting graceful shutdown...`);
+
+    const forceExit = setTimeout(() => {
+    console.error('[collab] Forced shutdown after timeout');
+    process.exit(1);
+}, 10000);
+
+    try {
+        // Notify connected clients first
+wss.clients.forEach((client) => {
+    try {
+        client.close(1001, 'Server shutting down');
+    } catch (err) {
+        console.error('[collab] Client close error:', err);
+    }
+});
+
+// Stop accepting new connections
+await new Promise<void>((resolve) => {
+    wss.close(() => {
+        console.log('[collab] WebSocket server closed');
+        resolve();
+    });
+});
+
+        
+        // Persistence cleanup handled by writeState()
+        console.log('[collab] Waiting for persistence cleanup');
+
+        // Close HTTP server
+        await new Promise<void>((resolve, reject) => {
+            server.close((err) => {
+                if (err) reject(err);
+
+                console.log('[collab] HTTP server closed');
+                resolve();
+            });
+        });
+
+        clearTimeout(forceExit);
+
+        process.exit(0);
+
+    } catch (error) {
+        clearTimeout(forceExit);
+        console.error('[collab] Graceful shutdown failed:', error);
+        process.exit(1);
+    }
+}
+
 wss.on('connection', (ws, req) => {
     const docName = req.url?.split('?')[0].slice(1) || 'default';
 
-    // Persist to MongoDB binding logic
-    const persistCallback = async () => {
-        // y-mongodb-provider handles persistence automatically if bound properly
-    };
-
     setupWSConnection(ws, req, { docName, gc: true });
-
-    // Bind the Yjs document to MongoDB when a new doc is created
-    // In a real setup, y-websocket utils keeps an exported 'docs' map, but we'll use a simpler callback if needed.
 });
 
 // Upgrade HTTP to WS with NextAuth JWT Validation
 server.on('upgrade', async (request, socket, head) => {
+    if (isShuttingDown) {
+    socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+    socket.destroy();
+    return;
+}
+
     try {
         const parsedUrl = parse(request.url || '', true);
         const docName = parsedUrl.pathname?.slice(1) || 'default';
@@ -83,11 +153,19 @@ server.on('upgrade', async (request, socket, head) => {
         });
     } catch (error) {
         console.error('Upgrade error:', error);
-        socket.write('HTTP/1.1 500 Internal Server Error\\r\\n\\r\\n');
+        socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
         socket.destroy();
     }
 });
 
 server.listen(port, () => {
     console.log(`Collaboration server running on port ${port}`);
+});
+
+process.on('SIGTERM', () => {
+    gracefulShutdown('SIGTERM');
+});
+
+process.on('SIGINT', () => {
+    gracefulShutdown('SIGINT');
 });

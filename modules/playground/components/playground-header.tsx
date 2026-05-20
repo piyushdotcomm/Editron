@@ -14,8 +14,6 @@ import {
     Rocket,
     Users,
     Bot,
-    MoreHorizontal,
-    Download,
     Settings,
     XCircle,
     FolderDown,

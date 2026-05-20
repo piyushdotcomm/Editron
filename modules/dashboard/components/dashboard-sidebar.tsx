@@ -7,20 +7,17 @@ import {
   Code2,
   Compass,
   FolderPlus,
-  History,
   Home,
   LayoutDashboard,
   Lightbulb,
   type LucideIcon,
   Plus,
   Settings,
-  Star,
   Terminal,
   Zap,
   Database,
   FlameIcon,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -59,8 +56,8 @@ const lucideIconMap: Record<string, LucideIcon> = {
 
 export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundData: PlaygroundData[] }) {
   const pathname = usePathname()
-  const [starredPlaygrounds, setStarredPlaygrounds] = useState(initialPlaygroundData.filter((p) => p.starred))
-  const [recentPlaygrounds, setRecentPlaygrounds] = useState(initialPlaygroundData)
+  const [starredPlaygrounds] = useState(initialPlaygroundData.filter((p) => p.starred))
+  const [recentPlaygrounds] = useState(initialPlaygroundData)
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="border-r border-border/40 bg-background/60 backdrop-blur-md">
