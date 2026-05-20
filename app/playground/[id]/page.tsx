@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle, FolderOpen } from "lucide-react";
@@ -49,16 +49,20 @@ const PlaygroundPageContent = () => {
     }
   }, [isSuccess, templateData]);
 
+  const hasHydrated = useRef(false);
+
   useEffect(() => {
     resetUI();
     setPlaygroundId(id);
+    hasHydrated.current = false;
   }, [id, setPlaygroundId, resetUI]);
 
   useEffect(() => {
-    if (templateData && !openFiles.length) {
+    if (templateData && !hasHydrated.current) {
       setTemplateData(templateData);
+      hasHydrated.current = true;
     }
-  }, [templateData, setTemplateData, openFiles.length]);
+  }, [templateData, setTemplateData]);
 
   // 3. Initialize WebContainer
   const {
