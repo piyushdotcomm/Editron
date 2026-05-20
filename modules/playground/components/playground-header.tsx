@@ -24,7 +24,6 @@ import { usePlaygroundContext } from "@/modules/playground/contexts/playground-c
 import { usePlaygroundUI } from "@/modules/playground/hooks/usePlaygroundUI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { useAI } from "@/modules/playground/hooks/useAI";
-import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
 
 interface PlaygroundHeaderProps {
     handleSave: () => void;

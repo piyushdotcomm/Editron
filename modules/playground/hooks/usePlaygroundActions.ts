@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { findFilePath } from "@/modules/playground/lib";
-import { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
+import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -113,27 +113,28 @@ export function usePlaygroundActions({
         await handleSave(f.id, true);
       }
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to save some files");
     }
   }, [openFiles, handleSave]);
 
-  const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
-    folder.items.forEach((item) => {
-      if ("folderName" in item) {
-        const newFolder = zipFolder.folder(item.folderName);
-        if (newFolder) addFilesToZip(item, newFolder);
-      } else {
-        zipFolder.file(
-          item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""),
-          item.content
-        );
-      }
-    });
-  };
-
   const handleDownloadZip = useCallback(async () => {
     if (!templateData) return;
+
+    const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
+      folder.items.forEach((item) => {
+        if ("folderName" in item) {
+          const newFolder = zipFolder.folder(item.folderName);
+          if (newFolder) addFilesToZip(item, newFolder);
+        } else {
+          zipFolder.file(
+            item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""),
+            item.content
+          );
+        }
+      });
+    };
+
     try {
       const zip = new JSZip();
       addFilesToZip(templateData, zip);
