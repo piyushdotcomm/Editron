@@ -68,7 +68,7 @@ const UploadZip = () => {
             onClick={handleClick}
             disabled={isUploading}
             aria-describedby="upload-zip-description"
-            className={`group relative px-4 py-5 sm:px-6 sm:py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer
+            className={`group relative px-4 py-5 sm:px-6 sm:py-8 flex flex-row justify-between items-center border border-border/40 rounded-xl bg-background/50 hover:bg-background/80 backdrop-blur-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2
         transition-all duration-300 ease-out
         hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 hover:-translate-y-1 ${isUploading ? "pointer-events-none opacity-70" : ""
                 }`}
