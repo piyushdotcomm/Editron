@@ -1,21 +1,23 @@
-import NextAuth from "next-auth"
+import NextAuth, { Account as NextAuthAccount } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 
 import authConfig from "./auth.config"
 import { db } from "./lib/db";
 import { getUserById } from "./lib/user-data";
 
-
-
-
+interface ExtendedAccount extends NextAuthAccount {
+  session_state?: string | null;
+}
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     /**
      * Handle user creation and account linking after a successful sign-in
      */
-    async signIn({ user, account }) {
-      if (!user || !account) return false;
+    async signIn({ user, account: nextAuthAccount }) {
+      if (!user || !nextAuthAccount) return false;
+
+      const account = nextAuthAccount as ExtendedAccount;
 
       // Check if the user already exists
       const existingUser = await db.user.findUnique({
@@ -31,7 +33,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             image: user.image,
 
             accounts: {
-              // @ts-expect-error
               create: {
                 type: account.type,
                 provider: account.provider,
@@ -74,7 +75,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               tokenType: account.token_type,
               scope: account.scope,
               idToken: account.id_token,
-              // @ts-expect-error
               sessionState: account.session_state,
             },
           });
@@ -88,7 +88,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               expiresAt: account.expires_at,
               scope: account.scope,
               idToken: account.id_token,
-              // @ts-expect-error
               sessionState: account.session_state,
             }
           });

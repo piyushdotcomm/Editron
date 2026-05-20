@@ -29,3 +29,20 @@ declare module 'y-websocket' {
     off(event: string, handler: (...args: unknown[]) => void): void
   }
 }
+
+declare module 'y-websocket/bin/utils' {
+  import type { IncomingMessage } from 'http'
+  import type WebSocket from 'ws'
+  import type * as Y from 'yjs'
+
+  export function setupWSConnection(
+    ws: WebSocket,
+    req: IncomingMessage,
+    options?: { docName?: string; gc?: boolean }
+  ): void
+
+  export function setPersistence(persistence: {
+    bindState: (docName: string, ydoc: Y.Doc) => void | Promise<void>
+    writeState: (docName: string, ydoc: Y.Doc) => void | Promise<void>
+  }): void
+}

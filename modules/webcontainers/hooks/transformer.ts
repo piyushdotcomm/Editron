@@ -1,10 +1,4 @@
-interface TemplateItem {
-  filename: string;
-  fileExtension: string;
-  content: string;
-  folderName?: string;
-  items?: TemplateItem[];
-}
+import { TemplateFolder, TemplateItem, TemplateFile } from "../../playground/lib/path-to-json";
 
 interface WebContainerFile {
   file: {
@@ -18,19 +12,34 @@ interface WebContainerDirectory {
   };
 }
 
-type WebContainerFileSystem = Record<string, WebContainerFile | WebContainerDirectory>;
+export type WebContainerFileSystem = Record<string, WebContainerFile | WebContainerDirectory>;
 
-export function transformToWebContainerFormat(template: { folderName: string; items: TemplateItem[] }): WebContainerFileSystem {
+/**
+ * Determine the filesystem key for a TemplateItem.
+ *
+ * Folders are identified by the presence of both `folderName` and `items`.
+ * Everything else is treated as a file — including extension-less files such
+ * as `README` or `Makefile` where `fileExtension` is an empty string.
+ */
+function itemKey(item: TemplateItem): string {
+  if ('folderName' in item && 'items' in item) {
+    return (item as TemplateFolder).folderName;
+  }
+  // File: append the extension only when it is a non-empty string.
+  const file = item as TemplateFile;
+  return file.fileExtension
+    ? `${file.filename}.${file.fileExtension}`
+    : file.filename;
+}
+
+export function transformToWebContainerFormat(template: TemplateFolder): WebContainerFileSystem {
   function processItem(item: TemplateItem): WebContainerFile | WebContainerDirectory {
-    if (item.folderName && item.items) {
+    if ('folderName' in item && 'items' in item) {
       // This is a directory
       const directoryContents: WebContainerFileSystem = {};
       
       item.items.forEach(subItem => {
-        const key = subItem.fileExtension 
-          ? `${subItem.filename}.${subItem.fileExtension}`
-          : subItem.folderName!;
-        directoryContents[key] = processItem(subItem);
+        directoryContents[itemKey(subItem)] = processItem(subItem);
       });
 
       return {
@@ -38,9 +47,10 @@ export function transformToWebContainerFormat(template: { folderName: string; it
       };
     } else {
       // This is a file
+      const file = item as TemplateFile;
       return {
         file: {
-          contents: item.content
+          contents: file.content
         }
       };
     }
@@ -49,10 +59,7 @@ export function transformToWebContainerFormat(template: { folderName: string; it
   const result: WebContainerFileSystem = {};
   
   template.items.forEach(item => {
-    const key = item.fileExtension 
-      ? `${item.filename}.${item.fileExtension}`
-      : item.folderName!;
-    result[key] = processItem(item);
+    result[itemKey(item)] = processItem(item);
   });
 
   return result;
