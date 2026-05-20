@@ -1,4 +1,5 @@
 "use client";
+import { ShortcutsModal } from "@/modules/playground/components/shortcuts-modal";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/error-boundary";
 import JSZip from "jszip";
@@ -60,9 +61,10 @@ import { PlaygroundTabBar } from "@/modules/playground/components/playground-tab
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
 
 const MainPlaygroundPage = () => {
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const [showAISettings, setShowAISettings] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, col: 1 });
@@ -346,6 +348,20 @@ const MainPlaygroundPage = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+        const activeElement = document.activeElement as HTMLElement | null;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement;
+
+      const isMonacoFocused =
+        activeElement?.closest(".monaco-editor");
+     // Ctrl+/ — Open Shortcuts Modal
+      if (e.ctrlKey && !e.shiftKey && e.key === "/") {
+        e.preventDefault();
+
+        if (isTyping || isMonacoFocused) return;
+        setShortcutsOpen(true);
+      }
       // Ctrl+S — Save
       if (e.ctrlKey && !e.shiftKey && e.key === "s") {
         e.preventDefault();
@@ -577,6 +593,10 @@ const MainPlaygroundPage = () => {
           onOpenChange={setIsDeployDialogOpen}
           templateData={templateData}
           projectName={playgroundData?.title}
+        />
+        <ShortcutsModal
+          open={shortcutsOpen}
+          onOpenChange={setShortcutsOpen}
         />
       </>
     </TooltipProvider>
