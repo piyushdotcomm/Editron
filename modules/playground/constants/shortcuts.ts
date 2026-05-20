@@ -7,16 +7,12 @@ export const shortcuts = [
         description: "Open keyboard shortcuts",
       },
       {
-        keys: ["Ctrl", "J"],
-        description: "Toggle terminal",
-      },
-      {
-        keys: ["Ctrl", "P"],
-        description: "Toggle preview",
-      },
-      {
         keys: ["Ctrl", "B"],
         description: "Toggle sidebar",
+      },
+      {
+        keys: ["Ctrl", "\\"],
+        description: "Toggle preview",
       },
     ],
   },
@@ -29,16 +25,12 @@ export const shortcuts = [
         description: "Save current file",
       },
       {
-        keys: ["Ctrl", "F"],
-        description: "Search in editor",
+        keys: ["Ctrl", "Shift", "S"],
+        description: "Save all files",
       },
       {
-        keys: ["Ctrl", "H"],
-        description: "Replace in editor",
-      },
-      {
-        keys: ["Alt", "↑ ↓"],
-        description: "Move line up/down",
+        keys: ["Ctrl", "W"],
+        description: "Close current tab",
       },
     ],
   },
@@ -47,16 +39,12 @@ export const shortcuts = [
     category: "Navigation",
     items: [
       {
-        keys: ["Ctrl", "Tab"],
-        description: "Switch tabs",
+        keys: ["Ctrl", "K"],
+        description: "Open command palette",
       },
       {
-        keys: ["Ctrl", "1"],
-        description: "Focus editor",
-      },
-      {
-        keys: ["Ctrl", "2"],
-        description: "Focus terminal",
+        keys: ["Ctrl", "Shift", "P"],
+        description: "Open command palette",
       },
     ],
   },
@@ -65,8 +53,8 @@ export const shortcuts = [
     category: "AI",
     items: [
       {
-        keys: ["Ctrl", "L"],
-        description: "Open AI panel",
+        keys: ["Ctrl", "Shift", "A"],
+        description: "Toggle AI chat",
       },
     ],
   },
