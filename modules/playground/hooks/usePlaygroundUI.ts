@@ -24,6 +24,7 @@ interface PlaygroundUIState {
   setIsDeployDialogOpen: (v: boolean) => void;
   setCursorPosition: (pos: { line: number; col: number }) => void;
   togglePreview: () => void;
+  resetUI: () => void;
 }
 
 export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
@@ -43,4 +44,12 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
   setCursorPosition: (pos) => set({ cursorPosition: pos }),
   togglePreview: () =>
     set((s) => ({ isPreviewVisible: !s.isPreviewVisible })),
+  resetUI: () =>
+    set({
+      isPreviewVisible: false,
+      showAISettings: false,
+      isCommandPaletteOpen: false,
+      isDeployDialogOpen: false,
+      cursorPosition: { line: 1, col: 1 },
+    }),
 }));

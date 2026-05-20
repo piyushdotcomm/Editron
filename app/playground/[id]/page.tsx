@@ -39,7 +39,9 @@ const PlaygroundPageContent = () => {
 
   // 2. Initialize stores and hooks
   const { setTemplateData, setPlaygroundId, openFiles, activeFileId, closeFile, setOpenFiles } = useFileExplorer();
-  const { setIsPreviewVisible, setIsCommandPaletteOpen } = usePlaygroundUI();
+  const setIsPreviewVisible = usePlaygroundUI((s) => s.setIsPreviewVisible);
+  const setIsCommandPaletteOpen = usePlaygroundUI((s) => s.setIsCommandPaletteOpen);
+  const resetUI = usePlaygroundUI((s) => s.resetUI);
 
   useEffect(() => {
     if (isSuccess && templateData) {
@@ -48,11 +50,12 @@ const PlaygroundPageContent = () => {
   }, [isSuccess, templateData]);
 
   useEffect(() => {
+    resetUI();
     setPlaygroundId(id);
     if (templateData && !openFiles.length) {
       setTemplateData(templateData);
     }
-  }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);
+  }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length, resetUI]);
 
   // 3. Initialize WebContainer
   const {
