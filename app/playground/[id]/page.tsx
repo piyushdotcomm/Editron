@@ -52,10 +52,13 @@ const PlaygroundPageContent = () => {
   useEffect(() => {
     resetUI();
     setPlaygroundId(id);
+  }, [id, setPlaygroundId, resetUI]);
+
+  useEffect(() => {
     if (templateData && !openFiles.length) {
       setTemplateData(templateData);
     }
-  }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length, resetUI]);
+  }, [templateData, setTemplateData, openFiles.length]);
 
   // 3. Initialize WebContainer
   const {
