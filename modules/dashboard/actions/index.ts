@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
 import type { TemplateKey } from "@/lib/template";
+import { templatePaths } from "@/lib/template";
 import { Templates } from "@prisma/client";
 
 export const toggleStarMarked = async (
@@ -87,7 +88,14 @@ export const createPlayground = async (data: {
   const { template, title, description } = data;
 
   if (!userId) {
-    throw new Error("User Id is Required");
+    return { success: false as const, error: "User Id is Required" };
+  }
+
+  // Validate that the requested template key maps to a known starter path.
+  // Template files are loaded on-demand via the /api/template/[id] route when
+  // the playground is first opened, so we only store the enum value here.
+  if (template !== "BLANK" && !templatePaths[template]) {
+    return { success: false as const, error: `Unknown template: ${template}` };
   }
 
   try {
@@ -95,27 +103,41 @@ export const createPlayground = async (data: {
       data: {
         title: title,
         description: description,
-      template:
-  template === "BLANK"
-    ? undefined
-    : (template as Templates),
+        template:
+          template === "BLANK"
+            ? undefined
+            : (template as Templates),
         userId,
       },
     });
 
-    return playground;
+    return { success: true as const, playground };
   } catch (error) {
-    console.log(error);
+    console.error("Error creating playground:", error);
+    return { success: false as const, error: "Failed to create playground" };
   }
 };
 
 export const deleteProjectById = async (id: string) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.delete({
+    const result = await db.playground.deleteMany({
       where: {
         id,
+        userId,
       },
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
@@ -126,16 +148,30 @@ export const editProjectById = async (
   id: string,
   data: { title: string; description: string }
 ) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.update({
+    const result = await db.playground.updateMany({
       where: {
         id,
+        userId,
       },
       data: data,
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -163,17 +199,23 @@ export const duplicateProjectById = async (id: string) => {
       throw new Error("Original playground not found");
     }
 
+    // TemplateFile has a unique constraint on playgroundId, so each playground
+    // can have at most one TemplateFile record.  If the original playground was
+    // never edited by the user, templateFiles will be empty and the duplicate
+    // will load its starter files on-demand from disk via /api/template/[id].
+    const firstFile = originalPlayground.templateFiles[0];
+
     const duplicatedPlayground = await db.playground.create({
       data: {
         title: `${originalPlayground.title} (Copy)`,
         description: originalPlayground.description,
         template: originalPlayground.template,
         userId,
-        templateFiles: originalPlayground.templateFiles.length
+        templateFiles: firstFile
           ? {
-              create: originalPlayground.templateFiles.map((file) => ({
-                content: file.content,
-              })),
+              create: {
+                content: firstFile.content,
+              },
             }
           : undefined,
       },

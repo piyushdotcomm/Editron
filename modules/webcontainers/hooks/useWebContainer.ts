@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { WebContainer } from "@webcontainer/api";
 import { create } from "zustand";
 
@@ -116,9 +116,11 @@ export const useWebContainer = (): UseWebContainerReturn => {
     useWebContainerStore();
 
   // Auto-initialize on first use
+useEffect(() => {
   if (!instance && !isLoading) {
     initialize();
   }
+}, [instance, isLoading, initialize]);
 
   const writeFileSync = useCallback(
     async (path: string, content: string): Promise<void> => {

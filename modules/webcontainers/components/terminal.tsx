@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBoundary } from "@/components/error-boundary";
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
@@ -10,12 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Copy, Trash2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
 interface TerminalProps {
   webcontainerUrl?: string;
   className?: string;
   theme?: "dark" | "light";
-  webContainerInstance?: any;
+  webContainerInstance?: WebContainer | null;
 }
 
 // Define the methods that will be exposed through the ref
@@ -26,7 +28,7 @@ export interface TerminalRef {
 }
 
 const
-  TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
+  TerminalInner = forwardRef<TerminalRef, TerminalProps>(({
     webcontainerUrl: _webcontainerUrl,
     className,
     theme = "dark",
@@ -45,8 +47,8 @@ const
     const cursorPosition = useRef<number>(0);
     const commandHistory = useRef<string[]>([]);
     const historyIndex = useRef<number>(-1);
-    const currentProcess = useRef<any>(null);
-    const shellProcess = useRef<any>(null);
+    const currentProcess = useRef<WebContainerProcess | null>(null);
+    const shellProcess = useRef<WebContainerProcess | null>(null);
 
     const terminalThemes = {
       dark: {
@@ -520,6 +522,31 @@ const
     );
   });
 
-TerminalComponent.displayName = "TerminalComponent";
+TerminalInner.displayName = "TerminalComponent";
+
+const TerminalComponent = forwardRef<TerminalRef, TerminalProps>((props, ref) => (
+  <ErrorBoundary
+    name="WebContainerTerminal"
+    fallback={({ reset }) => (
+      <div className={cn("flex h-full min-h-[200px] items-center justify-center p-6 text-center", props.className)}>
+        <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-6">
+          <h3 className="mb-2 text-lg font-semibold text-destructive">
+            Terminal crashed
+          </h3>
+          <p className="mb-4 text-sm text-muted-foreground">
+            The terminal failed, but the rest of the playground is still available.
+          </p>
+          <Button onClick={reset}>
+            Reconnect Terminal
+          </Button>
+        </div>
+      </div>
+    )}
+  >
+    <TerminalInner ref={ref} {...props} />
+  </ErrorBoundary>
+));
+
+TerminalComponent.displayName = "TerminalComponentWithErrorBoundary";
 
 export default TerminalComponent;

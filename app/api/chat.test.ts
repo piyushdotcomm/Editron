@@ -1,5 +1,17 @@
+patch-1
 import { describe, it, expect } from "vitest";
 import { tools, MAX_FILE_CONTENT_CHARS as MAX } from "./tools";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock next/server before importing the route to bypass NextAuth's ESM resolution issue in Vitest/jsdom
+vi.mock("next/server", () => ({
+    NextRequest: class {},
+    NextResponse: {
+        json: vi.fn(),
+    }
+}));
+
+import { tools } from "./chat/route";
 
 describe("AI tool payload validation", () => {
     it("accepts content at the limit", () => {

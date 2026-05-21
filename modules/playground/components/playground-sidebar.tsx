@@ -4,36 +4,30 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
+import { usePlaygroundContext } from "@/modules/playground/contexts/playground-context";
+import { useWrappedFileOperations } from "@/modules/playground/hooks/useWrappedFileOperations";
+import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
+import { TemplateFile } from "../lib/path-to-json";
 
-interface PlaygroundSidebarProps {
-    templateData: unknown;
-    instance: unknown;
-    writeFileSync: unknown;
-    activeFile: unknown;
-    handleFileSelect: unknown;
-    wrappedHandleAddFile: unknown;
-    wrappedHandleAddFolder: unknown;
-    wrappedHandleDeleteFile: unknown;
-    wrappedHandleDeleteFolder: unknown;
-    wrappedHandleRenameFile: unknown;
-    wrappedHandleRenameFolder: unknown;
-}
-
-export const PlaygroundSidebar = ({
-    templateData,
-    instance,
-    writeFileSync,
-    activeFile,
-    handleFileSelect,
-    wrappedHandleAddFile,
-    wrappedHandleAddFolder,
-    wrappedHandleDeleteFile,
-    wrappedHandleDeleteFolder,
-    wrappedHandleRenameFile,
-    wrappedHandleRenameFolder
-}: PlaygroundSidebarProps) => {
+export const PlaygroundSidebar = () => {
     const [activeTab, setActiveTab] = useState<"explorer" | "packages" | "env">("explorer");
     const { state } = useSidebar();
+    const { templateData, instance, writeFileSync } = usePlaygroundContext();
+    const { openFiles, activeFileId, openFile } = useFileExplorer();
+    const activeFile = openFiles.find((file) => file.id === activeFileId) || null;
+
+    const {
+        wrappedHandleAddFile,
+        wrappedHandleAddFolder,
+        wrappedHandleDeleteFile,
+        wrappedHandleDeleteFolder,
+        wrappedHandleRenameFile,
+        wrappedHandleRenameFolder
+    } = useWrappedFileOperations();
+
+    const handleFileSelect = (file: TemplateFile) => {
+        openFile(file);
+    };
 
     return (
         <div
@@ -81,9 +75,9 @@ export const PlaygroundSidebar = ({
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
                             <TemplateFileTree
-                                data={templateData}
+                                data={templateData as any}
                                 onFileSelect={handleFileSelect}
-                                selectedFile={activeFile}
+                                selectedFile={activeFile || undefined}
                                 title=""
                                 onAddFile={wrappedHandleAddFile}
                                 onAddFolder={wrappedHandleAddFolder}
@@ -102,7 +96,7 @@ export const PlaygroundSidebar = ({
                         />
                     )}
 
-                    {activeTab === "env" && (
+                    {activeTab === "env" && writeFileSync && (
                         <EnvManager
                             templateData={templateData}
                             instance={instance}

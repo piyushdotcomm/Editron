@@ -1,5 +1,7 @@
 "use client";
 
+
+import { NPM_REGISTRY_SEARCH_URL } from "@/lib/constants/config";
 import React, { useState, useEffect } from "react";
 import {
   SidebarGroup,
@@ -9,8 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Package, Trash2, Download, Loader2 } from "lucide-react";
-import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 interface NpmSearchResult {
@@ -77,7 +77,14 @@ export function PackageManager({
 
     setIsSearching(true);
     try {
-      const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchQuery)}&size=10`);
+      // Before
+      // const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchQuery)}&size=10`);
+
+      //After Refactoring 
+      const res = await fetch(
+      `${NPM_REGISTRY_SEARCH_URL}?text=${encodeURIComponent(searchQuery)}&size=10`
+      );
+
       const data = await res.json();
       setSearchResults(data.objects);
     } catch (_error) {

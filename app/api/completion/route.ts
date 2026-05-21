@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     try {
         // Rate limiting: 60 requests per minute per IP (autocomplete fires rapidly)
         const ip = getClientIp(request);
-        const { allowed, remaining } = rateLimit(`completion:${ip}`, 60, 60_000);
+        const { allowed, remaining } = await rateLimit(`completion:${ip}`, 60, 60_000);
 
         if (!allowed) {
             return NextResponse.json(

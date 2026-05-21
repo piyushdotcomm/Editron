@@ -156,14 +156,15 @@ export default function ProjectTable({
 
   return (
     <>
-      <div className="border border-border/40 rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm shadow-sm">
-        <Table>
+      <div className="w-full overflow-x-auto rounded-xl border border-border/40 bg-background/50 backdrop-blur-sm shadow-sm">
+        <div className="min-w-[520px] sm:min-w-full">
+          <Table>
           <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-muted/50 border-border/40">
               <TableHead className="text-muted-foreground font-medium">Project</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Template</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Created</TableHead>
-              <TableHead className="text-muted-foreground font-medium">User</TableHead>
+              <TableHead className="hidden sm:table-cell text-muted-foreground font-medium">Template</TableHead>
+              <TableHead className="hidden md:table-cell text-muted-foreground font-medium">Created</TableHead>
+              <TableHead className="hidden lg:table-cell text-muted-foreground font-medium">User</TableHead>
               <TableHead className="w-[50px] text-muted-foreground font-medium">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -171,24 +172,33 @@ export default function ProjectTable({
             {projects.map((project) => (
               <TableRow key={project.id} className="hover:bg-muted/30 border-border/40 transition-colors">
                 <TableCell className="font-medium">
-                  <div className="flex flex-col">
-                    <Link href={`/playground/${project.id}`} className="hover:underline hover:text-red-500 transition-colors">
-                      <span className="font-semibold text-foreground">{project.title}</span>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <Link href={`/playground/${project.id}`} className="min-w-0 hover:underline hover:text-red-500 transition-colors">
+                      <span className="block max-w-[220px] truncate font-semibold text-foreground sm:max-w-[300px] md:max-w-[420px]">
+                        {project.title}
+                      </span>
                     </Link>
-                    <span className="text-sm text-muted-foreground line-clamp-1">{project.description}</span>
+                    <span className="max-w-[220px] truncate text-sm text-muted-foreground sm:max-w-[300px] md:max-w-[420px]">
+                      {project.description}
+                    </span>
+                    <div className="sm:hidden mt-1">
+                      <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 text-xs">
+                        {project.template}
+                      </Badge>
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 transition-colors">
                     {project.template}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
+                <TableCell className="hidden md:table-cell">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
                     {format(new Date(project.createdAt), "MMM d, yyyy")}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <Image
@@ -257,7 +267,8 @@ export default function ProjectTable({
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
 
       {/* Edit Project Dialog */}

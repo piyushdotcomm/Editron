@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { findFilePath } from "@/modules/playground/lib";
-import { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
+import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -113,27 +113,28 @@ export function usePlaygroundActions({
         await handleSave(f.id, true);
       }
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to save some files");
     }
   }, [openFiles, handleSave]);
 
-  const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
-    folder.items.forEach((item) => {
-      if ("folderName" in item) {
-        const newFolder = zipFolder.folder(item.folderName);
-        if (newFolder) addFilesToZip(item, newFolder);
-      } else {
-        zipFolder.file(
-          item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""),
-          item.content
-        );
-      }
-    });
-  };
-
   const handleDownloadZip = useCallback(async () => {
     if (!templateData) return;
+
+    const addFilesToZip = (folder: TemplateFolder, zipFolder: JSZip) => {
+      folder.items.forEach((item) => {
+        if ("folderName" in item) {
+          const newFolder = zipFolder.folder(item.folderName);
+          if (newFolder) addFilesToZip(item, newFolder);
+        } else {
+          zipFolder.file(
+            item.filename + (item.fileExtension ? `.${item.fileExtension}` : ""),
+            item.content
+          );
+        }
+      });
+    };
+
     try {
       const zip = new JSZip();
       addFilesToZip(templateData, zip);
@@ -155,31 +156,34 @@ export function usePlaygroundActions({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && !e.shiftKey && e.key === "s") {
+      const isModKey = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+
+      if (isModKey && !e.shiftKey && key === "s") {
         e.preventDefault();
         handleSave();
       }
-      if (e.ctrlKey && e.shiftKey && e.key === "S") {
+      if (isModKey && e.shiftKey && key === "s") {
         e.preventDefault();
         handleSaveAll();
       }
-      if ((e.ctrlKey && e.key === "k") || (e.ctrlKey && e.shiftKey && e.key === "P")) {
+      if ((isModKey && key === "k") || (isModKey && e.shiftKey && key === "p")) {
         e.preventDefault();
         setIsCommandPaletteOpen(true);
       }
-      if (e.ctrlKey && !e.shiftKey && e.key === "b") {
+      if (isModKey && !e.shiftKey && key === "b") {
         e.preventDefault();
         sidebar.toggleSidebar();
       }
-      if (e.ctrlKey && e.key === "\\") {
+      if (isModKey && e.key === "\\") {
         e.preventDefault();
         setIsPreviewVisible((prev) => !prev);
       }
-      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+      if (isModKey && e.shiftKey && key === "a") {
         e.preventDefault();
         useAI.getState().toggleChat();
       }
-      if (e.ctrlKey && !e.shiftKey && e.key === "w") {
+      if (isModKey && !e.shiftKey && key === "w") {
         e.preventDefault();
         if (activeFileId) closeFile(activeFileId);
       }

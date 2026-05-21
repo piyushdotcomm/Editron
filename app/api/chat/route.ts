@@ -185,6 +185,7 @@ function sanitizeMessages(
 // ─── Route Handler ────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+patch-1
   try {
     // ── Rate limiting ────────────────────────────────────────────────────
     const ip = getClientIp(request);
@@ -201,6 +202,142 @@ export async function POST(request: NextRequest) {
           },
         },
       );
+    try {        
+
+        // Rate limiting: 20 requests per minute per IP
+        const ip = getClientIp(request);
+        const { allowed, remaining } = await rateLimit(ip, 20, 60_000);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, error: "Rate limit exceeded. Please wait before sending more messages." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
+            );
+        }
+
+        const session = await auth();
+        const isAuthenticated = !!session?.user;
+        
+        const body = await request.json();
+        const result = RequestBodySchema.safeParse(body);
+
+        if (!result.success) {
+            return NextResponse.json(
+                { success: false, error: "Invalid request", details: result.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { messages, provider, fileTree, userApiKey } = result.data;
+
+        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
+                { status: 401 }
+            );
+        }
+
+        const systemInstruction = fileTree
+            ? `${SYSTEM_PROMPT}\n\nProject file tree:\n${fileTree}`
+            : SYSTEM_PROMPT;
+
+        let model;
+
+        if (provider === "gemini") {
+            const apiKey = userApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);
+            if (!apiKey) {
+                return NextResponse.json(
+                    { 
+                        success: false, 
+                        error: isAuthenticated
+                            ? "Gemini API key not configured. Add your key in AI settings."
+                            : "Unauthorized",
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
+                );
+            }
+            const google = createGoogleGenerativeAI({ apiKey });
+            model = google("gemini-2.0-flash");
+        } else if (provider === "groq") {
+            const apiKey = userApiKey || (isAuthenticated ? process.env.GROQ_API_KEY : undefined);
+            if (!apiKey) {
+                return NextResponse.json(
+                    { 
+                        success: false, 
+                        error: isAuthenticated 
+                            ? "Groq API key not configured. Add your key in AI settings." 
+                            : "Unauthorized" 
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
+                );
+            }
+            const groq = createGroq({ apiKey });
+            model = groq("llama-3.1-70b-versatile");
+        } else if (provider === "mistral") {
+            const apiKey = userApiKey || (isAuthenticated ? process.env.MISTRAL_API_KEY : undefined);
+            if (!apiKey) {
+                return NextResponse.json(
+                    { 
+                        success: false, 
+                        error: isAuthenticated
+                            ? "Mistral API key not configured. Add your key in AI settings." 
+                            : "Unauthorized"
+                    },
+                    { status: isAuthenticated ? 400 : 401 }
+                );
+            }
+            const mistral = createMistral({ apiKey });
+            model = mistral("mistral-small-latest");
+        } else {
+            return NextResponse.json(
+                { success: false, error: "Invalid provider" },
+                { status: 400 }
+            );
+        }
+
+        type MessagePart = { type: string; text: string };
+        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
+
+        const sanitizedMessages: ChatMessage[] = [];
+        for (const raw of messages) {
+            if (!raw || typeof raw !== "object") {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must be an object" },
+                    { status: 400 }
+                );
+            }
+            const m = raw as ChatMessage;
+            if (Array.isArray(m.parts)) {
+                sanitizedMessages.push(m);
+                continue;
+            }
+            sanitizedMessages.push({
+                ...m,
+                parts: typeof m.content === "string" && m.content.trim()
+                    ? [{ type: "text", text: m.content }]
+                    : [] as MessagePart[],
+            });
+        }
+
+        const resultStream = streamText({
+            model,
+            messages: await convertToModelMessages(sanitizedMessages, {
+                ignoreIncompleteToolCalls: true
+            }),
+            system: systemInstruction,
+            tools,
+        });
+
+        return resultStream.toUIMessageStreamResponse();
+    } catch (error: unknown) {
+        return handleApiError(error, "POST /api/chat");
+      main
     }
 
     // ── Auth ─────────────────────────────────────────────────────────────

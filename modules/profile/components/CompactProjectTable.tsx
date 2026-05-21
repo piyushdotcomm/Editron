@@ -106,8 +106,8 @@ export default function CompactProjectTable({
 
     return (
         <>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-                <div className="inline-block min-w-full align-middle">
+            <div className="w-full overflow-x-auto rounded-xl border border-border/40">
+                <div className="min-w-[520px] sm:min-w-full">
                     <Table>
                         <TableHeader className="bg-muted/50">
                             <TableRow className="hover:bg-muted/50 border-border/40">
@@ -124,17 +124,19 @@ export default function CompactProjectTable({
                                 return (
                                     <TableRow key={project.id} className="hover:bg-muted/30 border-border/40 transition-colors">
                                         <TableCell className="font-medium">
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex min-w-0 flex-col gap-1">
                                                 <div className="flex items-center gap-2">
-                                                    <Link href={`/playground/${project.id}`} className="hover:underline hover:text-red-500 transition-colors">
-                                                        <span className="font-semibold text-foreground">{project.title}</span>
+                                                    <Link href={`/playground/${project.id}`} className="min-w-0 hover:underline hover:text-red-500 transition-colors">
+                                                        <span className="block max-w-[220px] truncate font-semibold text-foreground sm:max-w-[300px] md:max-w-[420px]">
+                                                            {project.title}
+                                                        </span>
                                                     </Link>
                                                     {isStarred && (
                                                         <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500 flex-shrink-0" />
                                                     )}
                                                 </div>
                                                 {project.description && (
-                                                    <span className="text-xs text-muted-foreground line-clamp-1 max-w-[200px] sm:max-w-[300px]">
+                                                    <span className="max-w-[220px] truncate text-xs text-muted-foreground sm:max-w-[300px] md:max-w-[420px]">
                                                         {project.description}
                                                     </span>
                                                 )}
