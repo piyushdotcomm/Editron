@@ -1,6 +1,6 @@
 "use client";
 
-import { TIMEOUTS } from "@/lib/constants/config";
+import { EDITOR_CONFIG } from "@/lib/constants/config";
 import { useRef, useEffect, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
@@ -192,7 +192,7 @@ const PlaygroundEditor = ({
                 clearTimeout(debounceTimerRef.current);
               debounceTimerRef.current = setTimeout(
                 resolve,
-                TIMEOUTS.EDITOR_DEBOUNCE,
+                EDITOR_CONFIG.INLINE_SUGGESTION_DEBOUNCE_MS,
               );
             });
 

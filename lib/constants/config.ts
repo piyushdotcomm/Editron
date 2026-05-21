@@ -27,9 +27,9 @@ export const VERCEL_API = {
 // ── LocalStorage Keys ──────────────────────────────────────────────────────
 
 export const STORAGE_KEYS = {
-  GEMINI_API_KEY: "editron_gemini_key",
-  GROQ_API_KEY: "editron_groq_key",
-  MISTRAL_API_KEY: "editron_mistral_key",
+  GEMINI_KEY: "editron_gemini_key",
+  GROQ_KEY: "editron_groq_key",
+  MISTRAL_KEY: "editron_mistral_key",
   INLINE_SUGGESTIONS: "editron_inline_suggestions",
   EDITOR_THEME: "editron_editor_theme",
 } as const;
@@ -44,4 +44,10 @@ export const TIMEOUTS = {
   COPY_RESET: 2000,
   CHAT_INPUT_FOCUS: 300,
   EDITOR_DEBOUNCE: 1500,
+} as const;
+
+// ── Editor Configuration ───────────────────────────────────────────────────
+
+export const EDITOR_CONFIG = {
+  INLINE_SUGGESTION_DEBOUNCE_MS: 1500,
 } as const;
