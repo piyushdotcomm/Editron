@@ -47,7 +47,8 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
   handleDownloadZip,
 }) => {
   const {
-    templateData,
+  id,
+  templateData,
     playgroundData,
     instance,
     writeFileSync,
@@ -74,6 +75,7 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
   } = usePlaygroundUI();
 
   const activeFile = openFiles.find((file) => file.id === activeFileId);
+  const collaboratorCount = useCollaboratorCount(id);
 
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
@@ -222,9 +224,12 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
         activeFile={activeFile}
         cursorPosition={cursorPosition}
         containerStatus={containerStatus}
-        collaboratorCount={0}
+        collaboratorCount={collaboratorCount}
         openFileCount={openFiles.length}
       />
     </div>
   );
 };
+
+
+
