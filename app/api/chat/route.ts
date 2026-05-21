@@ -135,7 +135,7 @@ type ChatMessage = {
   content?: string;
   parts?: MessagePart[];
   // Allow other AI SDK fields to pass through seamlessly
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 /**
