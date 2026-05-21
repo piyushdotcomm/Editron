@@ -1,4 +1,5 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
