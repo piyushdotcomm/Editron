@@ -134,6 +134,8 @@ useEffect(() => {
       const token = await fetchCollabToken(id);
       const { provider } = getOrCreateYDoc(id, token);
 
+      if (cancelled) return;
+
       const updateCollaborators = () => {
         if (cancelled) return;
         const states = Array.from(provider.awareness.getStates().values());
