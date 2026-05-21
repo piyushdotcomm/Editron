@@ -1,6 +1,5 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
-// @ts-ignore
 import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { db } from '../lib/db';

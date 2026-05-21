@@ -11,8 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Package, Trash2, Download, Loader2 } from "lucide-react";
-import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
 interface NpmSearchResult {
