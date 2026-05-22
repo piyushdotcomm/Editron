@@ -3,14 +3,7 @@
 import React, { createContext, useContext } from "react";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import type { WebContainer } from "@webcontainer/api";
-
-export interface PlaygroundData {
-  id?: string;
-  title?: string;
-  description?: string;
-  createdAt?: string | Date;
-  [key: string]: unknown;
-}
+import type { PlaygroundData } from "@/modules/playground/types/playground";
 
 /**
  * Shared playground dependencies provided to all children.

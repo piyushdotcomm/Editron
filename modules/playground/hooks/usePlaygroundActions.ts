@@ -4,28 +4,20 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { findFilePath } from "@/modules/playground/lib";
-import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
-import { PlaygroundData } from "@/modules/playground/contexts/playground-context";
+import type { PlaygroundData, ActiveFile } from "@/modules/playground/types/playground";
 
-export interface PlaygroundData {
-  id: string;
-  title?: string;
-  templateFiles?: TemplateFile[];
-}
+import type {
+  TemplateFile,
+  TemplateFolder,
+} from "@/modules/playground/lib/path-to-json";
 
-export interface ActiveFile extends TemplateFile {
-  id: string;
-  hasUnsavedChanges: boolean;
-  content: string;
-  originalContent: string;
-}
 type TemplateItem = TemplateFile | TemplateFolder;
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
-  playgroundData: PlaygroundData;
+   playgroundData: PlaygroundData | null;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
   writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
   activeFileId: string | null;

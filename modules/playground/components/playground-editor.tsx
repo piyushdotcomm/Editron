@@ -40,6 +40,15 @@ type AwarenessUser = {
 type AwarenessState = {
   user?: AwarenessUser;
 };
+
+const isTemplateFileWithId = (
+  file: unknown,
+): file is TemplateFile & { id?: string } =>
+  typeof file === "object" &&
+  file !== null &&
+  "id" in file &&
+  typeof (file as { id?: unknown }).id === "string";
+
 const PlaygroundEditor = ({
   activeFile,
   content,
@@ -64,10 +73,8 @@ const PlaygroundEditor = ({
     monacoRef.current = monaco;
     setIsMounted(true);
 
-    editor.updateOptions({
-      ...defaultEditorOptions,
-      inlineSuggest: { enabled: true },
-    });
+    editor.updateOptions(defaultEditorOptions);
+    editor.updateOptions({ inlineSuggest: { enabled: true } });
 
     // Cursor position tracking for status bar
     editor.onDidChangeCursorPosition((e) => {
@@ -305,11 +312,9 @@ const PlaygroundEditor = ({
 
         const { doc, provider } = getOrCreateYDoc(playgroundId, token);
         // Use file id if available (contains full path), otherwise fallback to filename+ext
-        const fileId = (activeFile as TemplateFile & { id?: string })?.id;
-        const ext = activeFile.fileExtension
-          ? `.${activeFile.fileExtension}`
-          : "";
-        const fileKey = fileId || `${activeFile.filename}${ext}`;
+        const fileId = isTemplateFileWithId(activeFile) ? activeFile.id : undefined;
+        const ext = activeFile?.fileExtension ? `.${activeFile.fileExtension}` : "";
+        const fileKey = fileId || (activeFile ? `${activeFile.filename}${ext}` : "");
 
         const yText = doc.getText(fileKey);
 
@@ -490,11 +495,10 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // @ts-expect-error - Monaco options typo
-        options={{
-          ...defaultEditorOptions,
-          inlineSuggest: { enabled: true },
-        }}
+        // Default editor options are compatible with Monaco, but the @monaco-editor/react
+        // wrapper uses a slightly different type alias. Cast explicitly to avoid the
+        // monaco/@monaco-editor/react type discrepancy without hiding a real bug.
+        options={defaultEditorOptions as MonacoEditor.IStandaloneEditorConstructionOptions}
       />
     </div>
   );
