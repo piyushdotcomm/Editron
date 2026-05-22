@@ -12,7 +12,7 @@ import { PlaygroundData } from "@/modules/playground/contexts/playground-context
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
-  playgroundData: PlaygroundData;
+  playgroundData: PlaygroundData | null;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
   writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
   activeFileId: string | null;

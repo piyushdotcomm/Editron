@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
 
         type MessagePart = { type: string; text: string };
 
+        const validRoles = ["system", "user", "assistant", "data", "tool"];
         const sanitizedMessages: Omit<UIMessage, 'id'>[] = [];
         for (const raw of messages) {
             if (!raw || typeof raw !== "object") {
@@ -147,13 +148,29 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
-            const m = raw as { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
+            
+            const role = (raw as Record<string, unknown>).role;
+            if (typeof role !== "string" || !validRoles.includes(role)) {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must have a valid role" },
+                    { status: 400 }
+                );
+            }
+            
+            const m = raw as { role: "system" | "user" | "assistant" | "data" | "tool"; content?: string; parts?: MessagePart[] };
             if (Array.isArray(m.parts)) {
-                sanitizedMessages.push({ role: m.role, parts: m.parts as UIMessage['parts'] });
+                // Ensure each part has at least a type property
+                if (!m.parts.every(p => p && typeof p === "object" && "type" in p)) {
+                     return NextResponse.json(
+                        { success: false, error: "Invalid request: malformed parts" },
+                        { status: 400 }
+                    );
+                }
+                sanitizedMessages.push({ role: m.role as UIMessage['role'], parts: m.parts as UIMessage['parts'] });
                 continue;
             }
             sanitizedMessages.push({
-                role: m.role,
+                role: m.role as UIMessage['role'],
                 parts: typeof m.content === "string" && m.content.trim()
                     ? [{ type: "text" as const, text: m.content }]
                     : [],

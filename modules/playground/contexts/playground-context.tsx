@@ -6,7 +6,7 @@ import type { WebContainer } from "@webcontainer/api";
 
 export interface PlaygroundData {
   id?: string;
-  title: string;
+  title?: string;
   description?: string;
   createdAt?: string | Date;
   [key: string]: unknown;
@@ -25,7 +25,7 @@ export interface PlaygroundContextValue {
   templateData: TemplateFolder | null;
 
   /** High-level playground metadata (title, etc.) */
-  playgroundData: PlaygroundData;
+  playgroundData: PlaygroundData | null;
 
   /** Persist template data to the server */
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
