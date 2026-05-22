@@ -9,16 +9,17 @@ import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
 import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
 
-interface PlaygroundData {
+export interface PlaygroundData {
   id: string;
   title?: string;
   templateFiles?: TemplateFile[];
 }
 
-interface ActiveFile extends TemplateFile {
+export interface ActiveFile extends TemplateFile {
   id: string;
-  hasUnsavedChanges?: boolean;
-  originalContent?: string;
+  hasUnsavedChanges: boolean;
+  content: string;
+  originalContent: string;
 }
 type TemplateItem = TemplateFile | TemplateFolder;
 interface UsePlaygroundActionsProps {
