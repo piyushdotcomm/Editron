@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -20,9 +22,11 @@ export function ShortcutsModal({
   onOpenChange,
 }: ShortcutsModalProps) {
 
-  const isMac =
-    typeof window !== "undefined" &&
-    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/.test(navigator.platform));
+  }, []);
 
   const formatKey = (key: string) => {
     if (key === "Ctrl") {
