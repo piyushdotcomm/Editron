@@ -110,9 +110,13 @@ export default function AIChatPanel({
     const lastMessage = messages[messages.length - 1];
     const parts = lastMessage ? ((lastMessage as unknown) as { parts?: unknown }).parts : undefined;
     const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
-        (p: any) => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
-             (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
-             p.toolInvocation?.state === "call"
+        (rawP: unknown) => {
+            if (!rawP || typeof rawP !== "object") return false;
+            const p = rawP as MessagePart;
+            return (p.type === "tool-invocation" || (typeof p.type === "string" && p.type.startsWith("tool-"))) &&
+                   (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
+                   (p.toolInvocation && typeof p.toolInvocation === "object" && (p.toolInvocation as Record<string, unknown>).state === "call");
+        }
     );
 
     const sendMessage = useCallback(() => {
