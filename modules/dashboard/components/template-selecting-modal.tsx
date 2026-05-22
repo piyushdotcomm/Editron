@@ -59,16 +59,26 @@ const TemplateSelectionModal = ({
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | "all">("all");
 
   const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
+
+  const loadTemplates = () => {
+    setIsLoadingTemplates(true);
+    setTemplateError(null);
+    getTemplateSummaries()
+      .then((data) => {
+        setAvailableTemplates(data);
+      })
+      .catch(() => {
+        setTemplateError("Failed to load templates. Please try again.");
+      })
+      .finally(() => {
+        setIsLoadingTemplates(false);
+      });
+  };
 
   useEffect(() => {
-    fetch("/api/templates/meta")
-      .then((response) => (response.ok ? response.json() : []))
-      .then((data: unknown) => {
-        if (Array.isArray(data)) {
-          setAvailableTemplates(data as TemplateSummary[]);
-        }
-      })
-      .catch(() => {});
+    loadTemplates();
   }, []);
 
   const categoryTabs: Array<{ key: TemplateCategory | "all"; label: string }> = [
@@ -199,8 +209,33 @@ const TemplateSelectionModal = ({
                 onValueChange={handleSelectTemplate}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredTemplates.length > 0 ? (
-                    filteredTemplates.map((template) => (
+                  {isLoadingTemplates && (
+                    <div className="col-span-2 flex flex-col items-center justify-center p-12 text-center">
+                      <div className="w-8 h-8 border-2 border-[#E93F3F] border-t-transparent rounded-full animate-spin mb-4" />
+                      <p className="text-sm text-muted-foreground">Loading templates...</p>
+                    </div>
+                  )}
+
+                  {!isLoadingTemplates && templateError && (
+                    <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
+                      <p className="text-sm text-red-500 mb-3">{templateError}</p>
+                      <Button variant="outline" size="sm" onClick={loadTemplates}>
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+
+                  {!isLoadingTemplates && !templateError && filteredTemplates.length === 0 && (
+                    <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
+                      <Search size={48} className="text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium">No templates found</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Try adjusting your search or filters
+                      </p>
+                    </div>
+                  )}
+
+                  {!isLoadingTemplates && !templateError && filteredTemplates.map((template) => (
                       <div
                         key={template.id}
                         className={`relative flex p-6 border rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02]
@@ -281,18 +316,7 @@ const TemplateSelectionModal = ({
                           className="sr-only"
                         />
                       </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
-                      <Search size={48} className="text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium">
-                        No templates found
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Try adjusting your search or filters
-                      </p>
-                    </div>
-                  )}
+                    ))}
                 </div>
               </RadioGroup>
             </div>

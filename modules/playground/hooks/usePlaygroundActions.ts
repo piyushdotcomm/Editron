@@ -7,7 +7,7 @@ import { findFilePath } from "@/modules/playground/lib";
 import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
-import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
+import { PlaygroundData } from "@/modules/playground/contexts/playground-context";
 
 export interface PlaygroundData {
   id: string;
@@ -25,13 +25,13 @@ type TemplateItem = TemplateFile | TemplateFolder;
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
-  playgroundData: PlaygroundData | null;
+  playgroundData: PlaygroundData;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
   writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
   activeFileId: string | null;
-  openFiles: ActiveFile[];
+  openFiles: ReturnType<typeof useFileExplorer.getState>["openFiles"];
   setTemplateData: (data: TemplateFolder) => void;
-  setOpenFiles: (files: ActiveFile[]) => void;
+  setOpenFiles: (files: ReturnType<typeof useFileExplorer.getState>["openFiles"]) => void;
   closeFile: (id: string) => void;
   setIsPreviewVisible: (v: (prev: boolean) => boolean) => void;
   setIsCommandPaletteOpen: (v: boolean) => void;
@@ -73,9 +73,7 @@ export function usePlaygroundActions({
 
         const updatedTemplateData = JSON.parse(JSON.stringify(latestTemplateData));
 
-        const updateItemContent = (
-  items: TemplateItem[]
-): TemplateItem[] =>
+        const updateItemContent = (items: TemplateFolder["items"]): TemplateFolder["items"] =>
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateItemContent(item.items) };

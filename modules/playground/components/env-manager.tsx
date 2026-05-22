@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import type { TemplateFolder, TemplateItem } from "@/modules/playground/lib/path-to-json";
+import type { WebContainer } from "@webcontainer/api";
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -21,8 +23,8 @@ export function EnvManager({
     instance,
     writeFileSync,
 }: {
-    templateData: any;
-    instance: any;
+    templateData: TemplateFolder | null;
+    instance: WebContainer | null;
     writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
 }) {
     const [envVars, setEnvVars] = useState<EnvVar[]>([]);
@@ -37,7 +39,7 @@ export function EnvManager({
     useEffect(() => {
         if (!templateData) return;
 
-        const findEnv = (items: any[]): any => {
+        const findEnv = (items: TemplateItem[]): TemplateItem | null => {
             for (const item of items) {
                 if (!("folderName" in item) && item.filename === "" && item.fileExtension === "env") {
                     return item;

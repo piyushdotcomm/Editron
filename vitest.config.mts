@@ -10,7 +10,8 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     alias: {
       '@': path.resolve(__dirname, './'),
-      'next/server': 'next/server.js'
+      'next/server': 'next/server.js',
+      'server-only': path.resolve(__dirname, './tests/__mocks__/server-only.ts')
     },
     include: ['**/*.test.tsx', '**/*.test.ts'],
     exclude: ['node_modules', 'editron-starters/**', 'tests/smoke/**'],

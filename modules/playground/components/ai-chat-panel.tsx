@@ -40,21 +40,20 @@ interface AIChatPanelProps {
     saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
-type MessagePart = {
-  type?: string;
-  text?: string;
-  toolName?: string;
-  toolCallId?: string;
-  state?: string;
-  input?: Record<string, unknown>;
-};
+interface MessagePart {
+    type?: string;
+    text?: string;
+    toolCallId?: string;
+    toolName?: string;
+    state?: string;
+    input?: Record<string, unknown>;
+    [key: string]: unknown;
+}
 
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant" | "system" | string;
-  content?: string;
-  parts?: MessagePart[];
-};
+interface ExtendedMessage {
+    parts?: MessagePart[];
+    content?: string;
+}
 
 const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
     { id: "gemini", label: "Gemini", icon: <Sparkles className="h-3.5 w-3.5" /> },
@@ -109,13 +108,16 @@ export default function AIChatPanel({
     // to avoid the SDK "Tool result is missing" crash on the active chat stream.
     // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
     const lastMessage = messages[messages.length - 1];
-    const hasUnresolvedTools = lastMessage?.role === "assistant" &&
-        ((lastMessage as unknown) as Record<string, unknown>).parts && 
-        (((lastMessage as unknown) as { parts: Array<{ type: string; toolInvocation?: { state: string }, state?: string }> }).parts).some(
-            p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
-                 (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
-                 p.toolInvocation?.state === "call"
-        );
+    const parts = lastMessage ? ((lastMessage as unknown) as { parts?: unknown }).parts : undefined;
+    const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
+        (rawP: unknown) => {
+            if (!rawP || typeof rawP !== "object") return false;
+            const p = rawP as MessagePart;
+            return (p.type === "tool-invocation" || (typeof p.type === "string" && p.type.startsWith("tool-"))) &&
+                   (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
+                   (p.toolInvocation && typeof p.toolInvocation === "object" && (p.toolInvocation as Record<string, unknown>).state === "call");
+        }
+    );
 
     const sendMessage = useCallback(() => {
         const trimmed = inputValue.trim();
@@ -354,19 +356,25 @@ export default function AIChatPanel({
                             </div>
                         </div>
                     )}
-                  {messages.map((msg) => {
-                   const rawParts: MessagePart[] =
-                  ((msg as { parts?: MessagePart[] }).parts ?? []);
 
-                   const textParts = rawParts.filter((p) => p.type === "text");
-                   const textContent: string =
-                   textParts.map((p) => p.text ?? "").join("") ||
-                  (msg as { content?: string }).content ||   "";
+                    {messages.map((msg) => {
+                        const extended = msg as unknown as ExtendedMessage;
+                        const rawParts: MessagePart[] = extended.parts ?? [];
 
-  // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
-  const toolParts: MessagePart[] = rawParts.filter(
-    (p) => typeof p.type === "string" && p.type.startsWith("tool-")
-  );
+                        // AI SDK v3 stores user text in parts[].type=="text"
+                        // Only genuine user messages have text parts
+                        const textParts = rawParts.filter((p) => (p.type ?? "") === "text");
+                        const textContent: string = (
+                            textParts.map((p) => p.text ?? "").join("") ||
+                            extended.content ||
+                            ""
+                        );
+
+                        // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
+                        const toolParts: MessagePart[] = rawParts.filter(
+                            (p) => (p.type ?? "").startsWith("tool-")
+                        );
+
                         // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
                         const isGenuineUser = msg.role === "user" && textParts.length > 0;
 
