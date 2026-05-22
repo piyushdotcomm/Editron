@@ -29,7 +29,16 @@ export interface PlaygroundEditorProps {
   onContentChange: (value: string) => void;
   onCursorChange?: (line: number, col: number) => void;
 }
+type MonacoEditorInstance = Parameters<NonNullable<React.ComponentProps<typeof Editor>["onMount"]>>[0];
 
+type AwarenessUser = {
+  name?: string;
+  color?: string;
+};
+
+type AwarenessState = {
+  user?: AwarenessUser;
+};
 const PlaygroundEditor = ({
   activeFile,
   content,
@@ -42,26 +51,24 @@ const PlaygroundEditor = ({
   const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<unknown>(null);
+  const editorRef = useRef<MonacoEditorInstance | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<unknown>(null);
+  const bindingRef = useRef<MonacoBinding | null>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
-  const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+ const handleEditorDidMount = (editor: MonacoEditorInstance, monaco: Monaco) =>  {
     editorRef.current = editor;
     monacoRef.current = monaco;
     setIsMounted(true);
 
     editor.updateOptions({
-      ...defaultEditorOptions,
-      inlineSuggest: { enabled: true },
-      formatOnSave: true,
-    });
+  inlineSuggest: { enabled: true },
+});
 
     // Cursor position tracking for status bar
-    editor.onDidChangeCursorPosition((e: any) => {
+    editor.onDidChangeCursorPosition((e) => {
       onCursorChange?.(e.position.lineNumber, e.position.column);
     });
 
@@ -296,7 +303,7 @@ const PlaygroundEditor = ({
 
         const { doc, provider } = getOrCreateYDoc(playgroundId, token);
         // Use file id if available (contains full path), otherwise fallback to filename+ext
-        const fileId = (activeFile as any)?.id;
+        const fileId = (activeFile as TemplateFile & { id?: string }).id;
         const ext = activeFile.fileExtension
           ? `.${activeFile.fileExtension}`
           : "";
@@ -316,7 +323,7 @@ const PlaygroundEditor = ({
         const binding = new MonacoBinding(
           yText,
           model,
-          new Set([editorRef.current]),
+          new Set([editorRef.current].filter(Boolean) as MonacoEditorInstance[]),
           provider.awareness,
         );
 
@@ -344,11 +351,11 @@ const PlaygroundEditor = ({
           }
 
           const states = Array.from(
-            provider.awareness.getStates().entries() as any,
-          );
-          let css = "";
+            provider.awareness.getStates().entries(),
+            ) as [number, AwarenessState][];
+            let css = "";
 
-          for (const [clientId, state] of states as [number, any][]) {
+          for (const [clientId, state] of states) {
             if (state.user) {
               const color = state.user.color || "orange";
               const name = state.user.name || "Anonymous";
@@ -454,16 +461,16 @@ const PlaygroundEditor = ({
       }
 
       try {
-        const res = await fetch(`/themes/${editorTheme}.json`);
-        if (!res.ok) throw new Error("Network response was not ok");
-        const themeData = await res.json();
+  const res = await fetch(`/themes/${editorTheme}.json`);
+  if (!res.ok) throw new Error("Network response was not ok");
+  const themeData = await res.json();
 
-        monacoRef.current.editor.defineTheme(safeThemeId, themeData);
-        monacoRef.current.editor.setTheme(safeThemeId);
-      } catch (error) {
-        console.error("Failed to load Monaco theme", error);
-        monacoRef.current.editor.setTheme("vs-dark"); // fallback
-      }
+  monacoRef.current.editor.defineTheme(safeThemeId, themeData);
+  monacoRef.current.editor.setTheme(safeThemeId);
+} catch (error) {
+  console.error("Failed to load Monaco theme", error);
+  monacoRef.current.editor.setTheme("vs-dark");
+}
     }
 
     loadTheme();

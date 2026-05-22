@@ -40,6 +40,22 @@ interface AIChatPanelProps {
     saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
+type MessagePart = {
+  type?: string;
+  text?: string;
+  toolName?: string;
+  toolCallId?: string;
+  state?: string;
+  input?: Record<string, unknown>;
+};
+
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant" | "system" | string;
+  content?: string;
+  parts?: MessagePart[];
+};
+
 const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
     { id: "gemini", label: "Gemini", icon: <Sparkles className="h-3.5 w-3.5" /> },
     { id: "groq", label: "Groq", icon: <Zap className="h-3.5 w-3.5" /> },
@@ -149,8 +165,8 @@ export default function AIChatPanel({
         const lastMessage = messages[messages.length - 1];
         if (lastMessage?.role !== "assistant") return;
 
-        const rawParts: unknown[] = (lastMessage as unknown as { parts?: unknown[] }).parts ?? [];
-
+        const rawParts: MessagePart[] =
+  ((lastMessage as { parts?: MessagePart[] }).parts ?? []);
         // Debug: log all parts to see what v3 sends
         if (rawParts.length > 0) {
             const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));
@@ -192,7 +208,8 @@ export default function AIChatPanel({
                         result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
                     } else {
                         const file = findFileByPath(templateData?.items || [], path);
-                        result = file ? file.content : `Error: File "${path}" not found`;
+                        result =
+                          file && "content" in file && typeof file.content === "string" ? file.content: `Error: File "${path}" not found`;
                     }
                 } else if (toolName === "edit_file") {
                     const { path, content } = args as { path?: string; content?: string };
@@ -337,24 +354,19 @@ export default function AIChatPanel({
                             </div>
                         </div>
                     )}
+                  {messages.map((msg) => {
+                   const rawParts: MessagePart[] =
+                  ((msg as { parts?: MessagePart[] }).parts ?? []);
 
-                    {messages.map((msg: any) => {
-                        const rawParts: any[] = (msg as any).parts ?? [];
+                   const textParts = rawParts.filter((p) => p.type === "text");
+                   const textContent: string =
+                   textParts.map((p) => p.text ?? "").join("") ||
+                  (msg as { content?: string }).content ||   "";
 
-                        // AI SDK v3 stores user text in parts[].type=="text"
-                        // Only genuine user messages have text parts
-                        const textParts = rawParts.filter((p: any) => p.type === "text");
-                        const textContent: string = (
-                            textParts.map((p: any) => p.text).join("") ||
-                            (msg as any).content ||
-                            ""
-                        );
-
-                        // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
-                        const toolParts: any[] = rawParts.filter(
-                            (p: any) => typeof p.type === "string" && p.type.startsWith("tool-")
-                        );
-
+  // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
+  const toolParts: MessagePart[] = rawParts.filter(
+    (p) => typeof p.type === "string" && p.type.startsWith("tool-")
+  );
                         // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
                         const isGenuineUser = msg.role === "user" && textParts.length > 0;
 
@@ -381,7 +393,7 @@ export default function AIChatPanel({
                                                 {textContent}
                                             </div>
                                         )}
-                                        {toolParts.map((ti: any) => {
+                                        {toolParts.map((ti) => {
                                             // In v3, tool name comes from the type suffix or toolName property
                                             const tiName = (ti.toolName as string | undefined) ?? (ti.type as string)?.split("-").slice(1).join("-") ?? "tool";
                                             // Path arg lives in ti.input.path in v3
