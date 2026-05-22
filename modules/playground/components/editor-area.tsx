@@ -185,7 +185,7 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
                         <WebContainerPreview
                           templateData={templateData}
                           instance={instance}
-                          writeFileSync={writeFileSync}
+                          writeFileSync={writeFileSync || (async () => {})}
                           isLoading={containerLoading}
                           error={containerError}
                           serverUrl={serverUrl}
