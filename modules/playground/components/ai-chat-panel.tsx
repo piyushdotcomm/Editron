@@ -368,7 +368,7 @@ export default function AIChatPanel({
 
                         // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
                         const toolParts: MessagePart[] = rawParts.filter(
-                            (p) => p.type.startsWith("tool-")
+                            (p) => p.type?.startsWith("tool-")
                         );
 
                         // Skip SDK-injected synthetic messages (no real text parts, no tool parts)

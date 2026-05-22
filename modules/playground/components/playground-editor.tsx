@@ -43,10 +43,10 @@ const PlaygroundEditor = ({
   const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<unknown>(null);
+  const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<unknown>(null);
+  const bindingRef = useRef<{ destroy: () => void } | null>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -58,7 +58,6 @@ const PlaygroundEditor = ({
     editor.updateOptions({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
-      formatOnSave: true,
     });
 
     // Cursor position tracking for status bar

@@ -124,7 +124,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                     </div>
                 ) : (
                     <div className="grid gap-4 py-4">
-                        <Tabs value={provider} onValueChange={(v) => setProvider(v as typeof provider)}>
+                        <Tabs value={provider} onValueChange={(v) => { if (v === "vercel" || v === "netlify" || v === "cloudflare") { setProvider(v); } }}>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="vercel">Vercel</TabsTrigger>
                                 <TabsTrigger value="netlify">Netlify</TabsTrigger>
