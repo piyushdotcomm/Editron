@@ -7,17 +7,18 @@ import { findFilePath } from "@/modules/playground/lib";
 import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
+import { PlaygroundData } from "@/modules/playground/contexts/playground-context";
 
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
-  playgroundData: any;
+  playgroundData: PlaygroundData;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
   writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
   activeFileId: string | null;
-  openFiles: any[];
+  openFiles: ReturnType<typeof useFileExplorer.getState>["openFiles"];
   setTemplateData: (data: TemplateFolder) => void;
-  setOpenFiles: (files: any[]) => void;
+  setOpenFiles: (files: ReturnType<typeof useFileExplorer.getState>["openFiles"]) => void;
   closeFile: (id: string) => void;
   setIsPreviewVisible: (v: (prev: boolean) => boolean) => void;
   setIsCommandPaletteOpen: (v: boolean) => void;
@@ -59,7 +60,7 @@ export function usePlaygroundActions({
 
         const updatedTemplateData = JSON.parse(JSON.stringify(latestTemplateData));
 
-        const updateItemContent = (items: any[]): any[] =>
+        const updateItemContent = (items: TemplateFolder["items"]): TemplateFolder["items"] =>
           items.map((item) => {
             if ("folderName" in item) {
               return { ...item, items: updateItemContent(item.items) };

@@ -75,7 +75,7 @@ export const PlaygroundSidebar = () => {
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
                             <TemplateFileTree
-                                data={templateData as any}
+                                data={templateData!}
                                 onFileSelect={handleFileSelect}
                                 selectedFile={activeFile || undefined}
                                 title=""
