@@ -2,8 +2,8 @@
 
 import {
     FileCode,
-    PlusCircle,
-    Star
+    Clock3,
+    Star,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,8 +20,8 @@ interface ActivityItem {
 export default function RecentActivity({ activities }: { activities: ActivityItem[] }) {
     const getIcon = (type: string) => {
         switch (type) {
-            case 'create': return <PlusCircle size={14} className="text-blue-500" />;
-            case 'update': return <FileCode size={14} className="text-purple-500" />;
+            case 'create': return <FileCode size={14} className="text-red-500" />;
+            case 'update': return <Clock3 size={14} className="text-red-500" />;
             case 'star': return <Star size={14} className="text-amber-500" />;
             default: return <FileCode size={14} />;
         }
@@ -31,34 +31,39 @@ export default function RecentActivity({ activities }: { activities: ActivityIte
     const recentActivities = activities.slice(0, 5);
 
     return (
-        <Card className="border-border/50">
-            <CardHeader>
-                <CardTitle className="text-lg">Recent Activity</CardTitle>
+        <Card className="rounded-lg border-[#ebebeb] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_2px_rgba(0,0,0,0.04)] dark:border-border dark:bg-card">
+            <CardHeader className="gap-1 border-b border-[#ebebeb] p-5 dark:border-border">
+                <p className="font-mono text-[11px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                    Timeline
+                </p>
+                <CardTitle className="text-xl font-semibold tracking-normal text-[#171717] dark:text-foreground">
+                    Recently updated
+                </CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
-                <div className="relative border-l border-border/50 ml-2 space-y-4">
+            <CardContent className="p-5">
+                <div className="relative ml-2 space-y-5 border-l border-[#ebebeb] dark:border-border">
                     {recentActivities.length === 0 ? (
-                        <div className="text-sm text-muted-foreground ml-5">No recent activity found.</div>
+                        <div className="ml-5 text-sm text-[#888888] dark:text-muted-foreground">No updated projects yet.</div>
                     ) : (
                         recentActivities.map((activity) => (
                             <div key={activity.id} className="ml-5 relative group">
-                                <span className="absolute -left-[26px] top-0.5 flex items-center justify-center w-6 h-6 rounded-full bg-background border border-border group-hover:border-primary/50 group-hover:scale-110 transition-all duration-300 z-10">
+                                <span className="absolute -left-[26px] top-0.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-[#ebebeb] bg-white transition group-hover:border-[#171717] dark:border-border dark:bg-card dark:group-hover:border-foreground">
                                     {getIcon(activity.type)}
                                 </span>
 
                                 <div className="flex flex-col gap-0.5">
                                     <div className="flex items-baseline justify-between gap-2">
-                                        <h4 className="text-sm font-medium text-foreground line-clamp-1">
+                                        <h4 className="line-clamp-1 text-sm font-medium text-[#171717] dark:text-foreground">
                                             {activity.description}
                                         </h4>
-                                        <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">
+                                        <span className="flex-shrink-0 whitespace-nowrap font-mono text-[10px] text-[#888888] dark:text-muted-foreground">
                                             {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
                                         </span>
                                     </div>
 
                                     {activity.projectName && (
-                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                            in <span className="font-mono text-[10px] bg-secondary px-1.5 py-0.5 rounded text-secondary-foreground">{activity.projectName}</span>
+                                        <p className="flex items-center gap-1 text-[11px] text-[#888888] dark:text-muted-foreground">
+                                            in <span className="rounded border border-[#ebebeb] bg-[#fafafa] px-1.5 py-0.5 font-mono text-[10px] text-[#4d4d4d] dark:border-border dark:bg-muted/30 dark:text-muted-foreground">{activity.projectName}</span>
                                         </p>
                                     )}
                                 </div>
@@ -69,7 +74,7 @@ export default function RecentActivity({ activities }: { activities: ActivityIte
 
                 {activities.length > 5 && (
                     <div className="mt-4 text-center">
-                        <Button variant="ghost" size="sm" className="text-xs h-8">
+                        <Button variant="ghost" size="sm" className="h-8 text-xs">
                             View all {activities.length} activities
                         </Button>
                     </div>

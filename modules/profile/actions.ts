@@ -86,12 +86,29 @@ export async function getUserProfileStats(userId?: string): Promise<ProfileStats
     return {
         totalProjects,
         starredProjects: starMarks.length,
-        currentStreak: 1, // Default to 1 for now
+        currentStreak: calculateCurrentStreak(heatmapData),
         techStackDistribution,
         recentActivity,
         heatmapData,
         playgrounds
     };
+}
+
+function calculateCurrentStreak(data: { date: string; count: number }[]): number {
+    const activeDates = new Set(data.filter((day) => day.count > 0).map((day) => day.date));
+    if (activeDates.size === 0) return 0;
+
+    const sortedDates = Array.from(activeDates).sort();
+    const latestActiveDate = sortedDates[sortedDates.length - 1];
+    const cursor = new Date(`${latestActiveDate}T00:00:00.000Z`);
+    let streak = 0;
+
+    while (activeDates.has(cursor.toISOString().split("T")[0])) {
+        streak += 1;
+        cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
+
+    return streak;
 }
 
 function getTemplateColor(template: Templates): string {
