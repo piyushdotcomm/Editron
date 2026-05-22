@@ -186,7 +186,7 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
                           templateData={templateData}
                           instance={instance}
                           writeFileSync={writeFileSync || (async () => {})}
-                          isLoading={containerLoading}
+
                           error={containerError}
                           serverUrl={serverUrl}
                           forceResetup={false}
