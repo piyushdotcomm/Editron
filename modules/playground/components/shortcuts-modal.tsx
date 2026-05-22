@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 import { shortcuts } from "../constants/shortcuts";
@@ -25,6 +26,10 @@ export function ShortcutsModal({
           <DialogTitle className="text-xl font-semibold">
             Keyboard Shortcuts
           </DialogTitle>
+
+          <DialogDescription>
+            View all available keyboard shortcuts for navigating and using the playground efficiently.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -37,7 +42,7 @@ export function ShortcutsModal({
               <div className="space-y-2">
                 {section.items.map((shortcut) => (
                   <div
-                    key={shortcut.description}
+                    key={`${shortcut.description}-${shortcut.keys.join("-")}`}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <span className="text-sm">
