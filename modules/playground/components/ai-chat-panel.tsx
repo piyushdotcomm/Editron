@@ -40,6 +40,21 @@ interface AIChatPanelProps {
     saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
+interface MessagePart {
+    type?: string;
+    text?: string;
+    toolCallId?: string;
+    toolName?: string;
+    state?: string;
+    input?: Record<string, unknown>;
+    [key: string]: unknown;
+}
+
+interface ExtendedMessage {
+    parts?: MessagePart[];
+    content?: string;
+}
+
 const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
     { id: "gemini", label: "Gemini", icon: <Sparkles className="h-3.5 w-3.5" /> },
     { id: "groq", label: "Groq", icon: <Zap className="h-3.5 w-3.5" /> },
@@ -93,13 +108,16 @@ export default function AIChatPanel({
     // to avoid the SDK "Tool result is missing" crash on the active chat stream.
     // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
     const lastMessage = messages[messages.length - 1];
-    const hasUnresolvedTools = lastMessage?.role === "assistant" &&
-        ((lastMessage as unknown) as Record<string, unknown>).parts && 
-        (((lastMessage as unknown) as { parts: Array<{ type: string; toolInvocation?: { state: string }, state?: string }> }).parts).some(
-            p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
-                 (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
-                 p.toolInvocation?.state === "call"
-        );
+    const parts = lastMessage ? ((lastMessage as unknown) as { parts?: unknown }).parts : undefined;
+    const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
+        (rawP: unknown) => {
+            if (!rawP || typeof rawP !== "object") return false;
+            const p = rawP as MessagePart;
+            return (p.type === "tool-invocation" || (typeof p.type === "string" && p.type.startsWith("tool-"))) &&
+                   (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
+                   (p.toolInvocation && typeof p.toolInvocation === "object" && (p.toolInvocation as Record<string, unknown>).state === "call");
+        }
+    );
 
     const sendMessage = useCallback(() => {
         const trimmed = inputValue.trim();
@@ -338,21 +356,22 @@ export default function AIChatPanel({
                         </div>
                     )}
 
-                    {messages.map((msg: any) => {
-                        const rawParts: any[] = (msg as any).parts ?? [];
+                    {messages.map((msg) => {
+                        const extended = msg as unknown as ExtendedMessage;
+                        const rawParts: MessagePart[] = extended.parts ?? [];
 
                         // AI SDK v3 stores user text in parts[].type=="text"
                         // Only genuine user messages have text parts
-                        const textParts = rawParts.filter((p: any) => p.type === "text");
+                        const textParts = rawParts.filter((p) => (p.type ?? "") === "text");
                         const textContent: string = (
-                            textParts.map((p: any) => p.text).join("") ||
-                            (msg as any).content ||
+                            textParts.map((p) => p.text ?? "").join("") ||
+                            extended.content ||
                             ""
                         );
 
                         // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
-                        const toolParts: any[] = rawParts.filter(
-                            (p: any) => typeof p.type === "string" && p.type.startsWith("tool-")
+                        const toolParts: MessagePart[] = rawParts.filter(
+                            (p) => (p.type ?? "").startsWith("tool-")
                         );
 
                         // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
@@ -381,7 +400,7 @@ export default function AIChatPanel({
                                                 {textContent}
                                             </div>
                                         )}
-                                        {toolParts.map((ti: any) => {
+                                        {toolParts.map((ti) => {
                                             // In v3, tool name comes from the type suffix or toolName property
                                             const tiName = (ti.toolName as string | undefined) ?? (ti.type as string)?.split("-").slice(1).join("-") ?? "tool";
                                             // Path arg lives in ti.input.path in v3

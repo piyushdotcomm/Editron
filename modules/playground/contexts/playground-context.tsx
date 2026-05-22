@@ -9,7 +9,7 @@ export interface PlaygroundData {
   title: string;
   description?: string;
   createdAt?: string | Date;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
