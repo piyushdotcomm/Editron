@@ -71,7 +71,7 @@ const PlaygroundPageContent = () => {
     error: containerError,
     instance,
     writeFileSync,
-  } = useWebContainer();
+  } = useWebContainer({ templateData });
 
   // 4. Initialize Playground Actions (saves, downloads, etc)
   const { handleSave, handleSaveAll, handleDownloadZip } = usePlaygroundActions(
