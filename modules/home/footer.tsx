@@ -107,14 +107,6 @@ export function Footer() {
 
       </div>
 
-        {/* copyright */}
-        {/* <div className="mt-10 border-t border-border/40 pt-6">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Editron Inc. All rights reserved.
-          </p>
-        </div> */}
-        
-
       {/* giant background text */}
       <div
         className="pointer-events-none absolute inset-x-0 -bottom-2 sm:-bottom-4 md:-bottom-10 lg:-bottom-10 flex justify-center overflow-hidden text-center">

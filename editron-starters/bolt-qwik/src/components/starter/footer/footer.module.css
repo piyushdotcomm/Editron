@@ -82,7 +82,7 @@
   transition: transform 0.3s ease;
 }
 
-.link:hover {
+.link:hover, .link:focus-visible {
   color: #dc2626;
   transform: translateY(-1px);
 }
@@ -92,7 +92,7 @@
 }
 
 .bottom {
-  margin-top: 3rem;
+  margin-top: 2rem;
   padding-top: 1.5rem;
 
   border-top: 1px solid rgba(120, 53, 15, 0.12);
@@ -133,8 +133,8 @@
 }
 
 .dark .bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 /* MOBILE */
@@ -197,15 +197,6 @@
   color: #ef4444;
 }
 
-/* BETTER DIVIDER */
-
-.bottom {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-
-  border-top: 1px solid rgba(120, 53, 15, 0.22);
-}
-
 /* DARK MODE IMPROVEMENTS */
 
 .dark .socialIcon {
@@ -222,8 +213,4 @@
   border-color: rgba(239, 68, 68, 0.45);
 
   color: #f87171;
-}
-
-.dark .bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
