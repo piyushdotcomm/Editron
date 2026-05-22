@@ -19,6 +19,19 @@ export function ShortcutsModal({
   open,
   onOpenChange,
 }: ShortcutsModalProps) {
+
+  const isMac =
+    typeof window !== "undefined" &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+
+  const formatKey = (key: string) => {
+    if (key === "Ctrl") {
+      return isMac ? "⌘" : "Ctrl";
+    }
+
+    return key;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
@@ -55,7 +68,7 @@ export function ShortcutsModal({
                           key={key}
                           className="rounded-md border bg-muted px-2 py-1 text-xs font-medium"
                         >
-                          {key}
+                          {formatKey(key)}
                         </kbd>
                       ))}
                     </div>
