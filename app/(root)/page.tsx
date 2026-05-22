@@ -1,10 +1,8 @@
-import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
+import { getPopularTemplateSummaries } from "@/lib/templates/actions";
 import { HomePageClient } from "@/components/marketing/home-page-client";
 
-export default function Home() {
-  const popularTemplates = getTemplateSummariesWithMeta()
-    .filter((template) => template.popularity === 5)
-    .slice(0, 4);
+export default async function Home() {
+  const popularTemplates = await getPopularTemplateSummaries(4);
 
   // Schema Markup for AI SEO (Organization & SoftwareApplication)
   const schemaMarkup = {

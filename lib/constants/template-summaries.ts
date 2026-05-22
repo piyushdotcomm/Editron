@@ -4,8 +4,11 @@ import { templates } from "@/lib/constants/templates";
 import type { TemplateSummary } from "@/lib/templates/types";
 
 /**
- * Server-side summaries including small UI metadata (color, popularity, tags, features, category).
- * Use only from server components or server API routes to avoid pulling heavy data into client bundles.
+ * Synchronous helper kept for the static API route (`/api/templates/meta`)
+ * which cannot be async.  All other consumers should prefer the server
+ * actions in `@/lib/templates/actions`.
+ *
+ * @deprecated Use {@link import("@/lib/templates/actions").getTemplateSummaries} instead.
  */
 export function getTemplateSummariesWithMeta(): TemplateSummary[] {
     return templates.map((template) => ({
