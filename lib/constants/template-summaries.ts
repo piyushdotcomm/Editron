@@ -4,9 +4,10 @@ import { templates } from "@/lib/constants/templates";
 import type { TemplateSummary } from "@/lib/templates/types";
 
 /**
- * Synchronous helper kept for the static API route (`/api/templates/meta`)
- * which cannot be async.  All other consumers should prefer the server
- * actions in `@/lib/templates/actions`.
+ * Synchronous helper kept for the static API route (`/api/templates/meta`).
+ * That route implements GET synchronously and is forced static
+ * (`export const dynamic = "force-static"`), so this helper is kept
+ * synchronous to match the route's static/pure-data nature.
  *
  * @deprecated Use {@link import("@/lib/templates/actions").getTemplateSummaries} instead.
  */

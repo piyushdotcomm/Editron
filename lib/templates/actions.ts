@@ -31,9 +31,13 @@ export async function getTemplateSummaries(): Promise<TemplateSummary[]> {
 export async function getPopularTemplateSummaries(
     limit = 4,
 ): Promise<TemplateSummary[]> {
+    const sanitizedLimit = Number.isFinite(limit)
+        ? Math.max(0, Math.min(Math.floor(limit), templates.length))
+        : 4;
+
     return templates
         .filter((t) => t.popularity === 5)
-        .slice(0, limit)
+        .slice(0, sanitizedLimit)
         .map((t) => ({
             id: t.id,
             name: t.name,
