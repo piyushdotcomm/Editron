@@ -108,9 +108,9 @@ export default function AIChatPanel({
     // to avoid the SDK "Tool result is missing" crash on the active chat stream.
     // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
     const lastMessage = messages[messages.length - 1];
-    const parts = ((lastMessage as unknown) as { parts: unknown }).parts;
+    const parts = lastMessage ? ((lastMessage as unknown) as { parts?: unknown }).parts : undefined;
     const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
-        p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
+        (p: any) => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
              (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
              p.toolInvocation?.state === "call"
     );
