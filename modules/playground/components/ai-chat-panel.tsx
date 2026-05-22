@@ -41,7 +41,7 @@ interface AIChatPanelProps {
 }
 
 interface MessagePart {
-    type: string;
+    type?: string;
     text?: string;
     toolCallId?: string;
     toolName?: string;
@@ -108,13 +108,12 @@ export default function AIChatPanel({
     // to avoid the SDK "Tool result is missing" crash on the active chat stream.
     // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
     const lastMessage = messages[messages.length - 1];
-    const hasUnresolvedTools = lastMessage?.role === "assistant" &&
-        ((lastMessage as unknown) as Record<string, unknown>).parts && 
-        (((lastMessage as unknown) as { parts: Array<{ type: string; toolInvocation?: { state: string }, state?: string }> }).parts).some(
-            p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
-                 (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
-                 p.toolInvocation?.state === "call"
-        );
+    const parts = ((lastMessage as unknown) as { parts: unknown }).parts;
+    const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
+        p => (p.type === "tool-invocation" || p.type?.startsWith("tool-")) && 
+             (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
+             p.toolInvocation?.state === "call"
+    );
 
     const sendMessage = useCallback(() => {
         const trimmed = inputValue.trim();
@@ -359,7 +358,7 @@ export default function AIChatPanel({
 
                         // AI SDK v3 stores user text in parts[].type=="text"
                         // Only genuine user messages have text parts
-                        const textParts = rawParts.filter((p) => p.type === "text");
+                        const textParts = rawParts.filter((p) => (p.type ?? "") === "text");
                         const textContent: string = (
                             textParts.map((p) => p.text ?? "").join("") ||
                             extended.content ||
@@ -368,7 +367,7 @@ export default function AIChatPanel({
 
                         // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
                         const toolParts: MessagePart[] = rawParts.filter(
-                            (p) => p.type?.startsWith("tool-")
+                            (p) => (p.type ?? "").startsWith("tool-")
                         );
 
                         // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
