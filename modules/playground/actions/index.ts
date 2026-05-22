@@ -119,7 +119,9 @@ export const getPlaygroundById = async (id:string)=>{
 }
 
 export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder) => {
-  await assertPlaygroundOwnership(playgroundId);
+    console.log("DATA TYPE BEFORE SAVE:", typeof data);
+    console.log("DATA:", data);
+    await assertPlaygroundOwnership(playgroundId);
 
   try {
     const updatedPlayground = await db.templateFile.upsert({
@@ -127,13 +129,18 @@ export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder
         playgroundId, // now allowed since playgroundId is unique
       },
       update: {
-        content: JSON.stringify(data),
+        content: data,
       },
       create: {
         playgroundId,
-        content: JSON.stringify(data),
+        content: data,
       },
     });
+    console.log("SAVED CONTENT:", updatedPlayground.content);
+    console.log(
+      "SAVED CONTENT TYPE:",
+      typeof updatedPlayground.content
+    );
 
     return updatedPlayground;
   } catch (error) {
