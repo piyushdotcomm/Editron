@@ -370,10 +370,12 @@ const WebContainerPreview = ({
               writeTerminal(
                 `🌐 Server ready at ${url} (port ${port})\r\n`,
               );
+              console.log("SERVER READY EVENT", port, url);
 
               const isCommonFrontendPort = [
                 3000, 5173, 8080, 4200, 8000,
               ].includes(port);
+              setRefreshKey((k) => k + 1);
               setPreviewUrl((prevUrl) => {
                 if (prevUrl && !isCommonFrontendPort) return prevUrl;
                 return url;
@@ -774,6 +776,20 @@ const WebContainerPreview = ({
     return () => {
       cleanupServerReady();
       useWebContainerStore.getState().setServerUrl(null);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      console.log("FORCING PREVIEW REFRESH AFTER YJS RECONNECT");
+
+      setRefreshKey((k) => k + 1);
+    };
+
+    window.addEventListener("yjs-reconnected", handler);
+
+    return () => {
+      window.removeEventListener("yjs-reconnected", handler);
     };
   }, []);
 
