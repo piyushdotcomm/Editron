@@ -29,7 +29,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates/types";
-import { fetchTemplateSummaries } from "@/lib/actions/templates";
 
 const ICON_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3C/svg%3E";
@@ -65,10 +64,13 @@ const TemplateSelectionModal = ({
   const loadTemplates = () => {
     setIsLoadingTemplates(true);
     setTemplateError(null);
-    fetchTemplateSummaries()
-      .then((data) => {
-        setAvailableTemplates(data);
-      })
+    fetch("/api/templates/meta")
+    .then((res) => (res.ok ? res.json() : Promise.reject()))
+    .then((data: unknown) => {
+      if (Array.isArray(data)) {
+        setAvailableTemplates(data as TemplateSummary[]);
+      }
+    })
       .catch(() => {
         setTemplateError("Failed to load templates. Please try again.");
       })
@@ -467,3 +469,4 @@ function getIconTileStyle(color?: string): CSSProperties {
 
   return { backgroundColor: color };
 }
+
