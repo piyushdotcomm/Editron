@@ -14,7 +14,11 @@ export function useCollaboratorCount(playgroundId: string): number {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!playgroundId) return;
+    // Fix 1: reset to 0 when playgroundId is empty
+    if (!playgroundId) {
+      setCount(0);
+      return;
+    }
 
     let disposed = false;
     let cleanup = () => {};
@@ -30,20 +34,21 @@ export function useCollaboratorCount(playgroundId: string): number {
           const states = Array.from(
             provider.awareness.getStates().values()
           );
-          // Count only states that have a user object attached
           const activeCount = states.filter((s) => s.user).length;
           setCount(activeCount);
         };
 
         provider.awareness.on("change", updateCount);
-        updateCount(); // run once immediately
+        updateCount();
 
         cleanup = () => {
           provider.awareness.off("change", updateCount);
         };
       } catch {
-        // Collaboration unavailable — keep count at 0
-        setCount(0);
+        // Fix 2: only update state if effect is still active
+        if (!disposed) {
+          setCount(0);
+        }
       }
     })();
 
