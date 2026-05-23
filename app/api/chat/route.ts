@@ -1,4 +1,6 @@
 import { streamText, convertToModelMessages } from "ai";
+import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
@@ -7,6 +9,7 @@ import { z } from "zod";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
 import { auth } from "@/auth";
 import { tools, SYSTEM_PROMPT } from "./tools";
+import { tools } from "./tools";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,6 +140,13 @@ type ChatMessage = {
   // Allow other AI SDK fields to pass through seamlessly
   [key: string]: unknown;
 };
+
+const RequestBodySchema = z.object({
+    messages: z.array(z.any()).max(100),
+    provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
+    fileTree: z.string().max(50_000).optional(),
+    userApiKey: z.string().max(256).optional(),
+});
 
 /**
  * Ensure every message has a `parts` array as expected by `convertToModelMessages`.
@@ -302,9 +312,9 @@ patch-1
         }
 
         type MessagePart = { type: string; text: string };
-        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
 
-        const sanitizedMessages: ChatMessage[] = [];
+        const validRoles = ["system", "user", "assistant", "data", "tool"];
+        const sanitizedMessages: Omit<UIMessage, 'id'>[] = [];
         for (const raw of messages) {
             if (!raw || typeof raw !== "object") {
                 return NextResponse.json(
@@ -312,16 +322,32 @@ patch-1
                     { status: 400 }
                 );
             }
-            const m = raw as ChatMessage;
+            
+            const role = (raw as Record<string, unknown>).role;
+            if (typeof role !== "string" || !validRoles.includes(role)) {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must have a valid role" },
+                    { status: 400 }
+                );
+            }
+            
+            const m = raw as { role: "system" | "user" | "assistant" | "data" | "tool"; content?: string; parts?: MessagePart[] };
             if (Array.isArray(m.parts)) {
-                sanitizedMessages.push(m);
+                // Ensure each part has at least a type property
+                if (!m.parts.every(p => p && typeof p === "object" && "type" in p)) {
+                     return NextResponse.json(
+                        { success: false, error: "Invalid request: malformed parts" },
+                        { status: 400 }
+                    );
+                }
+                sanitizedMessages.push({ role: m.role as UIMessage['role'], parts: m.parts as UIMessage['parts'] });
                 continue;
             }
             sanitizedMessages.push({
-                ...m,
+                role: m.role as UIMessage['role'],
                 parts: typeof m.content === "string" && m.content.trim()
-                    ? [{ type: "text", text: m.content }]
-                    : [] as MessagePart[],
+                    ? [{ type: "text" as const, text: m.content }]
+                    : [],
             });
         }
 

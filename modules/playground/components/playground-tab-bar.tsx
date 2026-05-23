@@ -2,9 +2,12 @@ import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileIcon } from "./file-icon";
 import { X } from "lucide-react";
+import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
+
+type OpenFile = ReturnType<typeof useFileExplorer.getState>["openFiles"][number];
 
 interface PlaygroundTabBarProps {
-    openFiles: any[];
+    openFiles: OpenFile[];
     activeFileId: string | null;
     setActiveFileId: (id: string) => void;
     closeFile: (id: string) => void;

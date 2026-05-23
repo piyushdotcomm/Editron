@@ -3,6 +3,7 @@
 import { TIMEOUTS } from "@/lib/constants/config";
 import { useRef, useEffect, useState } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
+import type { editor as MonacoEditor } from "monaco-editor";
 import {
   configureMonaco,
   defaultEditorOptions,
@@ -42,14 +43,14 @@ const PlaygroundEditor = ({
   const formatterDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const params = useParams();
   const playgroundId = params?.id as string;
-  const editorRef = useRef<unknown>(null);
+  const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bindingRef = useRef<unknown>(null);
+  const bindingRef = useRef<{ destroy: () => void } | null>(null);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
 
-  const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+  const handleEditorDidMount = (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
     setIsMounted(true);
@@ -57,11 +58,10 @@ const PlaygroundEditor = ({
     editor.updateOptions({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
-      formatOnSave: true,
     });
 
     // Cursor position tracking for status bar
-    editor.onDidChangeCursorPosition((e: any) => {
+    editor.onDidChangeCursorPosition((e) => {
       onCursorChange?.(e.position.lineNumber, e.position.column);
     });
 
@@ -296,7 +296,7 @@ const PlaygroundEditor = ({
 
         const { doc, provider } = getOrCreateYDoc(playgroundId, token);
         // Use file id if available (contains full path), otherwise fallback to filename+ext
-        const fileId = (activeFile as any)?.id;
+        const fileId = (activeFile as TemplateFile & { id?: string })?.id;
         const ext = activeFile.fileExtension
           ? `.${activeFile.fileExtension}`
           : "";
@@ -316,7 +316,7 @@ const PlaygroundEditor = ({
         const binding = new MonacoBinding(
           yText,
           model,
-          new Set([editorRef.current]),
+          new Set(editorRef.current ? [editorRef.current] : []),
           provider.awareness,
         );
 
@@ -344,11 +344,11 @@ const PlaygroundEditor = ({
           }
 
           const states = Array.from(
-            provider.awareness.getStates().entries() as any,
+            provider.awareness.getStates().entries() as Iterable<[number, { user?: { color?: string; name?: string } }]>,
           );
           let css = "";
 
-          for (const [clientId, state] of states as [number, any][]) {
+          for (const [clientId, state] of states) {
             if (state.user) {
               const color = state.user.color || "orange";
               const name = state.user.name || "Anonymous";
@@ -481,7 +481,6 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // @ts-expect-error - Monaco options typo
         options={{
           ...defaultEditorOptions,
           inlineSuggest: { enabled: true },

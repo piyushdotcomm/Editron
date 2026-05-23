@@ -6,7 +6,7 @@ import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path
 
 interface BreadcrumbsProps {
     activeFile?: TemplateFile;
-    templateData: TemplateFolder;
+    templateData: TemplateFolder | null;
 }
 
 function findPathSegments(
@@ -35,7 +35,7 @@ function findPathSegments(
 }
 
 export function Breadcrumbs({ activeFile, templateData }: BreadcrumbsProps) {
-    if (!activeFile) return null;
+    if (!activeFile || !templateData) return null;
 
     const segments = findPathSegments(templateData.items, activeFile);
     if (!segments || segments.length === 0) return null;

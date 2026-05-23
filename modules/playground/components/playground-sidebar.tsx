@@ -74,18 +74,22 @@ export const PlaygroundSidebar = () => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pb-8">
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
-                            <TemplateFileTree
-                                data={templateData as any}
-                                onFileSelect={handleFileSelect}
-                                selectedFile={activeFile || undefined}
-                                title=""
-                                onAddFile={wrappedHandleAddFile}
-                                onAddFolder={wrappedHandleAddFolder}
-                                onDeleteFile={wrappedHandleDeleteFile}
-                                onDeleteFolder={wrappedHandleDeleteFolder}
-                                onRenameFile={wrappedHandleRenameFile}
-                                onRenameFolder={wrappedHandleRenameFolder}
-                            />
+                            {templateData ? (
+                                <TemplateFileTree
+                                    data={templateData}
+                                    onFileSelect={handleFileSelect}
+                                    selectedFile={activeFile || undefined}
+                                    title=""
+                                    onAddFile={wrappedHandleAddFile}
+                                    onAddFolder={wrappedHandleAddFolder}
+                                    onDeleteFile={wrappedHandleDeleteFile}
+                                    onDeleteFolder={wrappedHandleDeleteFolder}
+                                    onRenameFile={wrappedHandleRenameFile}
+                                    onRenameFolder={wrappedHandleRenameFolder}
+                                />
+                            ) : (
+                                <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+                            )}
                         </div>
                     )}
 
