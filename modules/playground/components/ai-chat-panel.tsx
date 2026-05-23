@@ -210,8 +210,7 @@ export default function AIChatPanel({
                         result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
                     } else {
                         const file = findFileByPath(templateData?.items || [], path);
-                        result =
-                          file && "content" in file && typeof file.content === "string" ? file.content: `Error: File "${path}" not found`;
+                        result = file && "content" in file ? file.content : `Error: File "${path}" not found`;
                     }
                 } else if (toolName === "edit_file") {
                     const { path, content } = args as { path?: string; content?: string };

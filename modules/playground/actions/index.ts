@@ -1,5 +1,5 @@
 "use server"
-
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db"
 import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
 import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json";
@@ -160,20 +160,24 @@ export const getPlaygroundById = async (id: string) => {
     }
 }
 
-export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder) => {
+
+export const SaveUpdatedCode = async (
+  playgroundId: string,
+  data: TemplateFolder
+) => {
   await assertPlaygroundOwnership(playgroundId);
 
   try {
     const updatedPlayground = await db.templateFile.upsert({
       where: {
-        playgroundId, // now allowed since playgroundId is unique
+        playgroundId,
       },
       update: {
-        content: JSON.stringify(data),
+        content: data as Prisma.InputJsonValue,
       },
       create: {
         playgroundId,
-        content: JSON.stringify(data),
+        content: data as Prisma.InputJsonValue,
       },
     });
 

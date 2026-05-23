@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { TemplateFolder } from '../lib/path-to-json';
 import { getPlaygroundById, SaveUpdatedCode } from '../actions';
 
-import type { PlaygroundData } from "@/modules/playground/types/playground";
+import type { PlaygroundData } from '../contexts/playground-context';
 
 interface PlaygroundQueryResult {
   playgroundData: PlaygroundData;

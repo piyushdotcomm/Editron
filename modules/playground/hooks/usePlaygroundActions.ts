@@ -17,7 +17,7 @@ type TemplateItem = TemplateFile | TemplateFolder;
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
-   playgroundData: PlaygroundData | null;
+  playgroundData: PlaygroundData | null;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
   writeFileSync?: ((path: string, content: string) => Promise<void>) | null;
   activeFileId: string | null;

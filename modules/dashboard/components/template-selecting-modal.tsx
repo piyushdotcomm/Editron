@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { TemplateCategory } from "@/lib/templates/types";
+import { getTemplateSummaries } from "@/lib/templates/actions";
 import type { TemplateKey } from "@/lib/template";
 import {
   ChevronRight,
@@ -30,6 +31,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates/types";
+import { getTemplateSummaries } from "@/lib/templates/actions";
 
 const ICON_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3C/svg%3E";

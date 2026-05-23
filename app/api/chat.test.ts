@@ -8,10 +8,10 @@ vi.mock("next/server", () => ({
     }
 }));
 
-import { tools } from "./chat/route";
+import { tools, MAX_FILE_CONTENT_CHARS } from "./chat/tools";
 
 describe("AI tool payload validation", () => {
-    const MAX = 100_000;
+    const MAX = MAX_FILE_CONTENT_CHARS;
 
     it("accepts content at the limit", () => {
         const content = "a".repeat(MAX);
@@ -24,7 +24,7 @@ describe("AI tool payload validation", () => {
         const parsed = tools.edit_file.inputSchema.safeParse({ path: "test.txt", content });
         expect(parsed.success).toBe(false);
         if (!parsed.success) {
-            const msgs = parsed.error.issues.map(i => i.message).join(" ");
+            const msgs = parsed.error.issues.map((i: any) => i.message).join(" ");
             expect(msgs).toMatch(/exceeds/);
         }
     });

@@ -16,7 +16,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     /**
      * Handle user creation and account linking after a successful sign-in
      */
-    async signIn({ user, account }: { user: User, account: Account | null | undefined }) {
+    async signIn({ user, account }: { user: User, account?: Account | null | undefined }) {
       if (!user || !account) return false;
 
       const sessionState = account && typeof account.session_state === 'string' ? account.session_state : undefined;

@@ -330,7 +330,7 @@ const PlaygroundEditor = ({
         const binding = new MonacoBinding(
           yText,
           model,
-          new Set([editorRef.current].filter(Boolean) as MonacoEditorInstance[]),
+          new Set(editorRef.current ? [editorRef.current] : []),
           provider.awareness,
         );
 
@@ -495,10 +495,10 @@ const PlaygroundEditor = ({
             ? getEditorLanguage(activeFile.fileExtension || "")
             : "plaintext"
         }
-        // Default editor options are compatible with Monaco, but the @monaco-editor/react
-        // wrapper uses a slightly different type alias. Cast explicitly to avoid the
-        // monaco/@monaco-editor/react type discrepancy without hiding a real bug.
-        options={defaultEditorOptions as MonacoEditor.IStandaloneEditorConstructionOptions}
+        options={{
+          ...defaultEditorOptions,
+          inlineSuggest: { enabled: true },
+        }}
       />
     </div>
   );
