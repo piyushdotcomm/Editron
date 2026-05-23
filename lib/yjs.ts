@@ -74,7 +74,7 @@ export function getOrCreateYDoc(roomId: string, token: string) {
 
             // Force preview refresh after reconnect
             window.dispatchEvent(
-                new CustomEvent("yjs-reconnected")
+                new CustomEvent("yjs-connected")
             );
         }
     });
