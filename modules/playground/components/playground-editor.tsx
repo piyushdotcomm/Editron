@@ -43,7 +43,7 @@ type AwarenessState = {
 
 const isTemplateFileWithId = (
   file: unknown,
-): file is TemplateFile & { id?: string } =>
+): file is TemplateFile & { id: string } =>
   typeof file === "object" &&
   file !== null &&
   "id" in file &&
@@ -73,8 +73,10 @@ const PlaygroundEditor = ({
     monacoRef.current = monaco;
     setIsMounted(true);
 
-    editor.updateOptions(defaultEditorOptions);
-    editor.updateOptions({ inlineSuggest: { enabled: true } });
+    editor.updateOptions({
+      ...defaultEditorOptions,
+      inlineSuggest: { enabled: true },
+    });
 
     // Cursor position tracking for status bar
     editor.onDidChangeCursorPosition((e) => {
