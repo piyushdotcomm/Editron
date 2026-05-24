@@ -781,18 +781,17 @@ const WebContainerPreview = ({
 
   useEffect(() => {
     const handler = () => {
-      console.log("FORCING PREVIEW REFRESH AFTER YJS RECONNECT");
+      console.log("FORCING PREVIEW REFRESH AFTER YJS CONNECT");
 
       setRefreshKey((k) => k + 1);
     };
 
-    window.addEventListener("yjs-reconnected", handler);
+    window.addEventListener("yjs-connected", handler);
 
     return () => {
-      window.removeEventListener("yjs-reconnected", handler);
+      window.removeEventListener("yjs-connected", handler);
     };
   }, []);
-
  
 
   if (error || setupError) {
