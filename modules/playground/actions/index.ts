@@ -161,6 +161,14 @@ export const getPlaygroundById = async (id: string) => {
 }
 
 
+/**
+ * Normalizes an object to be JSON-safe by stripping undefined values.
+ * Useful for Prisma JSON fields which don't support undefined.
+ */
+function normalizeJson<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export const SaveUpdatedCode = async (
   playgroundId: string,
   data: TemplateFolder
@@ -168,16 +176,17 @@ export const SaveUpdatedCode = async (
   await assertPlaygroundOwnership(playgroundId);
 
   try {
+    const normalizedData = normalizeJson(data);
     const updatedPlayground = await db.templateFile.upsert({
       where: {
         playgroundId,
       },
       update: {
-        content: data as Prisma.InputJsonValue,
+        content: normalizedData as Prisma.InputJsonValue,
       },
       create: {
         playgroundId,
-        content: data as Prisma.InputJsonValue,
+        content: normalizedData as Prisma.InputJsonValue,
       },
     });
 

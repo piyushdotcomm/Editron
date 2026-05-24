@@ -1,4 +1,5 @@
 import { TemplateFolder, TemplateItem } from "@/modules/playground/lib/path-to-json";
+import type { FileSystemTree } from "@webcontainer/api";
 
 interface WebContainerFile {
   file: {
@@ -12,13 +13,11 @@ interface WebContainerDirectory {
   };
 }
 
-type WebContainerFileSystem = Record<string, WebContainerFile | WebContainerDirectory>;
-
-export function transformToWebContainerFormat(template: TemplateFolder): WebContainerFileSystem {
+export function transformToWebContainerFormat(template: TemplateFolder): FileSystemTree {
   function processItem(item: TemplateItem): WebContainerFile | WebContainerDirectory {
     if ('folderName' in item) {
       // This is a directory
-      const directoryContents: WebContainerFileSystem = {};
+      const directoryContents: FileSystemTree = {};
       
       item.items.forEach(subItem => {
         const key = 'folderName' in subItem 
@@ -40,7 +39,7 @@ export function transformToWebContainerFormat(template: TemplateFolder): WebCont
     }
   }
 
-  const result: WebContainerFileSystem = {};
+  const result: FileSystemTree = {};
   
   template.items.forEach(item => {
     const key = 'folderName' in item 

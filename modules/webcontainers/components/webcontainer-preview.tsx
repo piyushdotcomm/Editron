@@ -483,7 +483,6 @@ const WebContainerPreview = ({
         // Write to terminal
         writeTerminal("🔄 Transforming template data...\r\n");
 
-        
         const files = transformToWebContainerFormat(templateData);
         setLoadingState((prev) => ({
           ...prev,
