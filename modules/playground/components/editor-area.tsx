@@ -22,6 +22,7 @@ import type {
   TemplateFile,
   TemplateFolder,
 } from "@/modules/playground/lib/path-to-json";
+import { useCollaboratorCount } from "@/modules/playground/hooks/useCollaboratorCount";
 
 const PlaygroundEditor = dynamic(
   () => import("@/modules/playground/components/playground-editor"),
@@ -47,8 +48,8 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
   handleDownloadZip,
 }) => {
   const {
-  id,
-  templateData,
+    id,
+    templateData,
     playgroundData,
     instance,
     writeFileSync,
@@ -230,6 +231,8 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
     </div>
   );
 };
+
+
 
 
 
