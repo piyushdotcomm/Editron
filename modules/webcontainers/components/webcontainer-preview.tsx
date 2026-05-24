@@ -110,9 +110,16 @@ const WebContainerPreview = ({
   };
 
   /** Register a server-ready listener, unsubscribing any prior one to prevent accumulation. */
-  const bindServerReady = (inst: WebContainer, handler: (port: number, url: string) => void) => {
+  const bindServerReady = (
+    inst: WebContainer,
+    handler: (port: number, url: string) => void,
+  ) => {
     serverReadyCleanupRef.current?.();
-    serverReadyCleanupRef.current = inst.on("server-ready", handler as Parameters<WebContainer["on"]>[1]);
+
+    serverReadyCleanupRef.current = (inst as any).on(
+      "server-ready",
+      handler,
+    );
   };
 
   // Derive a loading flag for the refresh-spinner icon in the toolbar.
@@ -476,7 +483,7 @@ const WebContainerPreview = ({
         // Write to terminal
         writeTerminal("🔄 Transforming template data...\r\n");
 
-        // @ts-expect-error - WebContainer format uses recursive FileSystemTree which is complex to type accurately
+        
         const files = transformToWebContainerFormat(templateData);
         setLoadingState((prev) => ({
           ...prev,
@@ -786,10 +793,10 @@ const WebContainerPreview = ({
       setRefreshKey((k) => k + 1);
     };
 
-    window.addEventListener("yjs-connected", handler);
+    window.addEventListener("yjs-reconnected", handler);
 
     return () => {
-      window.removeEventListener("yjs-connected", handler);
+      window.removeEventListener("yjs-reconnected", handler);
     };
   }, []);
  
