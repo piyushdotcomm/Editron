@@ -54,7 +54,7 @@ export function AuthPage() {
                     className="absolute top-7 left-5 border border-border/60 bg-background/80 backdrop-blur-sm hover:bg-background"
                     asChild
                 >
-                    <Link href="#">
+                    <Link href="/">
                         <ChevronLeftIcon className='size-4 me-2' />
                         Home
                     </Link>
