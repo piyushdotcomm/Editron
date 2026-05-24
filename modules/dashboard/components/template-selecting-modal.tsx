@@ -56,7 +56,7 @@ const TemplateSelectionModal = ({
   const [projectName, setProjectName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | "all">("all");
 
-  // ── Template data: loaded via Server Action, never bundled into client JS ──
+
   const [availableTemplates, setAvailableTemplates] = useState<TemplateSummary[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [templateError, setTemplateError] = useState<string | null>(null);
@@ -469,4 +469,5 @@ function getIconTileStyle(color?: string): CSSProperties {
 
   return { backgroundColor: color };
 }
+
 
