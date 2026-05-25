@@ -39,6 +39,7 @@ export const toggleStarMarked = async (
     }
 
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/profile");
     return { success: true, isMarked: isChecked };
   } catch (error) {
     console.error("Error updating problem:", error);
@@ -139,6 +140,7 @@ export const deleteProjectById = async (id: string) => {
     }
 
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/profile");
   } catch (error) {
     console.log(error);
   }
@@ -169,6 +171,7 @@ export const editProjectById = async (
     }
 
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/profile");
   } catch (error) {
     console.log(error);
     throw error;
@@ -222,6 +225,7 @@ export const duplicateProjectById = async (id: string) => {
     });
 
     revalidatePath("/dashboard");
+    revalidatePath("/dashboard/profile");
 
     return duplicatedPlayground;
   } catch (error) {

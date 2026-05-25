@@ -37,7 +37,7 @@ export default function HeaderNewProjectButton() {
                 onClick={() => setIsModalOpen(true)}
                 variant="default"
                 size="sm"
-                className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-md shadow-red-500/20"
+                className="bg-[#171717] text-white hover:bg-[#2a2a2a] dark:bg-white dark:text-[#171717] dark:hover:bg-white/90"
             >
                 New Project
             </Button>

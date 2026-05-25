@@ -38,7 +38,7 @@ export default function RunningEnvironments({ runtimes }: { runtimes: RuntimeEnv
                             <div className="flex flex-col">
                                 <span className="uppercase tracking-wider text-[10px] mb-1">MEM</span>
                                 <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${(runtime.memoryUsage / 512) * 100}%` }} />
+                                    <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${(runtime.memoryUsage / 512) * 100}%` }} />
                                 </div>
                                 <span className="mt-1 text-right">{runtime.memoryUsage}MB</span>
                             </div>

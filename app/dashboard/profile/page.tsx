@@ -7,14 +7,13 @@ import UsageAnalytics from "@/modules/profile/components/UsageAnalytics";
 import RecentActivity from "@/modules/profile/components/RecentActivity";
 import { QuickActions } from "@/modules/profile/components/SidebarWidgets";
 import HeaderNewProjectButton from "@/modules/profile/components/HeaderNewProjectButton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut } from "lucide-react";
+import { ArrowLeft, CalendarDays, LogOut, Mail, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import CompactProjectTable from "@/modules/profile/components/CompactProjectTable";
 import { deleteProjectById, duplicateProjectById, editProjectById } from "@/modules/dashboard/actions";
-import EmptyState from "@/modules/dashboard/components/empty-state";
 import LogoutButton from "@/modules/auth/components/logout-button";
+import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Profile Dashboard | Editron",
@@ -24,133 +23,187 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
     const user = await currentUser();
     if (!user?.id) {
-        return <div className="p-8 text-center text-muted-foreground">Please log in to view your profile.</div>;
+        return (
+            <div className="min-h-screen bg-background p-8 text-center text-muted-foreground">
+                Please log in to view your profile.
+            </div>
+        );
     }
 
-    // Optimization: Pass user.id directly to avoid re-fetching auth
     const stats = await getUserProfileStats(user.id);
 
     if (!stats) {
-        return <div className="p-8 text-center text-muted-foreground">Error loading stats.</div>;
+        return (
+            <div className="min-h-screen bg-background p-8 text-center text-muted-foreground">
+                Error loading stats.
+            </div>
+        );
     }
 
+    const latestProject = stats.playgrounds[0];
+
     return (
-        <div className="min-h-screen overflow-x-hidden bg-background text-foreground font-sans pb-8">
+        <div className="min-h-screen overflow-x-hidden bg-[#fafafa] text-[#171717] dark:bg-background dark:text-foreground">
+            <header className="sticky top-0 z-30 border-b border-[#ebebeb] bg-white/85 px-4 backdrop-blur-xl dark:border-border dark:bg-background/85 sm:px-6">
+                <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4">
+                    <div className="min-w-0">
+                        <p className="font-mono text-[11px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                            Dashboard / Profile
+                        </p>
+                        <h1 className="truncate text-lg font-semibold tracking-normal text-[#171717] dark:text-foreground">
+                            Account console
+                        </h1>
+                    </div>
 
-            {/* Top Navigation Wrapper for Profile Context */}
-            <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-6 justify-between">
-                <div className="flex items-center gap-4 w-full max-w-xl">
-                    <h1 className="text-xl font-bold tracking-tight mr-4 hidden md:block">Profile</h1>
-                    <div className="relative w-full"></div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <HeaderNewProjectButton />
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 p-[1px]">
-                        <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-                            <Image src={user.image || "/placeholder.svg"} alt="User" width={32} height={32} className="object-cover" />
-                        </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="hidden border-[#ebebeb] bg-white text-[#171717] shadow-none hover:bg-[#fafafa] dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-muted/30 sm:inline-flex"
+                        >
+                            <Link href="/dashboard">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Dashboard
+                            </Link>
+                        </Button>
+                        <HeaderNewProjectButton />
+                        <Image
+                            src={user.image || "/placeholder.svg"}
+                            alt={user.name ? `${user.name} avatar` : "User avatar"}
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 rounded-full border border-[#ebebeb] object-cover dark:border-border"
+                        />
                     </div>
                 </div>
             </header>
 
-            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+                <section className="relative overflow-hidden rounded-lg border border-[#ebebeb] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_2px_rgba(0,0,0,0.04)] dark:border-border dark:bg-card">
+                    <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_25%_20%,rgba(0,124,240,0.16),transparent_32%),radial-gradient(circle_at_58%_0%,rgba(255,0,128,0.12),transparent_30%),radial-gradient(circle_at_82%_18%,rgba(249,203,40,0.16),transparent_24%)] dark:opacity-60" />
 
-                {/* User Header */}
-                <div className="flex min-w-0 flex-col md:flex-row items-start md:items-center gap-6 mb-8">
-                    <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full opacity-75 blur group-hover:opacity-100 transition duration-500"></div>
-                        <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-background">
-                            <Image src={user.image || "/placeholder.svg"} alt={user.name || "User"} width={96} height={96} className="object-cover" />
+                    <div className="relative grid gap-6 p-5 lg:grid-cols-[1.4fr_1fr_auto] lg:items-end lg:p-6">
+                        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end">
+                            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-[#ebebeb] bg-white p-1 shadow-[0_8px_16px_-8px_rgba(0,0,0,0.18)] dark:border-border dark:bg-card">
+                                <Image
+                                    src={user.image || "/placeholder.svg"}
+                                    alt={user.name ? `${user.name} avatar` : "User avatar"}
+                                    width={96}
+                                    height={96}
+                                    className="h-full w-full rounded-full object-cover"
+                                />
+                                <span className="absolute bottom-2 right-2 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-card" />
+                            </div>
+
+                            <div className="min-w-0 space-y-3">
+                                <div>
+                                    <p className="font-mono text-[11px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                                        Developer profile
+                                    </p>
+                                    <h2 className="break-words text-3xl font-semibold tracking-normal text-[#171717] dark:text-foreground sm:text-4xl">
+                                        {user.name || "Editron user"}
+                                    </h2>
+                                </div>
+                                <div className="flex min-w-0 flex-col gap-2 text-sm text-[#4d4d4d] dark:text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center">
+                                    <span className="inline-flex min-w-0 items-center gap-2">
+                                        <Mail className="h-4 w-4 shrink-0" />
+                                        <span className="truncate">{user.email}</span>
+                                    </span>
+                                    <span className="hidden h-1 w-1 rounded-full bg-[#d4d4d4] sm:block" />
+                                    <span className="inline-flex items-center gap-2">
+                                        <ShieldCheck className="h-4 w-4 shrink-0" />
+                                        Workspace owner
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="absolute bottom-0 right-0 h-6 w-6 bg-green-500 border-2 border-background rounded-full" title="Online" />
-                    </div>
 
-                    <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 items-center gap-3 mb-1">
-                            <h2 className="min-w-0 text-2xl sm:text-3xl font-bold tracking-tight break-words">{user.name}</h2>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-3">
+                            {[
+                                ["Projects", stats.totalProjects],
+                                ["Starred", stats.starredProjects],
+                                ["Streak", `${stats.currentStreak}d`],
+                            ].map(([label, value]) => (
+                                <div
+                                    key={label}
+                                    className="rounded-md border border-[#ebebeb] bg-white/80 p-3 dark:border-border dark:bg-background/60"
+                                >
+                                    <p className="font-mono text-[10px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                                        {label}
+                                    </p>
+                                    <p className="mt-1 text-2xl font-semibold leading-none text-[#171717] dark:text-foreground">
+                                        {value}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                        <p className="text-muted-foreground flex min-w-0 items-center gap-2 mt-1 break-words">
-                            {user.email}
-                        </p>
-                    </div>
 
-                    <div className="flex gap-3">
-                        <LogoutButton>
-                            <Button variant="outline" className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-600">
-                                <LogOut className="w-4 h-4" />
-                                Logout
-                            </Button>
-                        </LogoutButton>
+                        <div className="flex gap-2 lg:justify-end">
+                            <LogoutButton>
+                                <Button
+                                    variant="outline"
+                                    className="border-[#ebebeb] bg-white text-[#171717] shadow-none hover:bg-[#fafafa] dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-muted/30"
+                                >
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    Logout
+                                </Button>
+                            </LogoutButton>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                {/* 2. KPI Stats */}
                 <KPIStats stats={stats} />
 
-                {/* 3. Heatmap */}
-                <ContributionHeatmap data={stats.heatmapData} />
+                <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className="min-w-0 space-y-6">
+                        <CompactProjectTable
+                            projects={stats.playgrounds}
+                            onDeleteProject={deleteProjectById}
+                            onUpdateProject={editProjectById}
+                            onDuplicateProject={duplicateProjectById}
+                        />
 
-                <div className="grid min-w-0 grid-cols-1 xl:grid-cols-3 gap-6 xl:gap-8">
-                    {/* Main Content Column */}
-                    <div className="min-w-0 xl:col-span-2 space-y-8">
+                        <ContributionHeatmap data={stats.heatmapData} />
 
-                        {/* 4. Analytics */}
                         <UsageAnalytics activityData={stats.heatmapData} techStack={stats.techStackDistribution} />
+                    </div>
 
-                        {/* 6. Running Environments & AI Insights removed as per request */}
-
-                        {/* Projects Tabs */}
-                        <Tabs defaultValue="all" className="w-full min-w-0">
-                            <div className="flex min-w-0 items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold">Projects</h3>
-                                <TabsList>
-                                    <TabsTrigger value="all">All</TabsTrigger>
-                                    <TabsTrigger value="starred">Starred</TabsTrigger>
-                                </TabsList>
+                    <aside className="min-w-0 space-y-6">
+                        <div className="rounded-lg border border-[#ebebeb] bg-white p-5 shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_2px_rgba(0,0,0,0.04)] dark:border-border dark:bg-card">
+                            <p className="font-mono text-[11px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                                Workspace
+                            </p>
+                            <h3 className="mt-1 text-xl font-semibold tracking-normal text-[#171717] dark:text-foreground">
+                                Account snapshot
+                            </h3>
+                            <div className="mt-5 space-y-3 text-sm">
+                                <div className="flex items-center justify-between gap-4 border-b border-[#ebebeb] pb-3 dark:border-border">
+                                    <span className="text-[#4d4d4d] dark:text-muted-foreground">Latest project</span>
+                                    <span className="truncate font-medium text-[#171717] dark:text-foreground">
+                                        {latestProject?.title || "No projects"}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-4 border-b border-[#ebebeb] pb-3 dark:border-border">
+                                    <span className="text-[#4d4d4d] dark:text-muted-foreground">Last update</span>
+                                    <span className="inline-flex items-center gap-1 font-mono text-xs text-[#888888] dark:text-muted-foreground">
+                                        <CalendarDays className="h-3.5 w-3.5" />
+                                        {latestProject ? new Date(latestProject.updatedAt).toLocaleDateString() : "-"}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <span className="text-[#4d4d4d] dark:text-muted-foreground">Active days</span>
+                                    <span className="font-mono text-xs text-[#888888] dark:text-muted-foreground">
+                                        {stats.heatmapData.length}
+                                    </span>
+                                </div>
                             </div>
-                            <TabsContent value="all" className="mt-0 min-w-0">
-                                {stats.playgrounds.length > 0 ? (
-                                    <CompactProjectTable
-                                        projects={stats.playgrounds}
-                                        onDeleteProject={deleteProjectById}
-                                        onUpdateProject={editProjectById}
-                                        onDuplicateProject={duplicateProjectById}
-                                    />
-                                ) : (
-                                    <div className="bg-card border border-border/50 rounded-xl p-8">
-                                        <EmptyState />
-                                    </div>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="starred" className="mt-0 min-w-0">
-                                {stats.playgrounds.filter((p: any) => p.Starmark?.length > 0 && p.Starmark[0].isMarked).length > 0 ? (
-                                    <CompactProjectTable
-                                        projects={stats.playgrounds.filter((p: any) => p.Starmark?.length > 0 && p.Starmark[0].isMarked)}
-                                        onDeleteProject={deleteProjectById}
-                                        onUpdateProject={editProjectById}
-                                        onDuplicateProject={duplicateProjectById}
-                                    />
-                                ) : (
-                                    <div className="bg-card border border-border/50 rounded-xl p-8 text-center text-muted-foreground">
-                                        No starred projects yet.
-                                    </div>
-                                )}
-                            </TabsContent>
-                        </Tabs>
+                        </div>
 
-                    </div>
-
-                    {/* Sidebar Column */}
-                    <div className="min-w-0 space-y-8">
-                        {/* 9. Quick Actions */}
                         <QuickActions />
-
-                        {/* H. Recent Activity */}
                         <RecentActivity activities={stats.recentActivity} />
-                    </div>
+                    </aside>
                 </div>
-
             </main>
         </div>
     );

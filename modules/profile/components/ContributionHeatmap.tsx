@@ -1,18 +1,25 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface HeatmapData {
     date: string;
     count: number;
 }
 
-export default function ContributionHeatmap({ data }: { data: HeatmapData[] }) {
+const intensityClasses = [
+    "bg-[#f5f5f5] border-[#ebebeb] dark:bg-muted/30 dark:border-border",
+    "bg-red-50 border-red-100 dark:bg-red-950/30 dark:border-red-900/40",
+    "bg-red-100 border-red-200 dark:bg-red-900/40 dark:border-red-800/60",
+    "bg-red-300 border-red-400 dark:bg-red-700/60 dark:border-red-600",
+    "bg-red-500 border-red-500 dark:bg-red-400 dark:border-red-300",
+];
 
-    // Calculate intensity 0-4
-    const maxCount = Math.max(...(data?.map(d => d.count) || [0]), 1);
+export default function ContributionHeatmap({ data }: { data: HeatmapData[] }) {
+    const totalContributions = data?.reduce((acc, curr) => acc + curr.count, 0) || 0;
+    const maxCount = Math.max(...(data?.map((d) => d.count) || [0]), 1);
 
     const getIntensity = (count: number) => {
         if (count === 0) return 0;
@@ -22,94 +29,94 @@ export default function ContributionHeatmap({ data }: { data: HeatmapData[] }) {
         return 1;
     };
 
-    const getIntensityColor = (intensity: number) => {
-        switch (intensity) {
-            case 0: return "bg-secondary";
-            case 1: return "bg-red-900/40 border border-red-900/50";
-            case 2: return "bg-red-700/60 border border-red-700/70";
-            case 3: return "bg-red-500/80 border border-red-500/90";
-            case 4: return "bg-red-400 border border-red-300 shadow-[0_0_8px_rgba(239,68,68,0.5)]";
-            default: return "bg-secondary";
-        }
-    };
-
-    // Create a full year grid filling in missing dates
     const generateFullYearData = () => {
         const today = new Date();
         const fullData = [];
-        const dataMap = new Map(data?.map(d => [d.date, d.count]) || []);
+        const dataMap = new Map(data?.map((d) => [d.date, d.count]) || []);
 
         for (let i = 364; i >= 0; i--) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = d.toISOString().split("T")[0];
             fullData.push({
                 date: dateStr,
-                count: dataMap.get(dateStr) || 0
+                count: dataMap.get(dateStr) || 0,
             });
         }
         return fullData;
     };
 
     const displayData = generateFullYearData();
-
     const weeks = [];
     const daysInWeek = 7;
 
-    // Group into weeks (vertical columns)
     for (let i = 0; i < displayData.length; i += daysInWeek) {
         weeks.push(displayData.slice(i, i + daysInWeek));
     }
 
     return (
-        <Card className="border-border/50">
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="text-lg">Contribution Activity</CardTitle>
-                        <CardDescription>
-                            {data?.reduce((acc, curr) => acc + curr.count, 0) || 0} contributions in the last year
-                        </CardDescription>
+        <Card className="rounded-lg border-[#ebebeb] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_2px_rgba(0,0,0,0.04)] dark:border-border dark:bg-card">
+            <CardHeader className="gap-2 border-b border-[#ebebeb] p-5 dark:border-border">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                        <p className="font-mono text-[11px] uppercase tracking-normal text-[#888888] dark:text-muted-foreground">
+                            Activity map
+                        </p>
+                        <CardTitle className="text-xl font-semibold tracking-normal text-[#171717] dark:text-foreground">
+                            Contribution activity
+                        </CardTitle>
+                        <p className="text-sm text-[#4d4d4d] dark:text-muted-foreground">
+                            {totalContributions} project events recorded across the last year.
+                        </p>
                     </div>
 
-                    <div className="flex gap-2">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <span>Less</span>
-                            <div className="w-3 h-3 rounded-sm bg-secondary"></div>
-                            <div className="w-3 h-3 rounded-sm bg-red-900/40"></div>
-                            <div className="w-3 h-3 rounded-sm bg-red-700/60"></div>
-                            <div className="w-3 h-3 rounded-sm bg-red-500/80"></div>
-                            <div className="w-3 h-3 rounded-sm bg-red-400"></div>
-                            <span>More</span>
-                        </div>
+                    <div className="flex items-center gap-1 text-xs text-[#888888] dark:text-muted-foreground">
+                        <span>Less</span>
+                        {intensityClasses.map((className, index) => (
+                            <span
+                                key={index}
+                                className={cn("h-3 w-3 rounded-[3px] border", className)}
+                                aria-hidden="true"
+                            />
+                        ))}
+                        <span>More</span>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-5">
+                <p className="sr-only">
+                    Activity heatmap with {totalContributions} total contributions. Each day can be focused to read the date and count.
+                </p>
                 <div className="w-full overflow-x-auto pb-2">
-                    <div className="flex gap-1 min-w-max">
+                    <div className="flex min-w-max gap-1">
                         {weeks.map((week, wIndex) => (
                             <div key={wIndex} className="flex flex-col gap-1">
-                                {week.map((day, dIndex) => (
-                                    <TooltipProvider key={`${wIndex}-${dIndex}`}>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <motion.div
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    transition={{ delay: (wIndex * 0.01) + (dIndex * 0.005) }}
-                                                    className={`w-3.5 h-3.5 rounded-sm ${getIntensityColor(getIntensity(day.count))} hover:ring-2 ring-red-500/50 transition-all cursor-pointer`}
-                                                />
-                                            </TooltipTrigger>
-                                            <TooltipContent className="bg-popover border-border p-3 rounded-lg shadow-xl">
-                                                <div className="text-xs font-semibold mb-1">{new Date(day.date).toDateString()}</div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {day.count} contributions
-                                                </div>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                ))}
+                                {week.map((day, dIndex) => {
+                                    const label = `${new Date(day.date).toDateString()}: ${day.count} contributions`;
+
+                                    return (
+                                        <TooltipProvider key={`${wIndex}-${dIndex}`}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <button
+                                                        type="button"
+                                                        aria-label={label}
+                                                        className={cn(
+                                                            "h-3.5 w-3.5 rounded-[3px] border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-red-300",
+                                                            intensityClasses[getIntensity(day.count)],
+                                                        )}
+                                                    />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="rounded-md border-[#ebebeb] bg-white p-3 text-[#171717] shadow-[0_8px_16px_-4px_rgba(0,0,0,0.08)] dark:border-border dark:bg-popover dark:text-popover-foreground">
+                                                    <div className="text-xs font-semibold">{new Date(day.date).toDateString()}</div>
+                                                    <div className="text-xs text-[#888888] dark:text-muted-foreground">
+                                                        {day.count} contributions
+                                                    </div>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    );
+                                })}
                             </div>
                         ))}
                     </div>
