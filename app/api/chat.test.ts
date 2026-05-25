@@ -8,37 +8,37 @@ vi.mock("next/server", () => ({
     }
 }));
 
-import { tools, MAX_FILE_CONTENT_CHARS } from "./chat/tools";
+import { tools, MAX_FILE_CONTENT_CHARS, schemas } from "./chat/tools";
 
 describe("AI tool payload validation", () => {
     const MAX = MAX_FILE_CONTENT_CHARS;
 
     it("accepts content at the limit", () => {
         const content = "a".repeat(MAX);
-        const parsed = tools.edit_file.inputSchema.safeParse({ path: "test.txt", content });
+        const parsed = schemas.edit_file.safeParse({ path: "test.txt", content });
         expect(parsed.success).toBe(true);
     });
 
     it("rejects content 1 char over the limit", () => {
         const content = "a".repeat(MAX + 1);
-        const parsed = tools.edit_file.inputSchema.safeParse({ path: "test.txt", content });
+        const parsed = schemas.edit_file.safeParse({ path: "test.txt", content });
         expect(parsed.success).toBe(false);
         if (!parsed.success) {
-            const msgs = parsed.error.issues.map((i: any) => i.message).join(" ");
+            const msgs = parsed.error.issues.map((i) => i.message).join(" ");
             expect(msgs).toMatch(/exceeds/);
         }
     });
 
     it("rejects very large payloads without crashing", () => {
         const content = "a".repeat(MAX * 10);
-        const parsed = tools.edit_file.inputSchema.safeParse({ path: "big.txt", content });
+        const parsed = schemas.edit_file.safeParse({ path: "big.txt", content });
         expect(parsed.success).toBe(false);
     });
 
     it("batch changes validation: one oversized file fails", () => {
         const ok = { path: "ok.txt", content: "a".repeat(1000) };
         const bad = { path: "bad.txt", content: "a".repeat(MAX + 5) };
-        const parsed = tools.edit_multiple_files.inputSchema.safeParse({ changes: [ok, bad] });
+        const parsed = schemas.edit_multiple_files.safeParse({ changes: [ok, bad] });
         expect(parsed.success).toBe(false);
     });
 });

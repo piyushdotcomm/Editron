@@ -9,12 +9,23 @@
  * and makes future environment/config updates easier.
  */
 
+// ── External API URLs ──────────────────────────────────────────────────────
 
-// API URLs
 export const NPM_REGISTRY_SEARCH_URL =
   "https://registry.npmjs.org/-/v1/search";
 
-// LocalStorage Keys
+export const NETLIFY_API = {
+  SITES: "https://api.netlify.com/api/v1/sites",
+  SITE_DEPLOYS: (siteId: string) =>
+    `https://api.netlify.com/api/v1/sites/${siteId}/deploys`,
+} as const;
+
+export const VERCEL_API = {
+  DEPLOYMENTS: "https://api.vercel.com/v13/deployments",
+} as const;
+
+// ── LocalStorage Keys ──────────────────────────────────────────────────────
+
 export const STORAGE_KEYS = {
   GEMINI_API_KEY: "editron_gemini_key",
   GROQ_API_KEY: "editron_groq_key",
@@ -23,10 +34,12 @@ export const STORAGE_KEYS = {
   EDITOR_THEME: "editron_editor_theme",
 } as const;
 
-// Default Values
+// ── Default Values ─────────────────────────────────────────────────────────
+
 export const DEFAULT_EDITOR_THEME = "vs-dark";
 
-// Timeout Durations
+// ── Timeout Durations (ms) ─────────────────────────────────────────────────
+
 export const TIMEOUTS = {
   COPY_RESET: 2000,
   CHAT_INPUT_FOCUS: 300,
