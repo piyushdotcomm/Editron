@@ -2,6 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { getAllPlaygroundForUser } from "@/modules/dashboard/actions";
 import { DashboardSidebar } from "@/modules/dashboard/components/dashboard-sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { APP_NAME } from "@/lib/constants/config";
 
 export default async function DashboardLayout({
     children
@@ -37,7 +38,7 @@ export default async function DashboardLayout({
             <div className="flex items-center gap-2 border-b p-3 md:hidden">
               <SidebarTrigger />
 
-              <h1 className="text-lg font-semibold">Editron</h1>
+              <h1 className="text-lg font-semibold">{APP_NAME}</h1>
             </div>
             {children}
           </main>

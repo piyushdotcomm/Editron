@@ -9,7 +9,7 @@
  * and makes future environment/config updates easier.
  */
 
-
+export const APP_NAME = "Editron";
 // API URLs
 export const NPM_REGISTRY_SEARCH_URL =
   "https://registry.npmjs.org/-/v1/search";
