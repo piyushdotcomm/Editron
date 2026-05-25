@@ -20,39 +20,36 @@ import {
     Menu
 } from "lucide-react";
 
+import { usePlaygroundContext } from "@/modules/playground/contexts/playground-context";
+import { usePlaygroundUI } from "@/modules/playground/hooks/usePlaygroundUI";
+import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
+import { useAI } from "@/modules/playground/hooks/useAI";
+
 interface PlaygroundHeaderProps {
-    id: string;
-    playgroundData: any;
-    openFilesLength: number;
-    hasUnsavedChanges: boolean;
-    activeFile: any;
-    isPreviewVisible: boolean;
-    setIsPreviewVisible: (v: boolean) => void;
     handleSave: () => void;
     handleSaveAll: () => void;
-    setIsDeployDialogOpen: (v: boolean) => void;
     handleDownloadZip: () => void;
-    setShowAISettings: (v: boolean) => void;
-    closeAllFiles: () => void;
-    toggleAIChat: () => void;
 }
 
 export const PlaygroundHeader = ({
-    id,
-    playgroundData,
-    openFilesLength,
-    hasUnsavedChanges,
-    activeFile,
-    isPreviewVisible,
-    setIsPreviewVisible,
     handleSave,
     handleSaveAll,
-    setIsDeployDialogOpen,
     handleDownloadZip,
-    setShowAISettings,
-    closeAllFiles,
-    toggleAIChat
 }: PlaygroundHeaderProps) => {
+    const { id, playgroundData } = usePlaygroundContext();
+    const {
+        isPreviewVisible,
+        setIsPreviewVisible,
+        setIsDeployDialogOpen,
+        setShowAISettings
+    } = usePlaygroundUI();
+    const { openFiles, activeFileId, closeAllFiles } = useFileExplorer();
+    
+    const activeFile = openFiles.find((f) => f.id === activeFileId);
+    const hasUnsavedChanges = openFiles.some((f) => f.hasUnsavedChanges);
+    const openFilesLength = openFiles.length;
+    const toggleAIChat = () => useAI.getState().toggleChat();
+
     return (
         <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b px-3 bg-background/80 backdrop-blur-md sticky top-0 z-20">
             <div className="flex items-center gap-2 flex-1 min-w-0">

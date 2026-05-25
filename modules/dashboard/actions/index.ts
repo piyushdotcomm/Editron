@@ -5,7 +5,7 @@ import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
 import type { TemplateKey } from "@/lib/template";
 import { templatePaths } from "@/lib/template";
-import { Templates } from "@prisma/client";
+import { Templates, Prisma } from "@prisma/client";
 
 export const toggleStarMarked = async (
   playgroundId: string,
@@ -119,12 +119,25 @@ export const createPlayground = async (data: {
 };
 
 export const deleteProjectById = async (id: string) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.delete({
+    const result = await db.playground.deleteMany({
       where: {
         id,
+        userId,
       },
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
@@ -135,16 +148,30 @@ export const editProjectById = async (
   id: string,
   data: { title: string; description: string }
 ) => {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    await db.playground.update({
+    const result = await db.playground.updateMany({
       where: {
         id,
+        userId,
       },
       data: data,
     });
+
+    if (result.count === 0) {
+      throw new Error("Playground not found or unauthorized");
+    }
+
     revalidatePath("/dashboard");
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -187,7 +214,7 @@ export const duplicateProjectById = async (id: string) => {
         templateFiles: firstFile
           ? {
               create: {
-                content: firstFile.content,
+                content: firstFile.content as Prisma.InputJsonValue,
               },
             }
           : undefined,

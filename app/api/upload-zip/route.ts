@@ -2,24 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
-import { Prisma } from "@prisma/client";
+import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
 
 class ValidationError extends Error {
     constructor(message: string, public status: number = 400) {
         super(message);
         this.name = "ValidationError";
     }
-}
-
-interface TemplateFile {
-    filename: string;
-    fileExtension: string;
-    content: string;
-}
-
-interface TemplateFolder {
-    folderName: string;
-    items: (TemplateFile | TemplateFolder)[];
 }
 
 // Binary / large file extensions to skip
@@ -38,7 +27,7 @@ const SKIP_FOLDERS = new Set([
     "__pycache__", ".cache", ".DS_Store",
 ]);
 
-const MAX_TOTAL_UNCOMPRESSED_SIZE = 100 * 1024 * 1024; // 100MB cap
+const MAX_TOTAL_UNCOMPRESSED_SIZE = 10 * 1024 * 1024; // 10MB cap to fit safely in MongoDB 16MB limit
 const MAX_SINGLE_FILE_SIZE = 500_000; // 500KB
 
 function isTemplateFolder(item: TemplateFile | TemplateFolder): item is TemplateFolder {
@@ -72,7 +61,7 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
     });
 
     if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
-        throw new ValidationError(`Total uncompressed size exceeds 100MB limit (${totalUncompressedSize} bytes)`, 413);
+        throw new ValidationError(`Total uncompressed size exceeds 10MB limit (${totalUncompressedSize} bytes)`, 413);
     }
 
     // Detect common root folder (e.g. "my-project/src/..." -> strip "my-project/")
@@ -182,8 +171,8 @@ export async function POST(request: NextRequest) {
         await db.templateFile.create({
             data: {
                 playgroundId: playground.id,
-                content: templateData as Prisma.InputJsonValue,
-            },
+                content: JSON.parse(JSON.stringify(templateData)),
+              },
         });
 
         return NextResponse.json({

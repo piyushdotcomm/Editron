@@ -4,38 +4,30 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "./playground-explorer";
 import { PackageManager } from "./package-manager";
 import { EnvManager } from "./env-manager";
+import { usePlaygroundContext } from "@/modules/playground/contexts/playground-context";
+import { useWrappedFileOperations } from "@/modules/playground/hooks/useWrappedFileOperations";
+import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
+import { TemplateFile } from "../lib/path-to-json";
 
-import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
-
-interface PlaygroundSidebarProps {
-    templateData: TemplateFolder | null;
-    instance: unknown;
-    writeFileSync: (path: string, content: string) => Promise<void>;
-    activeFile: TemplateFile | null;
-    handleFileSelect: (file: TemplateFile) => void;
-    wrappedHandleAddFile: (file: TemplateFile, parentPath: string) => void;
-    wrappedHandleAddFolder: (folder: TemplateFolder, parentPath: string) => void;
-    wrappedHandleDeleteFile: (file: TemplateFile, parentPath: string) => void;
-    wrappedHandleDeleteFolder: (folder: TemplateFolder, parentPath: string) => void;
-    wrappedHandleRenameFile: (file: TemplateFile, newFilename: string, newExtension: string, parentPath: string) => void;
-    wrappedHandleRenameFolder: (folder: TemplateFolder, newFolderName: string, parentPath: string) => void;
-}
-
-export const PlaygroundSidebar = ({
-    templateData,
-    instance,
-    writeFileSync,
-    activeFile,
-    handleFileSelect,
-    wrappedHandleAddFile,
-    wrappedHandleAddFolder,
-    wrappedHandleDeleteFile,
-    wrappedHandleDeleteFolder,
-    wrappedHandleRenameFile,
-    wrappedHandleRenameFolder
-}: PlaygroundSidebarProps) => {
+export const PlaygroundSidebar = () => {
     const [activeTab, setActiveTab] = useState<"explorer" | "packages" | "env">("explorer");
     const { state } = useSidebar();
+    const { templateData, instance, writeFileSync } = usePlaygroundContext();
+    const { openFiles, activeFileId, openFile } = useFileExplorer();
+    const activeFile = openFiles.find((file) => file.id === activeFileId) || null;
+
+    const {
+        wrappedHandleAddFile,
+        wrappedHandleAddFolder,
+        wrappedHandleDeleteFile,
+        wrappedHandleDeleteFolder,
+        wrappedHandleRenameFile,
+        wrappedHandleRenameFolder
+    } = useWrappedFileOperations();
+
+    const handleFileSelect = (file: TemplateFile) => {
+        openFile(file);
+    };
 
     return (
         <div
@@ -82,18 +74,22 @@ export const PlaygroundSidebar = ({
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pb-8">
                     {activeTab === "explorer" && (
                         <div className="-mx-2 mt-[-8px]">
-                            <TemplateFileTree
-                                data={templateData as any}
-                                onFileSelect={handleFileSelect}
-                                selectedFile={activeFile || undefined}
-                                title=""
-                                onAddFile={wrappedHandleAddFile}
-                                onAddFolder={wrappedHandleAddFolder}
-                                onDeleteFile={wrappedHandleDeleteFile}
-                                onDeleteFolder={wrappedHandleDeleteFolder}
-                                onRenameFile={wrappedHandleRenameFile}
-                                onRenameFolder={wrappedHandleRenameFolder}
-                            />
+                            {templateData ? (
+                                <TemplateFileTree
+                                    data={templateData}
+                                    onFileSelect={handleFileSelect}
+                                    selectedFile={activeFile || undefined}
+                                    title=""
+                                    onAddFile={wrappedHandleAddFile}
+                                    onAddFolder={wrappedHandleAddFolder}
+                                    onDeleteFile={wrappedHandleDeleteFile}
+                                    onDeleteFolder={wrappedHandleDeleteFolder}
+                                    onRenameFile={wrappedHandleRenameFile}
+                                    onRenameFolder={wrappedHandleRenameFolder}
+                                />
+                            ) : (
+                                <div className="p-4 text-sm text-muted-foreground">Loading...</div>
+                            )}
                         </div>
                     )}
 
@@ -104,7 +100,7 @@ export const PlaygroundSidebar = ({
                         />
                     )}
 
-                    {activeTab === "env" && (
+                    {activeTab === "env" && writeFileSync && (
                         <EnvManager
                             templateData={templateData}
                             instance={instance}

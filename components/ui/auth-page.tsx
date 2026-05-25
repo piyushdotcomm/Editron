@@ -13,7 +13,6 @@ import {
     Grid2x2PlusIcon,
 } from 'lucide-react';
 import { Input } from './input';
-import { _cn } from '@/lib/utils';
 
 export function AuthPage() {
     return (
