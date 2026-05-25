@@ -15,6 +15,7 @@ import CompactProjectTable from "@/modules/profile/components/CompactProjectTabl
 import { deleteProjectById, duplicateProjectById, editProjectById } from "@/modules/dashboard/actions";
 import EmptyState from "@/modules/dashboard/components/empty-state";
 import LogoutButton from "@/modules/auth/components/logout-button";
+import DeleteAccountButton from "@/app/(auth)/auth/components/delete-account-button";
 
 export const metadata: Metadata = {
     title: "Profile Dashboard | Editron",
@@ -77,11 +78,14 @@ export default async function ProfilePage() {
 
                     <div className="flex gap-3">
                         <LogoutButton>
-                            <Button variant="outline" className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-600">
+                            <Button
+                                variant="outline"
+                                className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-600">
                                 <LogOut className="w-4 h-4" />
                                 Logout
                             </Button>
                         </LogoutButton>
+                        <DeleteAccountButton />
                     </div>
                 </div>
 

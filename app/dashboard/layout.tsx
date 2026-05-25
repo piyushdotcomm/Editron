@@ -1,6 +1,7 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { getAllPlaygroundForUser } from "@/modules/dashboard/actions";
 import { DashboardSidebar } from "@/modules/dashboard/components/dashboard-sidebar";
+import { Toaster } from "sonner";
 
 export default async function DashboardLayout({
     children
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
             <DashboardSidebar initialPlaygroundData={formattedPlaygroundData || []} />
             <main className="min-w-0 flex-1">
                 {children}
+                <Toaster richColors position="top-right" />
             </main>
 
         </div>
