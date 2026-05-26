@@ -59,6 +59,16 @@ function loadUserKeys() {
     }
 }
 
+function loadChatHistory(): ChatMessage[] {
+    if (typeof window === "undefined") return [];
+    try {
+        const stored = localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY);
+        return stored ? (JSON.parse(stored) as ChatMessage[]) : [];
+    } catch {
+        return [];
+    }
+}
+
 export const useAI = create<AIState>((set, get) => {
     const keys = loadUserKeys();
     const inlineEnabled = typeof window !== "undefined"
@@ -68,7 +78,7 @@ export const useAI = create<AIState>((set, get) => {
     return {
         provider: "mistral",
         isChatOpen: false,
-        chatMessages: [],
+        chatMessages: loadChatHistory(),
         isGenerating: false,
         inlineSuggestionsEnabled: inlineEnabled,
         editorTheme: typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.EDITOR_THEME) || DEFAULT_EDITOR_THEME : DEFAULT_EDITOR_THEME,
@@ -82,18 +92,21 @@ export const useAI = create<AIState>((set, get) => {
         closeChat: () => set({ isChatOpen: false }),
 
         addMessage: (message) =>
-            set((s) => ({
-                chatMessages: [
-                    ...s.chatMessages,
-                    {
-                        ...message,
-                        id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                        timestamp: Date.now(),
-                    },
-                ],
-            })),
+            set((s) => {
+                const newMessage: ChatMessage = {
+                    ...message,
+                    id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                    timestamp: Date.now(),
+                };
+                const updated = [...s.chatMessages, newMessage];
+                try { localStorage.setItem(STORAGE_KEYS.CHAT_HISTORY, JSON.stringify(updated)); } catch { }
+                return { chatMessages: updated };
+            }),
 
-        clearChat: () => set({ chatMessages: [] }),
+        clearChat: () => {
+            try { localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY); } catch { }
+            set({ chatMessages: [] });
+        },
         setIsGenerating: (val) => set({ isGenerating: val }),
 
         toggleInlineSuggestions: () => {

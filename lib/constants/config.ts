@@ -32,6 +32,7 @@ export const STORAGE_KEYS = {
   MISTRAL_API_KEY: "editron_mistral_key",
   INLINE_SUGGESTIONS: "editron_inline_suggestions",
   EDITOR_THEME: "editron_editor_theme",
+  CHAT_HISTORY: "editron_chat_history",
 } as const;
 
 // ── Default Values ─────────────────────────────────────────────────────────
