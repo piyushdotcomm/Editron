@@ -50,13 +50,6 @@ export async function POST(request: NextRequest) {
         const { fileTree, packageJson, template, provider, userApiKey } = result.data;
         const normalizedUserApiKey = userApiKey?.trim() || undefined;
 
-        if (!session?.user?.id && !normalizedUserApiKey) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
-                { status: 401 }
-            );
-        }
-
         const ip = getClientIp(request);
         // Stricter limit than chat: README generation is more expensive.
         const { allowed, remaining } = await rateLimit(ip, 5, 60_000);
@@ -71,6 +64,13 @@ export async function POST(request: NextRequest) {
                         "X-RateLimit-Remaining": String(remaining),
                     },
                 }
+            );
+        }
+
+        if (!session?.user?.id && !normalizedUserApiKey) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
+                { status: 401 }
             );
         }
 

@@ -100,21 +100,64 @@ export const getAllPlaygroundForUser = async ()=>{
 }
 
 export const getPlaygroundById = async (id: string) => {
-    return {
-        playgroundData: {
-            id: "test",
-            title: "My Local Test Project",
-            template: "REACT",
-        },
-        templateData: {
-            name: "root",
-            type: "directory",
-            children: [
-                { name: "App.js", type: "file", content: "console.log('hello world')" },
-                { name: "package.json", type: "file", content: "{ \"name\": \"test\" }" }
-            ]
+    try {
+        const userId = await requireCurrentUserId();
+        const playground = await db.playground.findFirst({
+            where: { id, userId },
+            select: {
+                id: true,
+                title: true,
+                template: true,
+                templateFiles: {
+                    select: {
+                        content: true
+                    }
+                }
+            }
+        });
+
+        if (!playground) return null;
+
+        let templateData: TemplateFolder | null = null;
+        const rawContent = playground.templateFiles?.[0]?.content;
+
+        if (rawContent) {
+            try {
+                templateData = typeof rawContent === "string"
+                    ? JSON.parse(rawContent)
+                    : rawContent;
+            } catch (error) {
+                console.error("Error parsing template content from DB:", error);
+            }
         }
-    };
+
+        // If no template data in DB, fall back to scanning the template directory
+        if (!templateData) {
+            const templateKey = playground.template as TemplateKey;
+            const templatePath = templatePaths[templateKey];
+
+            if (templatePath) {
+                try {
+                    const fullPath = path.join(process.cwd(), templatePath);
+                    templateData = await scanTemplateDirectory(fullPath);
+                } catch (error) {
+                    console.error("Error scanning template directory:", error);
+                }
+            }
+        }
+
+        return {
+            playgroundData: {
+                id: playground.id,
+                title: playground.title,
+                template: playground.template,
+            },
+            templateData
+        };
+    } catch (error) {
+        console.error("Error in getPlaygroundById:", error);
+        throw error;
+    }
 }
 
 

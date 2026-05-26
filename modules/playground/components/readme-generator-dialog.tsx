@@ -114,13 +114,14 @@ export function ReadmeGeneratorDialog({
                 const { done, value } = await reader.read();
                 if (done) break;
                 accumulated += decoder.decode(value, { stream: true });
-                await onReadmeGenerated(accumulated);
             }
 
             const finalContent = accumulated.trim();
             if (!finalContent) {
                 throw new Error("Model returned an empty README. Try again.");
             }
+
+            await onReadmeGenerated(finalContent);
 
             setIsDone(true);
             toast.success("README.md generated and opened in editor.");
