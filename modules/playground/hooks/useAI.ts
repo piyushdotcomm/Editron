@@ -59,6 +59,9 @@ function loadUserKeys() {
     }
 }
 
+/** Maximum number of messages to persist to localStorage to prevent quota issues. */
+const MAX_PERSISTED_MESSAGES = 100;
+
 function loadChatHistory(): ChatMessage[] {
     if (typeof window === "undefined") return [];
     try {
@@ -99,7 +102,8 @@ export const useAI = create<AIState>((set, get) => {
                     timestamp: Date.now(),
                 };
                 const updated = [...s.chatMessages, newMessage];
-                try { localStorage.setItem(STORAGE_KEYS.CHAT_HISTORY, JSON.stringify(updated)); } catch { }
+                const toStore = updated.slice(-MAX_PERSISTED_MESSAGES);
+                try { localStorage.setItem(STORAGE_KEYS.CHAT_HISTORY, JSON.stringify(toStore)); } catch { }
                 return { chatMessages: updated };
             }),
 
