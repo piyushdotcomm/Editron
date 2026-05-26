@@ -15,6 +15,7 @@ interface PlaygroundUIState {
   showAISettings: boolean;
   isCommandPaletteOpen: boolean;
   isDeployDialogOpen: boolean;
+  isReadmeDialogOpen: boolean;
   cursorPosition: { line: number; col: number };
 
   // Actions
@@ -22,6 +23,7 @@ interface PlaygroundUIState {
   setShowAISettings: (v: boolean) => void;
   setIsCommandPaletteOpen: (v: boolean) => void;
   setIsDeployDialogOpen: (v: boolean) => void;
+  setIsReadmeDialogOpen: (v: boolean) => void;
   setCursorPosition: (pos: { line: number; col: number }) => void;
   togglePreview: () => void;
   resetUI: () => void;
@@ -32,6 +34,7 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
   showAISettings: false,
   isCommandPaletteOpen: false,
   isDeployDialogOpen: false,
+  isReadmeDialogOpen: false,
   cursorPosition: { line: 1, col: 1 },
 
   setIsPreviewVisible: (v) =>
@@ -41,6 +44,7 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
   setShowAISettings: (v) => set({ showAISettings: v }),
   setIsCommandPaletteOpen: (v) => set({ isCommandPaletteOpen: v }),
   setIsDeployDialogOpen: (v) => set({ isDeployDialogOpen: v }),
+  setIsReadmeDialogOpen: (v) => set({ isReadmeDialogOpen: v }),
   setCursorPosition: (pos) => set({ cursorPosition: pos }),
   togglePreview: () =>
     set((s) => ({ isPreviewVisible: !s.isPreviewVisible })),
@@ -50,6 +54,7 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
       showAISettings: false,
       isCommandPaletteOpen: false,
       isDeployDialogOpen: false,
+      isReadmeDialogOpen: false,
       cursorPosition: { line: 1, col: 1 },
     }),
 }));
