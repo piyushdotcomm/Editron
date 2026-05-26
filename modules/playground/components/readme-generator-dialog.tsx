@@ -54,6 +54,14 @@ export function ReadmeGeneratorDialog({
     const [isGenerating, setIsGenerating] = useState(false);
     const [isDone, setIsDone] = useState(false);
 
+    const autoCloseTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+        };
+    }, []);
+
     const { provider, getUserApiKey } = useAI();
 
     const handleGenerate = useCallback(async () => {
@@ -106,6 +114,7 @@ export function ReadmeGeneratorDialog({
                 const { done, value } = await reader.read();
                 if (done) break;
                 accumulated += decoder.decode(value, { stream: true });
+                await onReadmeGenerated(accumulated);
             }
 
             const finalContent = accumulated.trim();
@@ -113,12 +122,11 @@ export function ReadmeGeneratorDialog({
                 throw new Error("Model returned an empty README. Try again.");
             }
 
-            await onReadmeGenerated(finalContent);
             setIsDone(true);
             toast.success("README.md generated and opened in editor.");
 
             // Auto-close after a short delay so the user sees the success state.
-            setTimeout(() => {
+            autoCloseTimerRef.current = setTimeout(() => {
                 onOpenChange(false);
                 setIsDone(false);
             }, 1500);

@@ -34,23 +34,6 @@ const RequestBodySchema = z.object({
  */
 export async function POST(request: NextRequest) {
     try {
-        const ip = getClientIp(request);
-        // Stricter limit than chat: README generation is more expensive.
-        const { allowed, remaining } = await rateLimit(ip, 5, 60_000);
-
-        if (!allowed) {
-            return NextResponse.json(
-                { success: false, error: "Rate limit exceeded. Please wait before generating again." },
-                {
-                    status: 429,
-                    headers: {
-                        "Retry-After": "60",
-                        "X-RateLimit-Remaining": String(remaining),
-                    },
-                }
-            );
-        }
-
         const session = await auth();
         const isAuthenticated = !!session?.user;
 
@@ -71,6 +54,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
                 { status: 401 }
+            );
+        }
+
+        const ip = getClientIp(request);
+        // Stricter limit than chat: README generation is more expensive.
+        const { allowed, remaining } = await rateLimit(ip, 5, 60_000);
+
+        if (!allowed) {
+            return NextResponse.json(
+                { success: false, error: "Rate limit exceeded. Please wait before generating again." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
             );
         }
 
