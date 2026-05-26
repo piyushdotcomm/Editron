@@ -66,7 +66,10 @@ function loadChatHistory(): ChatMessage[] {
     if (typeof window === "undefined") return [];
     try {
         const stored = localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY);
-        return stored ? (JSON.parse(stored) as ChatMessage[]) : [];
+        if (!stored) return [];
+        const parsed: unknown = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return [];
+        return (parsed as ChatMessage[]).slice(-MAX_PERSISTED_MESSAGES);
     } catch {
         return [];
     }
