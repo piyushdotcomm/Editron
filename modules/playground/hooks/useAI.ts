@@ -50,9 +50,9 @@ function loadUserKeys() {
     if (typeof window === "undefined") return { gemini: "", groq: "", mistral: "" };
     try {
         return {
-            gemini: localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY) || "",
-            groq: localStorage.getItem(STORAGE_KEYS.GROQ_API_KEY) || "",
-            mistral: localStorage.getItem(STORAGE_KEYS.MISTRAL_API_KEY) || "",
+            gemini: localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || "",
+            groq: localStorage.getItem(STORAGE_KEYS.GROQ_KEY) || "",
+            mistral: localStorage.getItem(STORAGE_KEYS.MISTRAL_KEY) || "",
         };
     } catch {
         return { gemini: "", groq: "", mistral: "" };
@@ -109,9 +109,9 @@ export const useAI = create<AIState>((set, get) => {
 
         setUserApiKey: (provider, key) => {
             const storageKeys: Record<AIProvider, string> = {
-                gemini: STORAGE_KEYS.GEMINI_API_KEY,
-                groq: STORAGE_KEYS.GROQ_API_KEY,
-                mistral: STORAGE_KEYS.MISTRAL_API_KEY,
+                gemini: STORAGE_KEYS.GEMINI_KEY,
+                groq: STORAGE_KEYS.GROQ_KEY,
+                mistral: STORAGE_KEYS.MISTRAL_KEY,
             };
             try {
                 localStorage.setItem(storageKeys[provider], key);

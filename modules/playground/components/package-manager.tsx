@@ -3,6 +3,8 @@
 
 import { NPM_REGISTRY_SEARCH_URL } from "@/lib/constants/config";
 import React, { useState, useEffect } from "react";
+import type { TemplateFolder, TemplateItem } from "@/modules/playground/lib/path-to-json";
+import type { WebContainer } from "@webcontainer/api";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,9 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Package, Trash2, Download, Loader2 } from "lucide-react";
-import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface NpmSearchResult {
   objects: {
@@ -30,8 +31,8 @@ export function PackageManager({
   templateData,
   instance,
 }: {
-  templateData: any;
-  instance: any;
+  templateData: TemplateFolder | null;
+  instance: WebContainer | null;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<NpmSearchResult["objects"]>([]);
@@ -45,7 +46,7 @@ export function PackageManager({
     if (!templateData) return;
     
     // Find package.json
-    const findPkg = (items: any[]): any => {
+    const findPkg = (items: TemplateItem[]): TemplateItem | null => {
       for (const item of items) {
         if (!("folderName" in item) && item.filename === "package" && item.fileExtension === "json") {
           return item;

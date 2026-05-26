@@ -30,7 +30,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
     const [isDeploying, setIsDeploying] = useState(false);
     const [deployedUrl, setDeployedUrl] = useState("");
 
-    const flattenFileTree = (data: any, parentPath = ""): { path: string; content: string }[] => {
+    const flattenFileTree = (data: TemplateFolder, parentPath = ""): { path: string; content: string }[] => {
         let files: { path: string; content: string }[] = [];
         if (!data) return files;
 
@@ -88,9 +88,9 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
             setDeployedUrl(data.url.startsWith("http") ? data.url : `https://${data.url}`);
             toast.success("Successfully deployed!");
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Failed to deploy. Check your API key or try again.");
+            toast.error(error instanceof Error ? error.message : "Failed to deploy. Check your API key or try again.");
         } finally {
             setIsDeploying(false);
         }
@@ -124,7 +124,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                     </div>
                 ) : (
                     <div className="grid gap-4 py-4">
-                        <Tabs value={provider} onValueChange={(v: any) => setProvider(v)}>
+                        <Tabs value={provider} onValueChange={(v) => { if (v === "vercel" || v === "netlify" || v === "cloudflare") { setProvider(v); } }}>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="vercel">Vercel</TabsTrigger>
                                 <TabsTrigger value="netlify">Netlify</TabsTrigger>

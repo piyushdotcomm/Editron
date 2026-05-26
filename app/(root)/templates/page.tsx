@@ -1,11 +1,11 @@
 import { Sparkles } from "lucide-react";
 import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
-import { getTemplateSummariesWithMeta } from "@/lib/constants/template-summaries";
+import { getTemplateSummaries } from "@/lib/templates/actions";
 import { TemplateGrid } from "@/components/marketing/template-grid";
 
 
-export default function TemplatesPage() {
-    const availableTemplates = getTemplateSummariesWithMeta();
+export default async function TemplatesPage() {
+    const availableTemplates = await getTemplateSummaries();
 
     return (
         <div className="min-h-screen bg-background">

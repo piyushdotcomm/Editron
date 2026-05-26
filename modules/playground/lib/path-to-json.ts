@@ -2,9 +2,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
+ * Base interface for all items in the template structure
+ */
+export interface BaseTemplateItem {
+  content?: string;
+}
+
+/**
  * Represents a file in the template structure
  */
-export interface TemplateFile {
+export interface TemplateFile extends BaseTemplateItem {
   filename: string;
   fileExtension: string;
   content: string;
@@ -13,9 +20,9 @@ export interface TemplateFile {
 /**
  * Represents a folder in the template structure which can contain files and other folders
  */
-export interface TemplateFolder {
+export interface TemplateFolder extends BaseTemplateItem {
   folderName: string;
-  items: (TemplateFile | TemplateFolder)[];
+  items: TemplateItem[];
 }
 
 /**

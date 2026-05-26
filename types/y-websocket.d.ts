@@ -1,31 +1,16 @@
-declare module 'y-websocket' {
-  import * as Y from 'yjs'
-  import { Awareness } from 'y-protocols/awareness'
+declare module 'y-websocket/bin/utils' {
+  import { Doc } from 'yjs';
+  import WebSocket from 'ws';
+  import { IncomingMessage } from 'http';
 
-  export class WebsocketProvider {
-    constructor(
-      serverUrl: string,
-      roomname: string,
-      doc: Y.Doc,
-      options?: {
-        connect?: boolean
-        awareness?: Awareness
-        params?: Record<string, string>
-        WebSocketPolyfill?: typeof WebSocket
-        resyncInterval?: number
-        maxBackoffTime?: number
-        disableBc?: boolean
-      }
-    )
-    wsconnected: boolean
-    wsconnecting: boolean
-    bcconnected: boolean
-    shouldConnect: boolean
-    awareness: Awareness
-    connect(): void
-    disconnect(): void
-    destroy(): void
-    on(event: string, handler: (...args: unknown[]) => void): void
-    off(event: string, handler: (...args: unknown[]) => void): void
-  }
+  export function setupWSConnection(
+    conn: WebSocket,
+    req: IncomingMessage,
+    options?: { docName?: string; gc?: boolean }
+  ): void;
+
+  export function setPersistence(options: {
+    bindState: (docName: string, ydoc: Doc) => Promise<void> | void;
+    writeState: (docName: string, ydoc: Doc) => Promise<void> | void;
+  }): void;
 }

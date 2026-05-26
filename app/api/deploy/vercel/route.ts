@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { VERCEL_API } from "@/lib/constants/config";
 
 export async function POST(req: Request) {
     try {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
 
         const projectName = name ? name.toLowerCase().replace(/[^a-z0-9-]/g, '-') : "editron-deploy";
 
-        const response = await fetch("https://api.vercel.com/v13/deployments", {
+        const response = await fetch(VERCEL_API.DEPLOYMENTS, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
