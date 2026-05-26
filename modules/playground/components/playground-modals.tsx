@@ -47,7 +47,7 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
     isReadmeDialogOpen,
     setIsReadmeDialogOpen,
   } = usePlaygroundUI();
-  const { openFile, closeAllFiles, handleAddFile, templateData: explorerTemplateData, setTemplateData } = useFileExplorer();
+  const { openFile, closeAllFiles, setTemplateData } = useFileExplorer();
   const sidebar = useSidebar();
 
   const handleFileSelect = (file: TemplateFile) => {

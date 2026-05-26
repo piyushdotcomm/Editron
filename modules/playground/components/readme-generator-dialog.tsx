@@ -14,9 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FileText, CheckCircle2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
-import { collectFilePaths } from "@/modules/playground/hooks/useAI";
-import { useAI, type AIProvider } from "@/modules/playground/hooks/useAI";
-import type { FileSystemItem } from "@/modules/playground/hooks/useAI";
+import { collectFilePaths, useAI, type AIProvider, type FileSystemItem } from "@/modules/playground/hooks/useAI";
 
 type ReadmeTemplate = "minimal" | "standard" | "professional" | "open-source";
 
