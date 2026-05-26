@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAllPlaygroundForUser } from "@/modules/dashboard/actions";
 import { DashboardSidebar } from "@/modules/dashboard/components/dashboard-sidebar";
 import { APP_NAME } from "@/lib/constants/config";
-import { Toaster } from "sonner";
+
 
 export default async function DashboardLayout({
     children
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
                     {children}
                     
                     {/* Toaster Notification Context (from feature branch) */}
-                    <Toaster richColors position="top-right" />
+                    
                 </main>
             </div>
         </SidebarProvider>

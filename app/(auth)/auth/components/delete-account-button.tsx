@@ -19,11 +19,11 @@ const DeleteAccountButton = () => {
     try {
       setLoading(true);
       const response = await fetch("/api/delete-account", {method: "DELETE",});
-       toast.success("Account deleted successfully");
-
+      
       if (!response.ok) {
-        throw new Error("Failed to delete account");
+          toast.error("Failed to delete account");
       }
+      toast.success("Account deleted successfully");
 
       await signOut({
         callbackUrl: "/",});
