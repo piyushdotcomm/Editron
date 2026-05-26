@@ -240,18 +240,18 @@ export const duplicateProjectById = async (id: string) => {
 
         // Create a new playground with the same data but a new ID
         const duplicatedPlayground = await db.playground.create({
-            data: {
-                title: `${originalPlayground.title} (Copy)`,
-                description: originalPlayground.description,
-                template: originalPlayground.template,
-                userId,
-                templateFiles: {
-                  // @ts-ignore
-                    create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content,
-                    })),
-                },
+          data: {
+            title: `${originalPlayground.title} (Copy)`,
+            description: originalPlayground.description,
+            template: originalPlayground.template,
+            userId,
+            templateFiles: {
+              // @ts-expect-error
+              create: originalPlayground.templateFiles.map((file) => ({
+                content: file.content,
+              })),
             },
+          },
         });
 
         // Revalidate the dashboard path to reflect the changes
