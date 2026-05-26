@@ -262,7 +262,7 @@ export const configureMonaco = (monaco: Monaco) => {
   });
 };
 
-export const defaultEditorOptions = {
+export const defaultEditorOptions: import("monaco-editor").editor.IEditorOptions & import("monaco-editor").editor.IGlobalEditorOptions = {
   // Font settings
   fontSize: 14,
   fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Liberation Mono', Menlo, Courier, monospace",
@@ -309,13 +309,13 @@ export const defaultEditorOptions = {
   // Selection
   multiCursorModifier: "ctrlCmd",
   selectionHighlight: true,
-  occurrencesHighlight: true,
+  occurrencesHighlight: "singleFile",
   
   // Suggestions
   suggestOnTriggerCharacters: true,
   acceptSuggestionOnEnter: "on",
   tabCompletion: "on",
-  wordBasedSuggestions: true,
+  wordBasedSuggestions: "currentDocument",
   quickSuggestions: {
     other: true,
     comments: false,
@@ -333,8 +333,11 @@ export const defaultEditorOptions = {
   },
   
   // Guides
-  renderIndentGuides: true,
-  highlightActiveIndentGuide: true,
+  guides: {
+    indentation: true,
+    highlightActiveIndentation: true,
+    bracketPairs: true,
+  },
   rulers: [80, 120],
   
   // Performance
@@ -346,7 +349,7 @@ export const defaultEditorOptions = {
   
   // Cursor
   cursorBlinking: "smooth",
-  cursorSmoothCaretAnimation: true,
+  cursorSmoothCaretAnimation: "on",
   cursorStyle: "line",
   cursorWidth: 2,
   

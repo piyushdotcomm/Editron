@@ -1,6 +1,5 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
-// @ts-ignore
 import { setupWSConnection, setPersistence } from 'y-websocket/bin/utils';
 import * as Y from 'yjs';
 import { db } from '../lib/db';
@@ -37,7 +36,7 @@ setPersistence({
             _mdb.storeUpdate(docName, update);
         });
     },
-    writeState: async (docName: string, ydoc: Y.Doc) => {
+    writeState: async (docName: string, _ydoc: Y.Doc) => {
         await _mdb.flushDocument(docName);
     }
 });

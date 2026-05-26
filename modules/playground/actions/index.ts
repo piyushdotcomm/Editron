@@ -1,5 +1,5 @@
 "use server"
-
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db"
 import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
 import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json";
@@ -160,20 +160,33 @@ export const getPlaygroundById = async (id: string) => {
     }
 }
 
-export const SaveUpdatedCode = async (playgroundId: string, data: TemplateFolder) => {
+
+/**
+ * Normalizes an object to be JSON-safe by stripping undefined values.
+ * Useful for Prisma JSON fields which don't support undefined.
+ */
+function normalizeJson<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+export const SaveUpdatedCode = async (
+  playgroundId: string,
+  data: TemplateFolder
+) => {
   await assertPlaygroundOwnership(playgroundId);
 
   try {
+    const normalizedData = normalizeJson(data);
     const updatedPlayground = await db.templateFile.upsert({
       where: {
-        playgroundId, // now allowed since playgroundId is unique
+        playgroundId,
       },
       update: {
-        content: JSON.stringify(data),
+        content: normalizedData as Prisma.InputJsonValue,
       },
       create: {
         playgroundId,
-        content: JSON.stringify(data),
+        content: normalizedData as Prisma.InputJsonValue,
       },
     });
 

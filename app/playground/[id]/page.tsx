@@ -63,6 +63,7 @@ const PlaygroundPageContent = () => {
 
   // Bootstrap
   useEffect(() => {
+    resetUI();
     setPlaygroundId(id);
     if (templateData && !openFiles.length) setTemplateData(templateData);
   }, [id, setPlaygroundId, templateData, setTemplateData, openFiles.length]);

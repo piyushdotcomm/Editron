@@ -1,12 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import JSZip from "jszip";
+import { rateLimit } from "@/lib/api-utils";
+import { NETLIFY_API } from "@/lib/constants/config";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { allowed, remaining } = await rateLimit(`deploy-netlify:${session.user.id}`, 5, 60_000); // Max 5 deploys per minute
+
+        if (!allowed) {
+            return NextResponse.json(
+                { error: "Rate limit exceeded. Please wait before deploying again." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Limit": "5",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
+            );
         }
 
         const { files, name, userApiKey } = await req.json();
@@ -38,7 +56,7 @@ export async function POST(req: Request) {
         // For simplicity, we create a new site for this playground if no site ID is tracked.
         // In a real production app, you might want to create the site once and store the Site ID in MongoDB.
 
-        const siteResponse = await fetch("https://api.netlify.com/api/v1/sites", {
+        const siteResponse = await fetch(NETLIFY_API.SITES, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -57,7 +75,7 @@ export async function POST(req: Request) {
         const siteId = siteData.id;
 
         // Step 2: Deploy the Zip file (requires passing the buffer)
-        const deployResponse = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/deploys`, {
+        const deployResponse = await fetch(NETLIFY_API.SITE_DEPLOYS(siteId), {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

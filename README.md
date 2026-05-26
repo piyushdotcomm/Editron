@@ -231,27 +231,41 @@ Thanks to everyone who has contributed to Editron!
 <!-- CONTRIBUTORS_START -->
 <a href="https://github.com/piyushdotcomm"><img src="https://github.com/piyushdotcomm.png" width="50px" alt="piyushdotcomm" /></a>
 <a href="https://github.com/adityapai05"><img src="https://github.com/adityapai05.png" width="50px" alt="adityapai05" /></a>
+<a href="https://github.com/Rakshi2609"><img src="https://github.com/Rakshi2609.png" width="50px" alt="Rakshi2609" /></a>
+<a href="https://github.com/BRUH-on"><img src="https://github.com/BRUH-on.png" width="50px" alt="BRUH-on" /></a>
+<a href="https://github.com/HemaRamachandran28"><img src="https://github.com/HemaRamachandran28.png" width="50px" alt="HemaRamachandran28" /></a>
 <a href="https://github.com/latakshsariyapatidar"><img src="https://github.com/latakshsariyapatidar.png" width="50px" alt="latakshsariyapatidar" /></a>
+<a href="https://github.com/MaitrayeeK"><img src="https://github.com/MaitrayeeK.png" width="50px" alt="MaitrayeeK" /></a>
 <a href="https://github.com/prathiusharun"><img src="https://github.com/prathiusharun.png" width="50px" alt="prathiusharun" /></a>
+<a href="https://github.com/sidhacks"><img src="https://github.com/sidhacks.png" width="50px" alt="sidhacks" /></a>
+<a href="https://github.com/ojasdhargave-iiitv"><img src="https://github.com/ojasdhargave-iiitv.png" width="50px" alt="ojasdhargave-iiitv" /></a>
+<a href="https://github.com/Vishal-Prajapati17"><img src="https://github.com/Vishal-Prajapati17.png" width="50px" alt="Vishal-Prajapati17" /></a>
 <a href="https://github.com/YASHcode-IIITV"><img src="https://github.com/YASHcode-IIITV.png" width="50px" alt="YASHcode-IIITV" /></a>
 <a href="https://github.com/xmananrastogi"><img src="https://github.com/xmananrastogi.png" width="50px" alt="xmananrastogi" /></a>
 <a href="https://github.com/AbhilashReddy1519"><img src="https://github.com/AbhilashReddy1519.png" width="50px" alt="AbhilashReddy1519" /></a>
-<a href="https://github.com/BRUH-on"><img src="https://github.com/BRUH-on.png" width="50px" alt="BRUH-on" /></a>
+<a href="https://github.com/bhavyaxtech"><img src="https://github.com/bhavyaxtech.png" width="50px" alt="bhavyaxtech" /></a>
+<a href="https://github.com/DEEP13-2-5"><img src="https://github.com/DEEP13-2-5.png" width="50px" alt="DEEP13-2-5" /></a>
 <a href="https://github.com/Harish-SS56"><img src="https://github.com/Harish-SS56.png" width="50px" alt="Harish-SS56" /></a>
-<a href="https://github.com/HemaRamachandran28"><img src="https://github.com/HemaRamachandran28.png" width="50px" alt="HemaRamachandran28" /></a>
 <a href="https://github.com/Luffy-456"><img src="https://github.com/Luffy-456.png" width="50px" alt="Luffy-456" /></a>
-<a href="https://github.com/MaitrayeeK"><img src="https://github.com/MaitrayeeK.png" width="50px" alt="MaitrayeeK" /></a>
+<a href="https://github.com/seffhunnn"><img src="https://github.com/seffhunnn.png" width="50px" alt="seffhunnn" /></a>
+<a href="https://github.com/Niteshagarwal01"><img src="https://github.com/Niteshagarwal01.png" width="50px" alt="Niteshagarwal01" /></a>
+<a href="https://github.com/pari-dubey1"><img src="https://github.com/pari-dubey1.png" width="50px" alt="pari-dubey1" /></a>
+<a href="https://github.com/pragya0129"><img src="https://github.com/pragya0129.png" width="50px" alt="pragya0129" /></a>
 <a href="https://github.com/pranshugarg637"><img src="https://github.com/pranshugarg637.png" width="50px" alt="pranshugarg637" /></a>
+<a href="https://github.com/prathik-05"><img src="https://github.com/prathik-05.png" width="50px" alt="prathik-05" /></a>
 <a href="https://github.com/itsrajarshi"><img src="https://github.com/itsrajarshi.png" width="50px" alt="itsrajarshi" /></a>
 <a href="https://github.com/Rishabhworkspace"><img src="https://github.com/Rishabhworkspace.png" width="50px" alt="Rishabhworkspace" /></a>
+<a href="https://github.com/sreerevanth"><img src="https://github.com/sreerevanth.png" width="50px" alt="sreerevanth" /></a>
 <a href="https://github.com/sanzzzz-g"><img src="https://github.com/sanzzzz-g.png" width="50px" alt="sanzzzz-g" /></a>
 <a href="https://github.com/udaycodespace"><img src="https://github.com/udaycodespace.png" width="50px" alt="udaycodespace" /></a>
 <a href="https://github.com/sanjaynarayanan3010-byte"><img src="https://github.com/sanjaynarayanan3010-byte.png" width="50px" alt="sanjaynarayanan3010-byte" /></a>
-<a href="https://github.com/sidhacks"><img src="https://github.com/sidhacks.png" width="50px" alt="sidhacks" /></a>
-<a href="https://github.com/ojasdhargave-iiitv"><img src="https://github.com/ojasdhargave-iiitv.png" width="50px" alt="ojasdhargave-iiitv" /></a>
+<a href="https://github.com/Souvik-Dey-2029"><img src="https://github.com/Souvik-Dey-2029.png" width="50px" alt="Souvik-Dey-2029" /></a>
+<a href="https://github.com/swarnimbandekar"><img src="https://github.com/swarnimbandekar.png" width="50px" alt="swarnimbandekar" /></a>
 <a href="https://github.com/TrivCodez"><img src="https://github.com/TrivCodez.png" width="50px" alt="TrivCodez" /></a>
-<a href="https://github.com/Vishal-Prajapati17"><img src="https://github.com/Vishal-Prajapati17.png" width="50px" alt="Vishal-Prajapati17" /></a>
+<a href="https://github.com/Tushar15769"><img src="https://github.com/Tushar15769.png" width="50px" alt="Tushar15769" /></a>
+<a href="https://github.com/vishal1011001"><img src="https://github.com/vishal1011001.png" width="50px" alt="vishal1011001" /></a>
 <a href="https://github.com/bitunik"><img src="https://github.com/bitunik.png" width="50px" alt="bitunik" /></a>
+<a href="https://github.com/gayatri-glitch"><img src="https://github.com/gayatri-glitch.png" width="50px" alt="gayatri-glitch" /></a>
 <a href="https://github.com/toby-bridges"><img src="https://github.com/toby-bridges.png" width="50px" alt="toby-bridges" /></a>
 <!-- CONTRIBUTORS_END -->
 </div>

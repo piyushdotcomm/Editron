@@ -1,4 +1,4 @@
-import { streamText, tool as createTool, convertToModelMessages, jsonSchema } from "ai";
+import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -6,6 +6,7 @@ import { createMistral } from "@ai-sdk/mistral";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
 import { auth } from "@/auth";
+import { tools } from "./tools";
 
 const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
 
@@ -25,63 +26,6 @@ If the user asks you to create a new file, call the edit tool with the full cont
 
 
 
-// DOS protection: limit prevents AI from hallucinating extremely large payloads
-const MAX_FILE_CONTENT_CHARS = 100_000;
-// Cap batch file changes to prevent aggregate payload attacks
-const MAX_BATCH_CHANGES = 50;
-// UTF-8 worst-case ~4 bytes per char
-/**
- * Record a payload size violation for a user and emit structured warnings.
- * Prevents logging raw payloads; logs metadata only.
- * @param userId - user identifier or null for anonymous
- * @param tool - tool name where violation occurred
- * @param param - parameter name (e.g., 'content')
- * @param actualSize - observed payload size in characters/bytes
- * @param maxSize - configured maximum allowed size
- */
-// Note: We intentionally do NOT track violations in-memory here to avoid
-// introducing dead code or stateful behavior in the request handler.
-// If needed, a telemetry/metrics service should be used instead.
-
-/**
- * Tool definitions exposed to the AI model. Each tool includes a Zod
- * input schema to validate parameters at the system boundary.
- */
-export const tools = {
-    read_file: createTool({
-        description: "Read the contents of a file in the project. Use this to understand existing code before making changes.",
-        inputSchema: z.object({
-            path: z.string().describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
-        }),
-    }),
-    edit_file: createTool({
-        description: "Replace the entire content of a single file. Provide the COMPLETE new file content.",
-        inputSchema: z.object({
-            path: z.string().describe("The file path relative to the project root"),
-            // Prevent overly large content (character limit)
-            content: z.string()
-                .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
-        }),
-    }),
-    edit_multiple_files: createTool({
-        description: "Create or replace the content of MULTIPLE files at once.",
-        inputSchema: z.object({
-            changes: z.array(z.object({
-                path: z.string().describe("The file path relative to the project root"),
-                // Same protections for batch changes
-                content: z.string()
-                    .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
-            })).max(MAX_BATCH_CHANGES, { message: `changes array exceeds max batch size (${MAX_BATCH_CHANGES})` }).describe("An array of file modifications to execute as a batch"),
-        }),
-    }),
-    delete_file: createTool({
-        description: "Delete a file from the project.",
-        inputSchema: z.object({
-            path: z.string().describe("The file path relative to the project root"),
-        }),
-    }),
-};
-
 const RequestBodySchema = z.object({
     messages: z.array(z.any()).max(100),
     provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
@@ -98,7 +42,7 @@ export async function POST(request: NextRequest) {
 
         // Rate limiting: 20 requests per minute per IP
         const ip = getClientIp(request);
-        const { allowed, remaining } = rateLimit(ip, 20, 60_000);
+        const { allowed, remaining } = await rateLimit(ip, 20, 60_000);
 
         if (!allowed) {
             return NextResponse.json(
@@ -194,9 +138,9 @@ export async function POST(request: NextRequest) {
         }
 
         type MessagePart = { type: string; text: string };
-        type ChatMessage = { role: "system" | "user" | "assistant"; content?: string; parts?: MessagePart[] };
 
-        const sanitizedMessages: ChatMessage[] = [];
+        const validRoles = ["system", "user", "assistant", "data", "tool"];
+        const sanitizedMessages: Omit<UIMessage, 'id'>[] = [];
         for (const raw of messages) {
             if (!raw || typeof raw !== "object") {
                 return NextResponse.json(
@@ -204,16 +148,32 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
-            const m = raw as ChatMessage;
+            
+            const role = (raw as Record<string, unknown>).role;
+            if (typeof role !== "string" || !validRoles.includes(role)) {
+                return NextResponse.json(
+                    { success: false, error: "Invalid request: each message must have a valid role" },
+                    { status: 400 }
+                );
+            }
+            
+            const m = raw as { role: "system" | "user" | "assistant" | "data" | "tool"; content?: string; parts?: MessagePart[] };
             if (Array.isArray(m.parts)) {
-                sanitizedMessages.push(m);
+                // Ensure each part has at least a type property
+                if (!m.parts.every(p => p && typeof p === "object" && "type" in p)) {
+                     return NextResponse.json(
+                        { success: false, error: "Invalid request: malformed parts" },
+                        { status: 400 }
+                    );
+                }
+                sanitizedMessages.push({ role: m.role as UIMessage['role'], parts: m.parts as UIMessage['parts'] });
                 continue;
             }
             sanitizedMessages.push({
-                ...m,
+                role: m.role as UIMessage['role'],
                 parts: typeof m.content === "string" && m.content.trim()
-                    ? [{ type: "text", text: m.content }]
-                    : [] as MessagePart[],
+                    ? [{ type: "text" as const, text: m.content }]
+                    : [],
             });
         }
 
