@@ -65,8 +65,9 @@ export async function POST(request: NextRequest) {
         }
 
         const { fileTree, packageJson, template, provider, userApiKey } = result.data;
+        const normalizedUserApiKey = userApiKey?.trim() || undefined;
 
-        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
+        if (!session?.user?.id && !normalizedUserApiKey) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
                 { status: 401 }
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
         let model;
 
         if (provider === "gemini") {
-            const apiKey = userApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);
+            const apiKey = normalizedUserApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
                     { success: false, error: isAuthenticated ? "Gemini API key not configured." : "Unauthorized" },
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
             const google = createGoogleGenerativeAI({ apiKey });
             model = google("gemini-2.0-flash");
         } else if (provider === "groq") {
-            const apiKey = userApiKey || (isAuthenticated ? process.env.GROQ_API_KEY : undefined);
+            const apiKey = normalizedUserApiKey || (isAuthenticated ? process.env.GROQ_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
                     { success: false, error: isAuthenticated ? "Groq API key not configured." : "Unauthorized" },
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
             const groq = createGroq({ apiKey });
             model = groq("llama-3.1-70b-versatile");
         } else {
-            const apiKey = userApiKey || (isAuthenticated ? process.env.MISTRAL_API_KEY : undefined);
+            const apiKey = normalizedUserApiKey || (isAuthenticated ? process.env.MISTRAL_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
                     { success: false, error: isAuthenticated ? "Mistral API key not configured." : "Unauthorized" },

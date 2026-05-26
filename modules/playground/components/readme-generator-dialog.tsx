@@ -22,7 +22,7 @@ interface ReadmeGeneratorDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     templateData: TemplateFolder | null;
-    onReadmeGenerated: (content: string) => void;
+    onReadmeGenerated: (content: string) => Promise<void> | void;
 }
 
 const TEMPLATE_DESCRIPTIONS: Record<ReadmeTemplate, string> = {
@@ -113,7 +113,7 @@ export function ReadmeGeneratorDialog({
                 throw new Error("Model returned an empty README. Try again.");
             }
 
-            onReadmeGenerated(finalContent);
+            await onReadmeGenerated(finalContent);
             setIsDone(true);
             toast.success("README.md generated and opened in editor.");
 
