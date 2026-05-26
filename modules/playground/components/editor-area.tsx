@@ -184,14 +184,14 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
                   <>
                     <ResizableHandle />
                     <ResizablePanel defaultSize={50}>
-                      {templateData && serverUrl ? (
+                      {templateData ? (
                         <WebContainerPreview
                           templateData={templateData}
                           instance={instance}
                           writeFileSync={writeFileSync || (async () => {})}
 
                           error={containerError}
-                          serverUrl={serverUrl}
+                          serverUrl={serverUrl || ""}
                           forceResetup={false}
                         />
                       ) : (
