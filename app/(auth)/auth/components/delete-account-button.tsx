@@ -22,6 +22,7 @@ const DeleteAccountButton = () => {
       
       if (!response.ok) {
           toast.error("Failed to delete account");
+          return;
       }
       toast.success("Account deleted successfully");
 
@@ -29,7 +30,7 @@ const DeleteAccountButton = () => {
         callbackUrl: "/",});
     } catch (error) {
       console.error(error);
-      alert("Something went wrong while deleting account.");
+      toast.error("Something went wrong while deleting account.");
     } finally {
       setLoading(false);
     }
