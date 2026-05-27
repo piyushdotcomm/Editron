@@ -52,6 +52,7 @@ export function ReadmeGeneratorDialog({
 }: ReadmeGeneratorDialogProps) {
     const [template, setTemplate] = useState<ReadmeTemplate>("standard");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
     const [isDone, setIsDone] = useState(false);
 
     const autoCloseTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -105,6 +106,8 @@ export function ReadmeGeneratorDialog({
             if (!res.body) {
                 throw new Error("No response body received from server.");
             }
+            
+            setIsStreaming(true);
 
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
@@ -114,14 +117,13 @@ export function ReadmeGeneratorDialog({
                 const { done, value } = await reader.read();
                 if (done) break;
                 accumulated += decoder.decode(value, { stream: true });
+                await onReadmeGenerated(accumulated);
             }
 
             const finalContent = accumulated.trim();
             if (!finalContent) {
                 throw new Error("Model returned an empty README. Try again.");
             }
-
-            await onReadmeGenerated(finalContent);
 
             setIsDone(true);
             toast.success("README.md generated and opened in editor.");
@@ -136,6 +138,7 @@ export function ReadmeGeneratorDialog({
             toast.error(error instanceof Error ? error.message : "Failed to generate README.");
         } finally {
             setIsGenerating(false);
+            setIsStreaming(false);
         }
     }, [templateData, template, provider, getUserApiKey, onReadmeGenerated, onOpenChange]);
 
@@ -216,7 +219,7 @@ export function ReadmeGeneratorDialog({
                             {isGenerating ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Generating README...
+                                    {isStreaming ? "Streaming to editor..." : "Generating README..."}
                                 </>
                             ) : (
                                 <>
