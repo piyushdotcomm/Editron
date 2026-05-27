@@ -46,6 +46,7 @@ export function TemplateGrid({ templates }: TemplateGridProps) {
                             className="pl-10 h-12 bg-background/50 backdrop-blur-sm"
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
+                            aria-label="Search templates"
                         />
                     </div>
                 </div>

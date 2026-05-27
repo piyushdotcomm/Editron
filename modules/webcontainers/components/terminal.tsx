@@ -466,6 +466,7 @@ const
                     searchInTerminal(e.target.value);
                   }}
                   className="h-6 w-32 text-xs"
+                  aria-label="Search terminal content"
                 />
               </div>
             )}

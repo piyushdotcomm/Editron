@@ -72,9 +72,10 @@ export default function AISettingsDialog({ open, onOpenChange }: AISettingsDialo
                         </p>
                         {keyConfigs.map((kc) => (
                             <div key={kc.provider} className="mb-3 space-y-1">
-                                <label className="text-xs font-medium text-muted-foreground">{kc.label} API Key</label>
+                                <label htmlFor={`key-${kc.provider}`} className="text-xs font-medium text-muted-foreground">{kc.label} API Key</label>
                                 <div className="flex gap-1">
                                     <input
+                                        id={`key-${kc.provider}`}
                                         type={visibleKeys[kc.provider] ? "text" : "password"}
                                         className="flex-1 text-xs bg-muted border rounded-md px-2 py-1.5 font-mono outline-none focus-visible:ring-1 focus-visible:ring-primary"
                                         placeholder={`Enter your ${kc.label} API key`}

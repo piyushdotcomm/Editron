@@ -162,12 +162,14 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
                                 {subdirs.map((dir) => (
                                     <label
                                         key={dir}
+                                        htmlFor={`subdir-${dir}`}
                                         className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedSubdir === dir
                                             ? "border-primary bg-primary/5"
                                             : "border-border hover:border-primary/50"
                                             }`}
                                     >
                                         <input
+                                            id={`subdir-${dir}`}
                                             type="radio"
                                             name="subdir"
                                             value={dir}

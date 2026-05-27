@@ -99,6 +99,7 @@ const UploadZip = () => {
                 accept=".zip"
                 className="hidden"
                 onChange={handleFileChange}
+                aria-label="Upload project ZIP file"
             />
         </div>
     );
