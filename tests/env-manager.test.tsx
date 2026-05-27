@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 import { EnvManager } from "../modules/playground/components/env-manager";
+import type {WebContainer}from "@webcontainer/api";
+
 
 // Mock the Sidebar UI dependencies to prevent rendering errors
 vi.mock("@/components/ui/sidebar", () => ({
@@ -39,7 +41,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock as any}
+        instance={instanceMock as unknown as WebContainer}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -52,7 +54,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock as any}
+        instance={instanceMock as unknown as WebContainer}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -71,7 +73,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock as any}
+        instance={instanceMock as unknown as WebContainer}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -96,7 +98,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock as any}
+        instance={instanceMock as unknown as WebContainer}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -123,7 +125,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock as any}
+        instance={instanceMock as unknown as WebContainer}
         writeFileSync={writeFileSyncMock}
       />
     );
