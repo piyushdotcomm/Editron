@@ -98,6 +98,7 @@ export function AuthPage() {
                                 placeholder="your.email@example.com"
                                 className="peer ps-9"
                                 type="email"
+                                aria-label="Email address"
                             />
                             <div className="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
                                 <AtSignIcon className="size-4" aria-hidden="true" />

@@ -187,6 +187,7 @@ export function EnvManager({
                                             value={v.key}
                                             onChange={(e) => handleUpdateVar(idx, "key", e.target.value)}
                                             placeholder="API_KEY"
+                                            aria-label="Variable name"
                                             className={`h-6 text-[10px] font-mono rounded-sm bg-background shadow-none border ${
                                                 itemHasError
                                                     ? "border-destructive/60 text-destructive focus-visible:ring-destructive"
@@ -208,6 +209,7 @@ export function EnvManager({
                                             onChange={(e) => handleUpdateVar(idx, "value", e.target.value)}
                                             placeholder="Value..."
                                             type="password"
+                                            aria-label="Variable value"
                                             className="h-6 text-[10px] font-mono rounded-sm border border-transparent focus-visible:border-input focus-visible:ring-ring bg-background shadow-none"
                                         />
                                     </div>

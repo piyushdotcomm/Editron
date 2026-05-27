@@ -172,6 +172,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                                                 onChange={(e) => setUserKey(e.target.value)}
                                                 type="password"
                                                 autoFocus
+                                                aria-label={`${provider.charAt(0).toUpperCase() + provider.slice(1)} API Token`}
                                             />
                                             <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
                                                 Tokens are only used for this deployment and never saved.

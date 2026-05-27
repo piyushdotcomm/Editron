@@ -51,6 +51,7 @@ export default function PreviewPage() {
                         value={url}
                         readOnly
                         className="w-full h-8 pl-3 pr-8 bg-neutral-800 border-neutral-700 text-neutral-300 text-sm focus-visible:ring-1 focus-visible:ring-neutral-600"
+                        aria-label="Preview URL"
                     />
                 </div>
 

@@ -146,6 +146,7 @@ export function PackageManager({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 text-xs bg-muted/50 focus-visible:ring-1"
+            aria-label="Search NPM package"
           />
           <Button type="submit" size="icon" className="h-8 w-8 shrink-0">
             {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}

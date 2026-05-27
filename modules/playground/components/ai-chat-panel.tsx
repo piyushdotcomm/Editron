@@ -444,6 +444,7 @@ export default function AIChatPanel({
                             onKeyDown={handleKeyDown}
                             rows={1}
                             disabled={isLoading}
+                            aria-label="Message AI Assistant"
                             onInput={(e) => {
                                 const t = e.target as HTMLTextAreaElement;
                                 t.style.height = "auto";
