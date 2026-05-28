@@ -1,30 +1,145 @@
+import { streamText, convertToModelMessages } from "ai";
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { rateLimit, handleApiError, getClientIp } from "@/lib/api-utils";
 import { auth } from "@/auth";
+import { tools, SYSTEM_PROMPT } from "./tools";
 import { tools } from "./tools";
 
-const SYSTEM_PROMPT = `You are an expert coding assistant embedded in a code editor called Editron.
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-CRITICAL RULES - follow these strictly:
-1. You MUST use the edit_file or edit_multiple_files tools to create or modify files. NEVER just describe code changes in text - actually call the tool.
-2. Before editing existing code, use read_file to understand the current file contents.
-3. When using edit_file or edit_multiple_files, provide the COMPLETE file content - no partial snippets, no placeholders.
-4. After making changes, briefly explain what you did in 1-2 sentences.
-5. If you need to scaffold, refactor, or build multiple files at once, ALWAYS use the edit_multiple_files tool to perform the changes in a single batch.
+/** Supported AI provider identifiers. Extend here to add new providers. */
+type ProviderName = "gemini" | "groq" | "mistral";
 
-WORKFLOW for every request that involves code:
-1. Call read_file to see the current state
-2. Call edit_file or edit_multiple_files with the complete new file content
-3. Explain what changed
+/**
+ * Static configuration for a provider.
+ * `envKey`      — process.env key used when the user is authenticated but
+ *                 has not supplied their own API key.
+ * `modelId`     — model string forwarded to the provider SDK.
+ * `makeModel`   — factory: given a resolved API key, return an AI SDK model.
+ */
+interface ProviderConfig {
+  envKey: string;
+  modelId: string;
+  makeModel: (apiKey: string) => ReturnType<typeof createGoogleGenerativeAI | typeof createGroq | typeof createMistral> extends infer R
+    ? (modelId: string) => unknown
+    : never;
+}
 
-If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
+// ─── Provider Registry ────────────────────────────────────────────────────────
 
+/**
+ * Single source of truth for every provider.
+ * To add a new provider: add one entry here and update `ProviderName`.
+ */
+const PROVIDER_CONFIG: Record<ProviderName, {
+  envKey: string;
+  makeModel: (apiKey: string) => unknown;
+}> = {
+  gemini: {
+    envKey: "GEMINI_API_KEY",
+    makeModel: (apiKey) => createGoogleGenerativeAI({ apiKey })("gemini-2.0-flash"),
+  },
+  groq: {
+    envKey: "GROQ_API_KEY",
+    makeModel: (apiKey) => createGroq({ apiKey })("llama-3.1-70b-versatile"),
+  },
+  mistral: {
+    envKey: "MISTRAL_API_KEY",
+    makeModel: (apiKey) => createMistral({ apiKey })("mistral-small-latest"),
+  },
+};
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const RATE_LIMIT_REQUESTS = 20;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+// Centralized role definition
+const VALID_MESSAGE_ROLES = ["system", "user", "assistant"] as const;
+
+// ─── Request Schema ───────────────────────────────────────────────────────────
+
+const IncomingMessageSchema = z.object({
+  role: z.enum(VALID_MESSAGE_ROLES),
+  content: z.string().optional(),
+  parts: z.array(
+    z.object({
+      type: z.string(),
+      text: z.string(),
+    }),
+  ).optional(),
+}).passthrough(); // Prevent Zod from stripping additional AI SDK fields
+
+const RequestBodySchema = z.object({
+  messages: z.array(IncomingMessageSchema).max(100),
+  provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
+  fileTree: z.string().max(50_000).optional(),
+  userApiKey: z.string().max(256).optional(),
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Resolve the API key for a provider.
+ * Precedence: user-supplied key → server env key (authenticated users only).
+ * Returns `null` when no key is available, which the caller treats as an error.
+ */
+function resolveApiKey(
+  userApiKey: string | undefined,
+  isAuthenticated: boolean,
+  envKey: string,
+): string | null {
+  if (userApiKey?.trim()) return userApiKey.trim();
+  if (isAuthenticated) return process.env[envKey] ?? null;
+  return null;
+}
+
+/**
+ * Build the model instance for the requested provider.
+ * Returns `{ model }` on success or a `NextResponse` error on failure.
+ */
+function buildModel(
+  provider: ProviderName,
+  userApiKey: string | undefined,
+  isAuthenticated: boolean,
+): { model: unknown } | NextResponse {
+  const config = PROVIDER_CONFIG[provider];
+  const apiKey = resolveApiKey(userApiKey, isAuthenticated, config.envKey);
+
+  if (!apiKey) {
+    const error = isAuthenticated
+      ? `${capitalize(provider)} API key not configured. Add your key in AI settings.`
+      : "Unauthorized";
+    return NextResponse.json(
+      { success: false, error },
+      { status: isAuthenticated ? 400 : 401 },
+    );
+  }
+
+  return { model: config.makeModel(apiKey) };
+}
+
+/** Capitalize the first character of a string (used in error messages). */
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ─── Message Sanitization ─────────────────────────────────────────────────────
+
+type MessagePart = { type: string; text: string };
+type ChatMessage = {
+  role: typeof VALID_MESSAGE_ROLES[number];
+  content?: string;
+  parts?: MessagePart[];
+  // Allow other AI SDK fields to pass through seamlessly
+  [key: string]: unknown;
+};
 
 const RequestBodySchema = z.object({
     messages: z.array(z.any()).max(100),
@@ -34,10 +149,69 @@ const RequestBodySchema = z.object({
 });
 
 /**
- * HTTP POST handler for the AI chat endpoint. Validates request body,
- * enforces rate limits, selects model provider, and streams model output.
+ * Ensure every message has a `parts` array as expected by `convertToModelMessages`.
+ * Returns a `NextResponse` error if a message is not a valid object.
  */
+function sanitizeMessages(
+  raw: unknown[],
+): ChatMessage[] | NextResponse {
+  const sanitized: ChatMessage[] = [];
+
+  for (const item of raw) {
+    if (!item || typeof item !== "object") {
+      return NextResponse.json(
+        { success: false, error: "Invalid request: each message must be an object" },
+        { status: 400 },
+      );
+    }
+
+    const m = item as ChatMessage;
+
+    // Utilize the shared constant to validate roles dynamically
+    if (!VALID_MESSAGE_ROLES.includes(m.role)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid message role" },
+        { status: 400 },
+      );
+    }
+
+    if (Array.isArray(m.parts)) {
+      sanitized.push(m);
+      continue;
+    }
+
+    sanitized.push({
+      ...m,
+      parts:
+        typeof m.content === "string" && m.content.trim()
+          ? [{ type: "text", text: m.content }]
+          : [],
+    });
+  }
+
+  return sanitized;
+}
+
+// ─── Route Handler ────────────────────────────────────────────────────────────
+
 export async function POST(request: NextRequest) {
+patch-1
+  try {
+    // ── Rate limiting ────────────────────────────────────────────────────
+    const ip = getClientIp(request);
+    const { allowed, remaining } = rateLimit(ip, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_MS);
+
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "Rate limit exceeded. Please wait before sending more messages." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "60",
+            "X-RateLimit-Remaining": String(remaining),
+          },
+        },
+      );
     try {        
 
         // Rate limiting: 20 requests per minute per IP
@@ -189,5 +363,63 @@ export async function POST(request: NextRequest) {
         return resultStream.toUIMessageStreamResponse();
     } catch (error: unknown) {
         return handleApiError(error, "POST /api/chat");
+      main
     }
+
+    // ── Auth ─────────────────────────────────────────────────────────────
+    const session = await auth();
+    const isAuthenticated = !!session?.user;
+
+    // ── Request validation ───────────────────────────────────────────────
+    const body = await request.json();
+    const parsed = RequestBodySchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid request", details: parsed.error.issues },
+        { status: 400 },
+      );
+    }
+
+    const { messages, provider, fileTree, userApiKey } = parsed.data;
+
+    // Require either a logged-in session or a user-supplied API key.
+    if (!isAuthenticated && !userApiKey?.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
+        { status: 401 },
+      );
+    }
+
+    // ── Model resolution ─────────────────────────────────────────────────
+    const modelResult = buildModel(provider, userApiKey, isAuthenticated);
+
+    // `buildModel` returns a NextResponse when key resolution fails.
+    if (modelResult instanceof NextResponse) return modelResult;
+
+    // ── Message sanitization ─────────────────────────────────────────────
+    const sanitized = sanitizeMessages(messages);
+
+    if (sanitized instanceof NextResponse) return sanitized;
+
+    // ── System prompt ────────────────────────────────────────────────────
+    const systemInstruction = fileTree
+      ? `${SYSTEM_PROMPT}\n\nProject file tree:\n${fileTree}`
+      : SYSTEM_PROMPT;
+
+    // ── Stream ───────────────────────────────────────────────────────────
+    const stream = streamText({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      model: modelResult.model as any,
+      messages: await convertToModelMessages(sanitized, {
+        ignoreIncompleteToolCalls: true,
+      }),
+      system: systemInstruction,
+      tools,
+    });
+
+    return stream.toUIMessageStreamResponse();
+  } catch (error: unknown) {
+    return handleApiError(error, "POST /api/chat");
+  }
 }
