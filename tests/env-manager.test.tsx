@@ -33,13 +33,13 @@ vi.mock("@/components/ui/input", () => ({
 describe("EnvManager Component", () => {
   const writeFileSyncMock = vi.fn().mockResolvedValue(undefined);
   const instanceMock = {};
-  const emptyTemplateData = { items: [] };
+  const emptyTemplateData = { folderName: "root", items: [] };
 
   it("should render correctly with empty env variables", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock}
+        instance={instanceMock as any}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -52,7 +52,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock}
+        instance={instanceMock as any}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -60,7 +60,7 @@ describe("EnvManager Component", () => {
     const addButton = screen.getByText("Add your first variable");
     fireEvent.click(addButton);
 
-    const keyInput = screen.getByPlaceholderText("API_KEY");
+    const keyInput = screen.getByPlaceholderText("API_KEY") as HTMLInputElement;
     
     // Test lowercase to uppercase and spaces/hyphens to underscore formatting
     fireEvent.change(keyInput, { target: { value: "my-cool api-key" } });
@@ -71,7 +71,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock}
+        instance={instanceMock as any}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -79,7 +79,7 @@ describe("EnvManager Component", () => {
     const addButton = screen.getByTitle("Add Variable");
     fireEvent.click(addButton);
 
-    const keyInput = screen.getByPlaceholderText("API_KEY");
+    const keyInput = screen.getByPlaceholderText("API_KEY") as HTMLInputElement;
     
     // "!" is invalid in POSIX
     fireEvent.change(keyInput, { target: { value: "INVALID_KEY!" } });
@@ -96,7 +96,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock}
+        instance={instanceMock as any}
         writeFileSync={writeFileSyncMock}
       />
     );
@@ -123,7 +123,7 @@ describe("EnvManager Component", () => {
     render(
       <EnvManager
         templateData={emptyTemplateData}
-        instance={instanceMock}
+        instance={instanceMock as any}
         writeFileSync={writeFileSyncMock}
       />
     );

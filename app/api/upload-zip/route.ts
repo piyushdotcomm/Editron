@@ -2,24 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
-import { Prisma } from "@prisma/client";
+import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
 
 class ValidationError extends Error {
     constructor(message: string, public status: number = 400) {
         super(message);
         this.name = "ValidationError";
     }
-}
-
-interface TemplateFile {
-    filename: string;
-    fileExtension: string;
-    content: string;
-}
-
-interface TemplateFolder {
-    folderName: string;
-    items: (TemplateFile | TemplateFolder)[];
 }
 
 // Binary / large file extensions to skip

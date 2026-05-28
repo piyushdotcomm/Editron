@@ -204,7 +204,7 @@ const PlaygroundEditor = ({
                 clearTimeout(debounceTimerRef.current);
               debounceTimerRef.current = setTimeout(
                 resolve,
-                TIMEOUTS.EDITOR_DEBOUNCE,
+                EDITOR_CONFIG.INLINE_SUGGESTION_DEBOUNCE_MS,
               );
             });
 
