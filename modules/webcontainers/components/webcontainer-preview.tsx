@@ -115,11 +115,7 @@ const WebContainerPreview = ({
     handler: (port: number, url: string) => void,
   ) => {
     serverReadyCleanupRef.current?.();
-
-    serverReadyCleanupRef.current = (inst as any).on(
-      "server-ready",
-      handler,
-    );
+    serverReadyCleanupRef.current = inst.on("server-ready", handler);
   };
 
   // Derive a loading flag for the refresh-spinner icon in the toolbar.
@@ -382,9 +378,13 @@ const WebContainerPreview = ({
               const isCommonFrontendPort = [
                 3000, 5173, 8080, 4200, 8000,
               ].includes(port);
-              setRefreshKey((k) => k + 1);
               setPreviewUrl((prevUrl) => {
+                if (prevUrl !== url) {
+                  setRefreshKey((k) => k + 1);
+                }
+
                 if (prevUrl && !isCommonFrontendPort) return prevUrl;
+
                 return url;
               });
 
