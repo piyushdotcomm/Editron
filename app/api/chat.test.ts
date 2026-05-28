@@ -11,7 +11,7 @@ vi.mock("next/server", () => ({
     }
 }));
 
-import { tools, MAX_FILE_CONTENT_CHARS } from "./chat/tools";
+import { tools, MAX_FILE_CONTENT_CHARS, schemas } from "./chat/tools";
 
 describe("AI tool payload validation", () => {
 
@@ -25,6 +25,8 @@ describe("AI tool payload validation", () => {
             content,
         });
 
+        const parsed = schemas.edit_file.safeParse({ path: "test.txt", content });
+
         expect(parsed.success).toBe(true);
     });
 
@@ -36,6 +38,8 @@ describe("AI tool payload validation", () => {
             content,
         });
 
+        const parsed = schemas.edit_file.safeParse({ path: "test.txt", content });
+
         expect(parsed.success).toBe(false);
 
         if (!parsed.success) {
@@ -45,6 +49,8 @@ describe("AI tool payload validation", () => {
                 .join(" ");
 
             const msgs = parsed.error.issues.map((i: any) => i.message).join(" ");
+
+            const msgs = parsed.error.issues.map((i) => i.message).join(" ");
 
             expect(msgs).toMatch(/exceeds/);
         }
@@ -58,10 +64,13 @@ describe("AI tool payload validation", () => {
             content,
         });
 
+        const parsed = schemas.edit_file.safeParse({ path: "big.txt", content });
+
         expect(parsed.success).toBe(false);
     });
 
     it("batch changes validation: one oversized file fails", () => {
+
         const ok = {
             path: "ok.txt",
             content: "a".repeat(1000),
@@ -75,6 +84,10 @@ describe("AI tool payload validation", () => {
         const parsed = tools.edit_multiple_files.inputSchema.safeParse({
             changes: [ok, bad],
         });
+
+        const ok = { path: "ok.txt", content: "a".repeat(1000) };
+        const bad = { path: "bad.txt", content: "a".repeat(MAX + 5) };
+        const parsed = schemas.edit_multiple_files.safeParse({ changes: [ok, bad] });
 
         expect(parsed.success).toBe(false);
     });
