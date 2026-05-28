@@ -68,6 +68,7 @@ const PlaygroundPageContent = () => {
   const { playgroundData, templateData, isLoading, isSuccess, error, saveTemplateData } =
     usePlayground(id);
   const sidebar = useSidebar();
+  const { toggleChat } = useAI();
 
   useEffect(() => {
     if (isSuccess && templateData) {
@@ -397,7 +398,7 @@ if (containerSynced) {
       // Ctrl+Shift+A — Toggle AI Chat
       if (e.ctrlKey && e.shiftKey && e.key === "A") {
         e.preventDefault();
-        useAI.getState().toggleChat();
+        toggleChat();
       }
       // Ctrl+W — Close current tab
       if (e.ctrlKey && !e.shiftKey && e.key === "w") {
@@ -492,7 +493,7 @@ if (containerSynced) {
             handleDownloadZip={handleDownloadZip}
             setShowAISettings={setShowAISettings}
             closeAllFiles={closeAllFiles}
-            toggleAIChat={() => useAI.getState().toggleChat()}
+            toggleAIChat={toggleChat}
           />
 
           {/* ==== CONTENT ==== */}
@@ -552,7 +553,7 @@ if (containerSynced) {
                 <WelcomeScreen
                   projectTitle={playgroundData?.title}
                   onTogglePreview={() => setIsPreviewVisible(true)}
-                  onOpenAI={() => useAI.getState().toggleChat()}
+                  onOpenAI={toggleChat}
                   onDownload={handleDownloadZip}
                   onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
                 />
@@ -590,7 +591,7 @@ if (containerSynced) {
           onSaveAll={handleSaveAll}
           onDownload={handleDownloadZip}
           onTogglePreview={() => setIsPreviewVisible((prev) => !prev)}
-          onToggleAI={() => useAI.getState().toggleChat()}
+          onToggleAI={toggleChat}
           onToggleSidebar={() => sidebar.toggleSidebar()}
           onOpenSettings={() => setShowAISettings(true)}
           onCloseAllFiles={closeAllFiles}
