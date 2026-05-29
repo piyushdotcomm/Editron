@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export const getUserById = async (id: string) => {
     try {
@@ -10,7 +11,7 @@ export const getUserById = async (id: string) => {
         });
         return user;
     } catch (error) {
-        console.log(error);
+        logger.error("Error fetching user by ID:", error);
         return null;
     }
 };
@@ -22,7 +23,7 @@ export const getUserByEmail = async (email: string) => {
         });
         return user;
     } catch (error) {
-        console.log(error);
+        logger.error("Error fetching user by email:", error);
         return null;
     }
 };
@@ -36,7 +37,7 @@ export const getAccountByUserId = async (userId: string) => {
         });
         return account;
     } catch (error) {
-        console.log(error);
+        logger.error("Error fetching account by user ID:", error);
         return null;
     }
 };

@@ -34,6 +34,8 @@ const eslintConfig = [
       "prefer-const": "warn",
       "react/display-name": "warn",
       "react/no-unescaped-entities": "warn",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+
       // Allow variables/args prefixed with _ to be unused
       "no-unused-vars": "off", // turned off in favour of the TS-aware rule below
       "@typescript-eslint/no-unused-vars": [

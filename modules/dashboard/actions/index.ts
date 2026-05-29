@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { TemplateKey } from "@/lib/template";
 import { templatePaths } from "@/lib/template";
 import { Templates, Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export const toggleStarMarked = async (
   playgroundId: string,
@@ -41,7 +42,7 @@ export const toggleStarMarked = async (
     revalidatePath("/dashboard");
     return { success: true, isMarked: isChecked };
   } catch (error) {
-    console.error("Error updating problem:", error);
+    logger.error("Error updating problem:", error);
     return { success: false, error: "Failed to update problem" };
   }
 };
@@ -73,7 +74,7 @@ export const getAllPlaygroundForUser = async () => {
 
     return playground;
   } catch (error) {
-    console.log(error);
+    logger.error("Error fetching playgrounds:", error);
   }
 };
 
@@ -113,7 +114,7 @@ export const createPlayground = async (data: {
 
     return { success: true as const, playground };
   } catch (error) {
-    console.error("Error creating playground:", error);
+    logger.error("Error creating playground:", error);
     return { success: false as const, error: "Failed to create playground" };
   }
 };
@@ -140,7 +141,7 @@ export const deleteProjectById = async (id: string) => {
 
     revalidatePath("/dashboard");
   } catch (error) {
-    console.log(error);
+    logger.error("Error deleting playground:", error);
   }
 };
 
@@ -170,7 +171,7 @@ export const editProjectById = async (
 
     revalidatePath("/dashboard");
   } catch (error) {
-    console.log(error);
+    logger.error("Error editing playground:", error);
     throw error;
   }
 };
@@ -225,7 +226,7 @@ export const duplicateProjectById = async (id: string) => {
 
     return duplicatedPlayground;
   } catch (error) {
-    console.error("Error duplicating project:", error);
+    logger.error("Error duplicating project:", error);
     throw error;
   }
 };

@@ -1,5 +1,5 @@
 "use client";
-
+import { logger } from "@/lib/logger";
 import { TIMEOUTS } from "@/lib/constants/config";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -96,7 +96,7 @@ export default function AIChatPanel({
         sendMessage: chatSendMessage,
     } = useChat({
         onError: (err: Error) => {
-            console.error("AI Chat Error:", err);
+            logger.error("AI Chat Error:", err);
             toast.error(err.message || "An error occurred");
         }
     });
@@ -173,7 +173,7 @@ export default function AIChatPanel({
         if (rawParts.length > 0) {
             const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));
             if (toolParts.length > 0) {
-                console.log("[AIChatPanel] Tool parts in last message:", JSON.stringify(toolParts, null, 2));
+                logger.log("[AIChatPanel] Tool parts in last message:", JSON.stringify(toolParts, null, 2));
             }
         }
 
@@ -235,7 +235,7 @@ export default function AIChatPanel({
                         });
 
                         setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
+                        saveTemplateData(updatedTemplate).catch(logger.error);
                         toast.success(`AI updated ${path}`);
                         result = `Successfully updated ${path}`;
                     }
@@ -264,7 +264,7 @@ export default function AIChatPanel({
                         const updatedTemplate = { ...templateData, items: currentItems };
                         setTemplateData(updatedTemplate);
                         setOpenFiles(currentOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
+                        saveTemplateData(updatedTemplate).catch(logger.error);
                         toast.success(`AI scaffolded ${changes.length} files`);
                         result = `Successfully updated ${changes.length} files`;
                     }
@@ -286,7 +286,7 @@ export default function AIChatPanel({
                         });
 
                         setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
+                        saveTemplateData(updatedTemplate).catch(logger.error);
                         toast.success(`AI deleted ${path}`);
                         result = `Successfully deleted ${path}`;
                     }
@@ -299,7 +299,7 @@ export default function AIChatPanel({
 
             // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
             processedToolCallIds.current.add(toolCallId);
-            console.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`, result.slice(0, 100));
+            logger.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`, result.slice(0, 100));
 
             addToolResult({
                 toolCallId,

@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { currentUser } from "@/modules/auth/actions";
 import { templatePaths, TemplateKey } from "@/lib/template";
 import path from "path";
+import { logger } from "@/lib/logger";
 
 
 // Toggle marked status for a problem
@@ -41,7 +42,7 @@ export const toggleStarMarked = async (playgroundId: string, isChecked: boolean)
     revalidatePath("/dashboard");
     return { success: true, isMarked: isChecked };
   } catch (error) {
-    console.error("Error updating problem:", error);
+    logger.error("Error updating problem:", error);
     return { success: false, error: "Failed to update problem" };
   }
 };
@@ -66,7 +67,7 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
-        console.log(error)
+        logger.error("Error creating playground:", error);
     }
 }
 
@@ -95,7 +96,7 @@ export const getAllPlaygroundForUser = async ()=>{
       
         return playground;
     } catch (error) {
-        console.log(error)
+        logger.error("Error fetching all playgrounds for user:", error);
     }
 }
 
@@ -127,7 +128,7 @@ export const getPlaygroundById = async (id: string) => {
                     ? JSON.parse(rawContent)
                     : rawContent;
             } catch (error) {
-                console.error("Error parsing template content from DB:", error);
+                logger.error("Error parsing template content from DB:", error);
             }
         }
 
@@ -141,7 +142,7 @@ export const getPlaygroundById = async (id: string) => {
                     const fullPath = path.join(process.cwd(), templatePath);
                     templateData = await scanTemplateDirectory(fullPath);
                 } catch (error) {
-                    console.error("Error scanning template directory:", error);
+                    logger.error("Error scanning template directory:", error);
                 }
             }
         }
@@ -155,7 +156,7 @@ export const getPlaygroundById = async (id: string) => {
             templateData
         };
     } catch (error) {
-        console.error("Error in getPlaygroundById:", error);
+        logger.error("Error in getPlaygroundById:", error);
         throw error;
     }
 }
@@ -192,7 +193,7 @@ export const SaveUpdatedCode = async (
 
     return updatedPlayground;
   } catch (error) {
-    console.log("SaveUpdatedCode error:", error);
+    logger.error("Error saving updated code:", error);
     throw error;
   }
 };
@@ -205,7 +206,7 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        logger.error("Error deleting project:", error);
     }
 }
 
@@ -219,7 +220,7 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        logger.error("Error editing project:", error);
     }
 }
 
@@ -259,6 +260,6 @@ export const duplicateProjectById = async (id: string) => {
 
         return duplicatedPlayground;
     } catch (error) {
-        console.error("Error duplicating project:", error);
+        logger.error("Error duplicating project:", error);
     }
 };
