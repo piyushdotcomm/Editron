@@ -24,10 +24,34 @@ WORKFLOW for every request that involves code:
 
 If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
 
+// ─── Validation limits ────────────────────────────────────────────────────────
+const MAX_MESSAGES        = 50;
+const MAX_CONTENT_LENGTH  = 10_000;   // chars per message.content
+const MAX_PARTS           = 20;       // parts[] entries per message
+const MAX_PART_TEXT       = 5_000;    // chars per parts[].text
+const MAX_BODY_BYTES      = 1_000_000; // 1 MB raw body guard
 
+const PartSchema = z.object({
+    type: z.string(),
+    text: z.string().max(MAX_PART_TEXT, {
+        message: `Part text exceeds maximum allowed length of ${MAX_PART_TEXT} characters`,
+    }),
+}).passthrough(); // allow extra part fields (e.g. tool results)
+
+const MessageSchema = z.object({
+    role: z.string(),
+    content: z.string().max(MAX_CONTENT_LENGTH, {
+        message: `Message content exceeds maximum allowed length of ${MAX_CONTENT_LENGTH} characters`,
+    }).optional(),
+    parts: z.array(PartSchema).max(MAX_PARTS, {
+        message: `Message must not have more than ${MAX_PARTS} parts`,
+    }).optional(),
+}).passthrough();
 
 const RequestBodySchema = z.object({
-    messages: z.array(z.any()).max(100),
+    messages: z.array(MessageSchema)
+        .min(1, { message: "At least one message is required" })
+        .max(MAX_MESSAGES, { message: `Cannot send more than ${MAX_MESSAGES} messages` }),
     provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
     fileTree: z.string().max(50_000).optional(),
     userApiKey: z.string().max(256).optional(),
@@ -38,9 +62,17 @@ const RequestBodySchema = z.object({
  * enforces rate limits, selects model provider, and streams model output.
  */
 export async function POST(request: NextRequest) {
-    try {        
+    try {
+        // ── 0. Raw body size guard (413 before we even parse JSON) ─────────────
+        const contentLength = request.headers.get("content-length");
+        if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
+            return NextResponse.json(
+                { success: false, error: "Payload too large. Request body must not exceed 1 MB." },
+                { status: 413 }
+            );
+        }
 
-        // Rate limiting: 20 requests per minute per IP
+        // ── 1. Rate limiting: 20 requests per minute per IP ────────────────────
         const ip = getClientIp(request);
         const { allowed, remaining } = await rateLimit(ip, 20, 60_000);
 
@@ -59,7 +91,7 @@ export async function POST(request: NextRequest) {
 
         const session = await auth();
         const isAuthenticated = !!session?.user;
-        
+
         const body = await request.json();
         const result = RequestBodySchema.safeParse(body);
 
@@ -89,8 +121,8 @@ export async function POST(request: NextRequest) {
             const apiKey = userApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { 
-                        success: false, 
+                    {
+                        success: false,
                         error: isAuthenticated
                             ? "Gemini API key not configured. Add your key in AI settings."
                             : "Unauthorized",
@@ -104,11 +136,11 @@ export async function POST(request: NextRequest) {
             const apiKey = userApiKey || (isAuthenticated ? process.env.GROQ_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { 
-                        success: false, 
-                        error: isAuthenticated 
-                            ? "Groq API key not configured. Add your key in AI settings." 
-                            : "Unauthorized" 
+                    {
+                        success: false,
+                        error: isAuthenticated
+                            ? "Groq API key not configured. Add your key in AI settings."
+                            : "Unauthorized"
                     },
                     { status: isAuthenticated ? 400 : 401 }
                 );
@@ -119,10 +151,10 @@ export async function POST(request: NextRequest) {
             const apiKey = userApiKey || (isAuthenticated ? process.env.MISTRAL_API_KEY : undefined);
             if (!apiKey) {
                 return NextResponse.json(
-                    { 
-                        success: false, 
+                    {
+                        success: false,
                         error: isAuthenticated
-                            ? "Mistral API key not configured. Add your key in AI settings." 
+                            ? "Mistral API key not configured. Add your key in AI settings."
                             : "Unauthorized"
                     },
                     { status: isAuthenticated ? 400 : 401 }
@@ -148,7 +180,7 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
-            
+
             const role = (raw as Record<string, unknown>).role;
             if (typeof role !== "string" || !validRoles.includes(role)) {
                 return NextResponse.json(
@@ -156,12 +188,11 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
-            
+
             const m = raw as { role: "system" | "user" | "assistant" | "data" | "tool"; content?: string; parts?: MessagePart[] };
             if (Array.isArray(m.parts)) {
-                // Ensure each part has at least a type property
                 if (!m.parts.every(p => p && typeof p === "object" && "type" in p)) {
-                     return NextResponse.json(
+                    return NextResponse.json(
                         { success: false, error: "Invalid request: malformed parts" },
                         { status: 400 }
                     );
