@@ -170,7 +170,6 @@ export const editProjectById = async (
 
     revalidatePath("/dashboard");
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };
