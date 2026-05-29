@@ -1,5 +1,6 @@
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
+import { logger } from "@/lib/logger";
 
 // Maintain a cache of Y.Doc instances to avoid creating multiple providers for the same room
 const yDocs = new Map<string, { doc: Y.Doc; provider: WebsocketProvider }>();
@@ -41,7 +42,7 @@ export function getOrCreateYDoc(roomId: string, token: string) {
             serverUrl = "ws://localhost:1234";
         } else {
             // On deployment, NEXT_PUBLIC_COLLAB_SERVER_URL MUST be set (e.g. wss://editron-collab.onrender.com)
-            console.warn("[Yjs] ⚠️ NEXT_PUBLIC_COLLAB_SERVER_URL is not set. Real-time collaboration will not work on deployment. Set this in your Vercel environment variables.");
+            logger.warn("[Yjs] ⚠️ NEXT_PUBLIC_COLLAB_SERVER_URL is not set. Real-time collaboration will not work on deployment. Set this in your Vercel environment variables.");
             const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
             serverUrl = `${protocol}//${window.location.host}/api/collab`; // fallback, likely won't work
         }
@@ -59,10 +60,10 @@ export function getOrCreateYDoc(roomId: string, token: string) {
 
     // Optional: Clean up when the connection is closed to prevent memory leaks
     provider.on('synced', (isSynced: unknown) => {
-        console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
+        logger.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
     });
     provider.on('status', (event: unknown) => {
-        console.log(`[Yjs] Room ${roomId} status:`, (event as { status: 'connected' | 'disconnected' | 'connecting' }).status);
+        logger.log(`[Yjs] Room ${roomId} status:`, (event as { status: 'connected' | 'disconnected' | 'connecting' }).status);
     });
 
     return { doc, provider };

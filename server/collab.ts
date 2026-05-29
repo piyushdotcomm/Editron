@@ -7,6 +7,7 @@ import { verifyCollabToken } from '../lib/collab-token';
 import { MongodbPersistence } from 'y-mongodb-provider';
 import dotenv from 'dotenv';
 import { parse } from 'url';
+import { logger } from "@/lib/logger";
 
 // Load environment variables for the standalone server
 dotenv.config();
@@ -47,10 +48,10 @@ async function gracefulShutdown(signal: string) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log(`[collab] Received ${signal}. Starting graceful shutdown...`);
+    logger.log(`[collab] Received ${signal}. Starting graceful shutdown...`);
 
     const forceExit = setTimeout(() => {
-    console.error('[collab] Forced shutdown after timeout');
+    logger.error('[collab] Forced shutdown after timeout');
     process.exit(1);
 }, 10000);
 
@@ -60,28 +61,28 @@ wss.clients.forEach((client) => {
     try {
         client.close(1001, 'Server shutting down');
     } catch (err) {
-        console.error('[collab] Client close error:', err);
+        logger.error('[collab] Client close error:', err);
     }
 });
 
 // Stop accepting new connections
 await new Promise<void>((resolve) => {
     wss.close(() => {
-        console.log('[collab] WebSocket server closed');
+        logger.log('[collab] WebSocket server closed');
         resolve();
     });
 });
 
         
         // Persistence cleanup handled by writeState()
-        console.log('[collab] Waiting for persistence cleanup');
+        logger.log('[collab] Waiting for persistence cleanup');
 
         // Close HTTP server
         await new Promise<void>((resolve, reject) => {
             server.close((err) => {
                 if (err) reject(err);
 
-                console.log('[collab] HTTP server closed');
+                logger.log('[collab] HTTP server closed');
                 resolve();
             });
         });
@@ -92,7 +93,7 @@ await new Promise<void>((resolve) => {
 
     } catch (error) {
         clearTimeout(forceExit);
-        console.error('[collab] Graceful shutdown failed:', error);
+        logger.error('[collab] Graceful shutdown failed:', error);
         process.exit(1);
     }
 }
@@ -147,18 +148,18 @@ server.on('upgrade', async (request, socket, head) => {
         }
 
         wss.handleUpgrade(request, socket, head, (ws) => {
-            console.log('WebSocket successfully upgraded!');
+            logger.log('WebSocket successfully upgraded!');
             wss.emit('connection', ws, request);
         });
     } catch (error) {
-        console.error('Upgrade error:', error);
+        logger.error('Upgrade error:', error);
         socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
         socket.destroy();
     }
 });
 
 server.listen(port, () => {
-    console.log(`Collaboration server running on port ${port}`);
+    logger.log(`Collaboration server running on port ${port}`);
 });
 
 process.on('SIGTERM', () => {
