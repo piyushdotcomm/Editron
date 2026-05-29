@@ -138,8 +138,6 @@ const WebContainerPreview = ({
       write(data: string) {
         if (terminalRef.current) {
           writeTerminal(data);
-        } else {
-          console.log("[WebContainer Install] ", data.trim());
         }
 
         const now = Date.now();
@@ -925,7 +923,7 @@ const WebContainerPreview = ({
                     <RefreshCw
                       size={13}
                       className={
-                        !isSetupComplete ? "animate-spin text-primary" : ""
+                        isLoading ? "animate-spin text-primary" : ""
                       }
                     />
                 </Button>

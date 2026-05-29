@@ -307,3 +307,35 @@
 .yRemoteSelectionHead:hover .yRemoteSelectionHead-name {
   opacity: 1;
 }
+
+/* Add these to your globals.css */
+
+/* Hero code card — replaces Framer Motion animate prop */
+@keyframes hero-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-card {
+  animation: hero-card-in 0.8s ease-out 0.2s both;
+  will-change: transform, opacity;
+}
+
+/* Respect OS-level reduced motion preference across the whole page */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-card,
+  .animate-in,
+  .animate-pulse,
+  .animate-highlight,
+  .animate-flash {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

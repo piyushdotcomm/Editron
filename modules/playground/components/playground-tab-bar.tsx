@@ -1,8 +1,9 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileIcon } from "./file-icon";
-import { X } from "lucide-react";
+import { X, Columns, Rows, Square } from "lucide-react";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
+import { Button } from "@/components/ui/button";
 
 type OpenFile = ReturnType<typeof useFileExplorer.getState>["openFiles"][number];
 
@@ -11,6 +12,10 @@ interface PlaygroundTabBarProps {
     activeFileId: string | null;
     setActiveFileId: (id: string) => void;
     closeFile: (id: string) => void;
+    onSplit?: () => void;
+    splitLayout?: 'none' | 'vertical' | 'horizontal';
+    isFocused?: boolean;
+    onFocus?: () => void;
 }
 
 export const PlaygroundTabBar = ({
@@ -18,12 +23,24 @@ export const PlaygroundTabBar = ({
     activeFileId,
     setActiveFileId,
     closeFile,
+    onSplit,
+    splitLayout = 'none',
+    isFocused = true,
+    onFocus,
 }: PlaygroundTabBarProps) => {
-    if (openFiles.length === 0) return null;
+    if (openFiles.length === 0) return (
+        <div className="border-b bg-muted/20 h-9 flex items-center justify-end px-2" onClick={onFocus}>
+            {onSplit && (
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={onSplit} title="Toggle Split Editor">
+                    {splitLayout === 'none' ? <Columns className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                </Button>
+            )}
+        </div>
+    );
 
     return (
-        <div className="border-b bg-muted/20">
-            <Tabs value={activeFileId || ""} onValueChange={setActiveFileId}>
+        <div className={`border-b bg-muted/20 flex items-center justify-between ${!isFocused ? 'opacity-70' : ''}`} onClick={onFocus}>
+            <Tabs value={activeFileId || ""} onValueChange={setActiveFileId} className="flex-1 overflow-hidden">
                 <div className="flex items-center px-1 pt-1">
                     <div className="overflow-x-auto scrollbar-hide flex-1">
                         <TabsList className="h-9 bg-transparent p-0 inline-flex" role="tablist">
@@ -38,7 +55,7 @@ export const PlaygroundTabBar = ({
                       relative h-9 px-4 text-[13px] border-r border-t rounded-t-lg rounded-b-none 
                       group transition-all duration-200 ease-in-out min-w-[120px] justify-start
                       ${isActive
-                                                ? "bg-background shadow-sm border-t-primary text-primary font-medium z-10 before:absolute before:inset-x-0 before:-top-px before:h-[2px] before:bg-primary before:rounded-t-lg"
+                                                ? `bg-background shadow-sm border-t-primary ${isFocused ? 'text-primary' : 'text-foreground'} font-medium z-10 before:absolute before:inset-x-0 before:-top-px before:h-[2px] ${isFocused ? 'before:bg-primary' : 'before:bg-muted-foreground'} before:rounded-t-lg`
                                                 : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                                             }
                     `}
@@ -79,6 +96,14 @@ export const PlaygroundTabBar = ({
                     </div>
                 </div>
             </Tabs>
+            
+            {onSplit && (
+                <div className="px-2 flex items-center gap-1 shrink-0 border-l ml-1">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onSplit(); }} title="Toggle Split Editor">
+                        {splitLayout === 'none' ? <Columns className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };

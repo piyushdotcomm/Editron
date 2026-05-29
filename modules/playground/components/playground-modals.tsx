@@ -4,6 +4,7 @@ import React from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
+import PreferencesDialog from "@/modules/playground/components/preferences-dialog";
 import { CommandPalette } from "@/modules/playground/components/command-palette";
 import { DeployDialog } from "@/modules/playground/components/deploy-dialog";
 import { usePlaygroundContext } from "@/modules/playground/contexts/playground-context";
@@ -35,6 +36,8 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
   const {
     showAISettings,
     setShowAISettings,
+    showPreferences,
+    setShowPreferences,
     isCommandPaletteOpen,
     setIsCommandPaletteOpen,
     isDeployDialogOpen,
@@ -62,6 +65,10 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
       <AISettingsDialog
         open={showAISettings}
         onOpenChange={setShowAISettings}
+      />
+      <PreferencesDialog
+        open={showPreferences}
+        onOpenChange={setShowPreferences}
       />
 
       {/* Command Palette */}

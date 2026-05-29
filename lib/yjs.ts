@@ -57,6 +57,7 @@ export function getOrCreateYDoc(roomId: string, token: string) {
 
     yDocs.set(roomId, { doc, provider });
 
+<<<<<<< perf/lighthouse-v2
     // Optional: Clean up when the connection is closed to prevent memory leaks
     provider.on('synced', (isSynced: unknown) => {
         console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
@@ -78,6 +79,9 @@ export function getOrCreateYDoc(roomId: string, token: string) {
             );
         }
     });
+=======
+
+>>>>>>> develop
 
     return { doc, provider };
 }

@@ -47,7 +47,6 @@ async function gracefulShutdown(signal: string) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log(`[collab] Received ${signal}. Starting graceful shutdown...`);
 
     const forceExit = setTimeout(() => {
     console.error('[collab] Forced shutdown after timeout');
@@ -67,21 +66,18 @@ wss.clients.forEach((client) => {
 // Stop accepting new connections
 await new Promise<void>((resolve) => {
     wss.close(() => {
-        console.log('[collab] WebSocket server closed');
         resolve();
     });
 });
 
         
         // Persistence cleanup handled by writeState()
-        console.log('[collab] Waiting for persistence cleanup');
 
         // Close HTTP server
         await new Promise<void>((resolve, reject) => {
             server.close((err) => {
                 if (err) reject(err);
 
-                console.log('[collab] HTTP server closed');
                 resolve();
             });
         });
@@ -147,7 +143,6 @@ server.on('upgrade', async (request, socket, head) => {
         }
 
         wss.handleUpgrade(request, socket, head, (ws) => {
-            console.log('WebSocket successfully upgraded!');
             wss.emit('connection', ws, request);
         });
     } catch (error) {
@@ -158,7 +153,6 @@ server.on('upgrade', async (request, socket, head) => {
 });
 
 server.listen(port, () => {
-    console.log(`Collaboration server running on port ${port}`);
 });
 
 process.on('SIGTERM', () => {

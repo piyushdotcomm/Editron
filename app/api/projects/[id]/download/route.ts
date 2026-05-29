@@ -67,8 +67,9 @@ export async function GET(
             if (fileRecord && fileRecord.content) {
                 try {
                     addFilesToZip(fileRecord.content as unknown as TemplateFolder);
-                } catch (schemaError: any) {
-                    return NextResponse.json({ error: schemaError.message || "Invalid schema" }, { status: 500 });
+                } catch (schemaError: unknown) {
+                    const message = schemaError instanceof Error ? schemaError.message : "Invalid schema";
+                    return NextResponse.json({ error: message }, { status: 500 });
                 }
             }
         }

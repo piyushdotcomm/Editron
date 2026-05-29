@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
-import { ThemeSelector } from "./theme-selector";
 import { CollaborationAvatars } from "./collaboration-avatars";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -41,7 +40,8 @@ export const PlaygroundHeader = ({
         isPreviewVisible,
         setIsPreviewVisible,
         setIsDeployDialogOpen,
-        setShowAISettings
+        setShowAISettings,
+        setShowPreferences
     } = usePlaygroundUI();
     const { openFiles, activeFileId, closeAllFiles } = useFileExplorer();
     
@@ -161,7 +161,20 @@ export const PlaygroundHeader = ({
                     <TooltipContent>Copy Collab Link</TooltipContent>
                 </Tooltip>
 
-                <ThemeSelector />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            onClick={() => setShowPreferences(true)}
+                            aria-label="Editor Preferences"
+                        >
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Editor Preferences</TooltipContent>
+                </Tooltip>
 
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -200,8 +213,12 @@ export const PlaygroundHeader = ({
                             <span>Download ZIP</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setShowAISettings(true)} className="gap-2">
+                        <DropdownMenuItem onClick={() => setShowPreferences(true)} className="gap-2">
                             <Settings className="h-4 w-4 text-muted-foreground" />
+                            <span>Preferences</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowAISettings(true)} className="gap-2">
+                            <Bot className="h-4 w-4 text-muted-foreground" />
                             <span>AI Settings</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

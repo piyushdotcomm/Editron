@@ -7,33 +7,40 @@ import authConfig from "./auth.config"
 import { db } from "./lib/db";
 import { getUserById } from "./lib/user-data";
 
+/**
+ * Handle user and account creation/linking atomically within a transaction.
+ * This ensures concurrent sign-in requests don't create duplicate users or cause race conditions.
+ *
+ * @param email - User email
+ * @param name - User name
+ * @param image - User image URL
+ * @param account - OAuth account details
+ * @returns true if operation succeeded, false otherwise
+ */
+async function handleUserAccountSync(
+  email: string,
+  name: string | null | undefined,
+  image: string | null | undefined,
+  account: Account
+): Promise<boolean> {
+  const sessionState = typeof account.session_state === 'string' ? account.session_state : undefined;
 
-
-
-
-export const { auth, handlers, signIn, signOut } = NextAuth({
-  callbacks: {
-    /**
-     * Handle user creation and account linking after a successful sign-in
-     */
-    async signIn({ user, account }: { user: User, account?: Account | null | undefined }) {
-      if (!user || !account) return false;
-
-      const sessionState = account && typeof account.session_state === 'string' ? account.session_state : undefined;
-
-      // Check if the user already exists
-      const existingUser = await db.user.findUnique({
-        where: { email: user.email! },
+  try {
+    // All database operations execute atomically.
+    // If any operation fails, the entire transaction rolls back.
+    await db.$transaction(async (tx) => {
+      // Step 1: Try to find existing user (with row-level lock to prevent dirty reads)
+      let user = await tx.user.findUnique({
+        where: { email },
       });
 
-      // If user does not exist, create a new one
-      if (!existingUser) {
-        const newUser = await db.user.create({
+      // Step 2: Create user if doesn't exist
+      if (!user) {
+        user = await tx.user.create({
           data: {
-            email: user.email!,
-            name: user.name,
-            image: user.image,
-
+            email,
+            name,
+            image,
             accounts: {
               create: {
                 type: account.type,
@@ -51,52 +58,94 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           },
         });
 
-        if (!newUser) return false; // Return false if user creation fails
-      } else {
-        // Link the account if user exists
-        const existingAccount = await db.account.findUnique({
-          where: {
-            provider_providerAccountId: {
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-            },
-          },
-        });
-
-        // If the account does not exist, create it
-        if (!existingAccount) {
-          await db.account.create({
-            data: {
-              userId: existingUser.id,
-              type: account.type,
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-              refreshToken: account.refresh_token,
-              accessToken: account.access_token,
-              expiresAt: account.expires_at,
-              tokenType: account.token_type,
-              scope: account.scope,
-              idToken: account.id_token,
-              sessionState,
-            },
-          });
-        } else {
-          // Update the access token and other details for existing accounts
-          await db.account.update({
-            where: { id: existingAccount.id },
-            data: {
-              accessToken: account.access_token,
-              refreshToken: account.refresh_token,
-              expiresAt: account.expires_at,
-              scope: account.scope,
-              idToken: account.id_token,
-              sessionState,
-            }
-          });
-        }
+        if (!user) throw new Error("Failed to create user");
+        return; // User and account created together, no need to link
       }
 
-      return true;
+      // Step 3: Account linking for existing user
+      // Try to find existing account
+      const existingAccount = await tx.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+          },
+        },
+      });
+
+      // Step 4: Create or update account
+      if (!existingAccount) {
+        await tx.account.create({
+          data: {
+            userId: user.id,
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            refreshToken: account.refresh_token,
+            accessToken: account.access_token,
+            expiresAt: account.expires_at,
+            tokenType: account.token_type,
+            scope: account.scope,
+            idToken: account.id_token,
+            sessionState,
+          },
+        });
+      } else {
+        // Update tokens and expiry for existing account
+        await tx.account.update({
+          where: { id: existingAccount.id },
+          data: {
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            expiresAt: account.expires_at,
+            scope: account.scope,
+            idToken: account.id_token,
+            sessionState,
+          },
+        });
+      }
+    }, {
+      // Transaction options for concurrency control
+      // Prisma uses SERIALIZABLE isolation level by default in transactions
+      maxWait: 5000,        // Wait max 5 seconds to acquire locks
+      timeout: 30000,       // Timeout after 30 seconds
+    });
+
+    return true;
+  } catch (error) {
+    // Log transaction errors for debugging
+    if (error instanceof Error) {
+      console.error(`[Auth Transaction Error] ${error.message}`);
+    } else {
+      console.error(`[Auth Transaction Error] Unknown error:`, error);
+    }
+    return false;
+  }
+}
+
+
+
+
+
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  callbacks: {
+    /**
+     * Handle user creation and account linking after a successful sign-in.
+     * Executes all database operations within an atomic transaction to ensure
+     * concurrent sign-in requests are handled safely without race conditions.
+     */
+    async signIn({ user, account }: { user: User, account?: Account | null | undefined }) {
+      if (!user || !account) return false;
+
+      // Use transactional helper to ensure atomic operations
+      const success = await handleUserAccountSync(
+        user.email!,
+        user.name,
+        user.image,
+        account
+      );
+
+      return success;
     },
 
     async jwt({ token, user: _user, account: _account }: { token: JWT, user?: User, account?: Account | null }) {

@@ -6,6 +6,7 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { SearchAddon } from "@xterm/addon-search";
+import { WebglAddon } from "@xterm/addon-webgl";
 import "@xterm/xterm/css/xterm.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -300,6 +301,17 @@ const
       terminal.loadAddon(searchAddonInstance);
 
       terminal.open(terminalRef.current);
+
+      // Add WebGL rendering for massive performance improvement on heavy output
+      try {
+        const webglAddonInstance = new WebglAddon();
+        webglAddonInstance.onContextLoss(() => {
+          webglAddonInstance.dispose();
+        });
+        terminal.loadAddon(webglAddonInstance);
+      } catch (e) {
+        console.warn("WebGL addon could not be loaded, falling back to standard renderer", e);
+      }
 
       fitAddon.current = fitAddonInstance;
       searchAddon.current = searchAddonInstance;

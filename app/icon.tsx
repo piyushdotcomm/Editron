@@ -15,18 +15,9 @@ export default function Icon() {
     return new ImageResponse(
         (
             <div
-                style={{
-                    fontSize: 20,
-                    background: 'linear-gradient(135deg, #ef4444 0%, #be123c 100%)',
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    borderRadius: '6px',
-                    fontWeight: 800,
-                }}
+                className={
+                    'w-full h-full flex items-center justify-center bg-gradient-to-br from-red-500 to-red-700 text-white rounded-[6px] font-extrabold text-[20px]'
+                }
             >
                 E
             </div>

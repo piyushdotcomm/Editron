@@ -8,7 +8,7 @@ vi.mock("next/server", () => ({
     }
 }));
 
-import { tools, MAX_FILE_CONTENT_CHARS, schemas } from "./chat/tools";
+import { MAX_FILE_CONTENT_CHARS, schemas } from "./chat/tools";
 
 describe("AI tool payload validation", () => {
     const MAX = MAX_FILE_CONTENT_CHARS;

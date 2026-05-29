@@ -5,6 +5,7 @@ import {
     Folder,
     Star,
     Zap,
+    LucideIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,7 +17,15 @@ interface KPIStatsProps {
     };
 }
 
-const StatCard = ({ icon: Icon, label, value, color, delay }: any) => (
+interface StatCardProps {
+    icon: LucideIcon;
+    label: string;
+    value: string | number;
+    color: string;
+    delay: number;
+}
+
+const StatCard = ({ icon: Icon, label, value, color, delay }: StatCardProps) => (
     <motion.div
         className="min-w-0 w-full"
         initial={{ opacity: 0, y: 20 }}

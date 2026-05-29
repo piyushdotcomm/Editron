@@ -3,6 +3,7 @@
 import { TIMEOUTS } from "@/lib/constants/config";
 import React, { useRef, useEffect, useState } from "react";
 import type { editor as MonacoEditor } from "monaco-editor";
+import { KeyCode } from "monaco-editor";
 import {
   configureMonaco,
   defaultEditorOptions,
@@ -10,6 +11,7 @@ import {
 } from "@/modules/playground/lib/editor-config";
 import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
+import { usePreferences } from "@/modules/playground/hooks/usePreferences";
 
 import prettier from "prettier/standalone";
 import prettierPluginBabel from "prettier/plugins/babel";
@@ -71,6 +73,23 @@ const PlaygroundEditor = ({
       ...defaultEditorOptions,
       inlineSuggest: { enabled: true },
     });
+
+    // Explicitly add keyboard controls for inline AI suggestions
+    editor.addCommand(
+      KeyCode.Tab,
+      () => {
+        editor.trigger("keyboard", "editor.action.inlineSuggest.commit", {});
+      },
+      "inlineSuggestionVisible"
+    );
+
+    editor.addCommand(
+      KeyCode.Escape,
+      () => {
+        editor.trigger("keyboard", "editor.action.inlineSuggest.hide", {});
+      },
+      "inlineSuggestionVisible"
+    );
 
     // Cursor position tracking for status bar
     editor.onDidChangeCursorPosition((e) => {
@@ -443,10 +462,17 @@ const PlaygroundEditor = ({
       if (playgroundId) {
         destroyYDoc(playgroundId);
       }
+      
+      // Dispose all Monaco models on unmount to prevent memory leaks
+      if (monacoRef.current) {
+        monacoRef.current.editor.getModels().forEach((model) => {
+          model.dispose();
+        });
+      }
     };
   }, [playgroundId]);
 
-  const { editorTheme } = useAI();
+  const { editorTheme, fontLigatures } = usePreferences();
 
   useEffect(() => {
     async function loadTheme() {
@@ -481,10 +507,22 @@ const PlaygroundEditor = ({
     loadTheme();
   }, [editorTheme]);
 
+  useEffect(() => {
+    if (monacoRef.current && editorRef.current) {
+      const currentModel = editorRef.current.getModel();
+      monacoRef.current.editor.getModels().forEach((model) => {
+        if (model !== currentModel) {
+          model.dispose();
+        }
+      });
+    }
+  }, [activeFile]);
+
   return (
     <div className="h-full relative">
       <Editor
         height={"100%"}
+        path={(activeFile as any)?.id || activeFile?.filename || "default"}
         defaultValue={content}
         onChange={(value) => onContentChange(value || "")}
         onMount={handleEditorDidMount}
@@ -495,6 +533,7 @@ const PlaygroundEditor = ({
         }
         options={{
           ...defaultEditorOptions,
+          fontLigatures: fontLigatures,
           inlineSuggest: { enabled: true },
         }}
       />

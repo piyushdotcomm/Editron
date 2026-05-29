@@ -13,6 +13,7 @@ import { create } from "zustand";
 interface PlaygroundUIState {
   isPreviewVisible: boolean;
   showAISettings: boolean;
+  showPreferences: boolean;
   isCommandPaletteOpen: boolean;
   isDeployDialogOpen: boolean;
   cursorPosition: { line: number; col: number };
@@ -20,6 +21,7 @@ interface PlaygroundUIState {
   // Actions
   setIsPreviewVisible: (v: boolean | ((prev: boolean) => boolean)) => void;
   setShowAISettings: (v: boolean) => void;
+  setShowPreferences: (v: boolean) => void;
   setIsCommandPaletteOpen: (v: boolean) => void;
   setIsDeployDialogOpen: (v: boolean) => void;
   setCursorPosition: (pos: { line: number; col: number }) => void;
@@ -30,6 +32,7 @@ interface PlaygroundUIState {
 export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
   isPreviewVisible: false,
   showAISettings: false,
+  showPreferences: false,
   isCommandPaletteOpen: false,
   isDeployDialogOpen: false,
   cursorPosition: { line: 1, col: 1 },
@@ -39,6 +42,7 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
       isPreviewVisible: typeof v === "function" ? v(s.isPreviewVisible) : v,
     })),
   setShowAISettings: (v) => set({ showAISettings: v }),
+  setShowPreferences: (v) => set({ showPreferences: v }),
   setIsCommandPaletteOpen: (v) => set({ isCommandPaletteOpen: v }),
   setIsDeployDialogOpen: (v) => set({ isDeployDialogOpen: v }),
   setCursorPosition: (pos) => set({ cursorPosition: pos }),
@@ -48,6 +52,7 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
     set({
       isPreviewVisible: false,
       showAISettings: false,
+      showPreferences: false,
       isCommandPaletteOpen: false,
       isDeployDialogOpen: false,
       cursorPosition: { line: 1, col: 1 },

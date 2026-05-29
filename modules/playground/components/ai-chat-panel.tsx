@@ -172,9 +172,7 @@ export default function AIChatPanel({
         // Debug: log all parts to see what v3 sends
         if (rawParts.length > 0) {
             const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));
-            if (toolParts.length > 0) {
-                console.log("[AIChatPanel] Tool parts in last message:", JSON.stringify(toolParts, null, 2));
-            }
+
         }
 
         for (const rawPart of rawParts) {
@@ -299,7 +297,6 @@ export default function AIChatPanel({
 
             // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
             processedToolCallIds.current.add(toolCallId);
-            console.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`, result.slice(0, 100));
 
             addToolResult({
                 toolCallId,
