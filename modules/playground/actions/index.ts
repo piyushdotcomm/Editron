@@ -246,7 +246,7 @@ export const duplicateProjectById = async (id: string) => {
                 template: originalPlayground.template,
                 userId,
                 templateFiles: {
-                  // @ts-ignore
+                  // @ts-expect-error: Prisma does not properly infer the mapped nested create array type here.
                     create: originalPlayground.templateFiles.map((file) => ({
                         content: file.content,
                     })),
