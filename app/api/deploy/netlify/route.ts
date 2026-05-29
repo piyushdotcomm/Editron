@@ -4,6 +4,13 @@ import JSZip from "jszip";
 import { rateLimit } from "@/lib/api-utils";
 import { NETLIFY_API } from "@/lib/constants/config";
 
+// Mirrors the limits enforced by the upload-zip route.
+// Prevents authenticated users from exhausting server memory by sending
+// thousands of large file entries in a single deploy request.
+const MAX_FILE_COUNT = 500;
+const MAX_ENTRY_SIZE = 500_000;          // 500 KB per file
+const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10 MB aggregate
+
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();
@@ -33,6 +40,41 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
+        // Validate file count
+        if (files.length > MAX_FILE_COUNT) {
+            return NextResponse.json(
+                { error: `Too many files. Maximum is ${MAX_FILE_COUNT}.` },
+                { status: 413 }
+            );
+        }
+
+        // Validate per-file and aggregate content size before building the zip.
+        // Without this guard, files.forEach(...zip.file(...)) iterates the entire
+        // array in memory, and zip.generateAsync() then buffers all content at once.
+        let totalSize = 0;
+        for (const f of files) {
+            if (typeof f.content !== "string") {
+                return NextResponse.json(
+                    { error: "Each file entry must have a string content field." },
+                    { status: 400 }
+                );
+            }
+            const entrySize = Buffer.byteLength(f.content, "utf8");
+            if (entrySize > MAX_ENTRY_SIZE) {
+                return NextResponse.json(
+                    { error: `File "${f.path}" exceeds the 500 KB per-file limit.` },
+                    { status: 413 }
+                );
+            }
+            totalSize += entrySize;
+            if (totalSize > MAX_TOTAL_SIZE) {
+                return NextResponse.json(
+                    { error: "Total payload exceeds the 10 MB limit." },
+                    { status: 413 }
+                );
+            }
+        }
+
         const token = userApiKey || process.env.NETLIFY_MASTER_TOKEN;
 
         if (!token) {
@@ -45,7 +87,7 @@ export async function POST(req: NextRequest) {
         // For Netlify, the easiest way to deploy raw files is to zip them and POST to the API.
         const zip = new JSZip();
 
-        files.forEach((f: any) => {
+        files.forEach((f: { path: string; content: string }) => {
             // Netlify requires files to be in a flat structure inside the zip or root
             zip.file(f.path, f.content);
         });
