@@ -24,6 +24,7 @@ import { usePlaygroundContext } from "@/modules/playground/contexts/playground-c
 import { usePlaygroundUI } from "@/modules/playground/hooks/usePlaygroundUI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { useAI } from "@/modules/playground/hooks/useAI";
+import type { PlaygroundData, ActiveFile } from "@/modules/playground/types/playground";
 
 interface PlaygroundHeaderProps {
     handleSave: () => void;
@@ -45,7 +46,10 @@ export const PlaygroundHeader = ({
     } = usePlaygroundUI();
     const { openFiles, activeFileId, closeAllFiles } = useFileExplorer();
     
-    const activeFile = openFiles.find((f) => f.id === activeFileId);
+    const activeFile: ActiveFile | null = activeFileId
+      ? (openFiles.find((f) => f.id === activeFileId) as ActiveFile | undefined) ?? null
+      : null;
+    
     const hasUnsavedChanges = openFiles.some((f) => f.hasUnsavedChanges);
     const openFilesLength = openFiles.length;
     const toggleAIChat = () => useAI.getState().toggleChat();

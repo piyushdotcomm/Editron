@@ -167,8 +167,8 @@ export default function AIChatPanel({
         const lastMessage = messages[messages.length - 1];
         if (lastMessage?.role !== "assistant") return;
 
-        const rawParts: unknown[] = (lastMessage as unknown as { parts?: unknown[] }).parts ?? [];
-
+        const rawParts: MessagePart[] =
+  ((lastMessage as { parts?: MessagePart[] }).parts ?? []);
         // Debug: log all parts to see what v3 sends
         if (rawParts.length > 0) {
             const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));

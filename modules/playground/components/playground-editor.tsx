@@ -30,6 +30,24 @@ export interface PlaygroundEditorProps {
   onContentChange: (value: string) => void;
   onCursorChange?: (line: number, col: number) => void;
 }
+type MonacoEditorInstance = Parameters<NonNullable<React.ComponentProps<typeof Editor>["onMount"]>>[0];
+
+type AwarenessUser = {
+  name?: string;
+  color?: string;
+};
+
+type AwarenessState = {
+  user?: AwarenessUser;
+};
+
+const isTemplateFileWithId = (
+  file: unknown,
+): file is TemplateFile & { id: string } =>
+  typeof file === "object" &&
+  file !== null &&
+  "id" in file &&
+  typeof (file as { id?: unknown }).id === "string";
 
 const PlaygroundEditor = ({
   activeFile,
@@ -296,11 +314,9 @@ const PlaygroundEditor = ({
 
         const { doc, provider } = getOrCreateYDoc(playgroundId, token);
         // Use file id if available (contains full path), otherwise fallback to filename+ext
-        const fileId = (activeFile as TemplateFile & { id?: string })?.id;
-        const ext = activeFile.fileExtension
-          ? `.${activeFile.fileExtension}`
-          : "";
-        const fileKey = fileId || `${activeFile.filename}${ext}`;
+        const fileId = isTemplateFileWithId(activeFile) ? activeFile.id : undefined;
+        const ext = activeFile?.fileExtension ? `.${activeFile.fileExtension}` : "";
+        const fileKey = fileId || (activeFile ? `${activeFile.filename}${ext}` : "");
 
         const yText = doc.getText(fileKey);
 
@@ -454,16 +470,16 @@ const PlaygroundEditor = ({
       }
 
       try {
-        const res = await fetch(`/themes/${editorTheme}.json`);
-        if (!res.ok) throw new Error("Network response was not ok");
-        const themeData = await res.json();
+  const res = await fetch(`/themes/${editorTheme}.json`);
+  if (!res.ok) throw new Error("Network response was not ok");
+  const themeData = await res.json();
 
-        monacoRef.current.editor.defineTheme(safeThemeId, themeData);
-        monacoRef.current.editor.setTheme(safeThemeId);
-      } catch (error) {
-        console.error("Failed to load Monaco theme", error);
-        monacoRef.current.editor.setTheme("vs-dark"); // fallback
-      }
+  monacoRef.current.editor.defineTheme(safeThemeId, themeData);
+  monacoRef.current.editor.setTheme(safeThemeId);
+} catch (error) {
+  console.error("Failed to load Monaco theme", error);
+  monacoRef.current.editor.setTheme("vs-dark");
+}
     }
 
     loadTheme();

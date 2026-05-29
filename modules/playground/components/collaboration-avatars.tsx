@@ -4,7 +4,12 @@ import { fetchCollabToken, getOrCreateYDoc } from "@/lib/yjs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function CollaborationAvatars({ playgroundId }: { playgroundId: string }) {
-    const [users, setUsers] = useState<any[]>([]);
+   interface CollaboratorUser {
+  name: string;
+  color: string;
+}
+
+const [users, setUsers] = useState<CollaboratorUser[]>([]);
 
     useEffect(() => {
         if (!playgroundId) return;
@@ -19,7 +24,9 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
                 const { provider } = getOrCreateYDoc(playgroundId, token);
                 const updateUsers = () => {
                     const states = Array.from(provider.awareness.getStates().values());
-                    const activeUsers = states.filter(s => s.user).map(s => s.user);
+                    const activeUsers = states
+  .map((state) => state.user as CollaboratorUser | undefined)
+  .filter((user): user is CollaboratorUser => Boolean(user?.name && user?.color));
 
                     // Deduplicate by name just in case a user has multiple tabs
                     const uniqueUsers = Array.from(new Map(activeUsers.map(u => [u.name, u])).values());

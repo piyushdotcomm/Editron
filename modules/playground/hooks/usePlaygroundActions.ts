@@ -4,11 +4,16 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { findFilePath } from "@/modules/playground/lib";
-import { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
-import { PlaygroundData } from "@/modules/playground/contexts/playground-context";
+import type { PlaygroundData, ActiveFile } from "@/modules/playground/types/playground";
 
+import type {
+  TemplateFile,
+  TemplateFolder,
+} from "@/modules/playground/lib/path-to-json";
+
+type TemplateItem = TemplateFile | TemplateFolder;
 interface UsePlaygroundActionsProps {
   id: string;
   templateData: TemplateFolder | null;
