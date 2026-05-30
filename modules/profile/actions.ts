@@ -17,7 +17,12 @@ export interface ProfileStats {
         projectName: string;
     }[];
     heatmapData: { date: string; count: number }[];
-    playgrounds: any[];
+    playgrounds: {
+    id: string;
+    name: string;
+    icon: string;
+    starred: boolean;
+}[];
 }
 
 export async function getUserProfileStats(userId?: string): Promise<ProfileStats | null> {
