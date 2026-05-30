@@ -22,7 +22,7 @@ export interface ProfileStats {
     name: string;
     icon: string;
     starred: boolean;
-}[];;
+}[];
 }
 
 export async function getUserProfileStats(userId?: string): Promise<ProfileStats | null> {
