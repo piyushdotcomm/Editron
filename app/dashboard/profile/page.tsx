@@ -77,14 +77,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="flex gap-3">
-            <LogoutButton>
-              <Button
-                variant="outline"
-                className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-600">
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
-            </LogoutButton>
+            <LogoutButton />
             <DeleteAccountButton />
           </div>
         </div>
