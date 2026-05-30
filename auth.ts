@@ -63,23 +63,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           },
         });
 
-        // If the account does not exist, create it
+        // If the account does not exist, we MUST NOT automatically link it.
+        // Automatically linking accounts based solely on email allows Account Takeover
+        // if an attacker creates an account on a provider with the victim's email.
         if (!existingAccount) {
-          await db.account.create({
-            data: {
-              userId: existingUser.id,
-              type: account.type,
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-              refreshToken: account.refresh_token,
-              accessToken: account.access_token,
-              expiresAt: account.expires_at,
-              tokenType: account.token_type,
-              scope: account.scope,
-              idToken: account.id_token,
-              sessionState,
-            },
-          });
+          console.warn(`Blocked automatic account linking for ${user.email} to prevent OAuth Hijacking.`);
+          return false; // Reject sign-in to prevent unauthorized account linking
         } else {
           // Update the access token and other details for existing accounts
           await db.account.update({
