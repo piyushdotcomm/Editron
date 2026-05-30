@@ -7,10 +7,6 @@ import authConfig from "./auth.config"
 import { db } from "./lib/db";
 import { getUserById } from "./lib/user-data";
 
-
-
-
-
 export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     /**
