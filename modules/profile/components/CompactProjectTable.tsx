@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { format } from "date-fns"
 import type { Project } from "@/modules/dashboard/types"
+import type { Playground } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -42,7 +43,7 @@ interface CompactProjectTableProps {
     projects: Project[]
     onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
     onDeleteProject?: (id: string) => Promise<void>
-    onDuplicateProject?: (id: string) => Promise<Project>
+    onDuplicateProject?: (id: string) => Promise<Playground>
 }
 
 interface EditProjectData {

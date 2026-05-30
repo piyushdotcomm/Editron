@@ -57,31 +57,8 @@ export function getOrCreateYDoc(roomId: string, token: string) {
 
     yDocs.set(roomId, { doc, provider });
 
-<<<<<<< perf/lighthouse-v2
-    // Optional: Clean up when the connection is closed to prevent memory leaks
-    provider.on('synced', (isSynced: unknown) => {
-        console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
-    });
-    provider.on('status', (event: unknown) => {
-        const status = (event as {
-            status: 'connected' | 'disconnected' | 'connecting'
-        }).status;
 
-        console.log(`[Yjs] Room ${roomId} status:`, status);
 
-        // Attempt recovery after reconnect
-        if (status === "connected") {
-            console.log("[Yjs] Reconnected successfully");
-
-            // Force preview refresh after reconnect
-            window.dispatchEvent(
-                new CustomEvent("yjs-reconnected")
-            );
-        }
-    });
-=======
-
->>>>>>> develop
 
     return { doc, provider };
 }

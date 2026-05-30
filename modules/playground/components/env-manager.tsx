@@ -158,7 +158,7 @@ export function EnvManager({
                 ) : (
                     <div className="space-y-2 mt-2">
                         {secrets.map((secret) => (
-                            <div key={secret.key} className="flex flex-col gap-1 bg-muted/40 p-2 rounded-md border text-sm group">
+                            <div key={secret.id || secret.key} className="flex flex-col gap-1 bg-muted/40 p-2 rounded-md border text-sm group">
                                 <div className="flex items-center justify-between">
                                     <span className="font-mono text-[10px] font-semibold truncate text-primary">{secret.key}</span>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

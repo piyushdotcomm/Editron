@@ -46,8 +46,8 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
 
     return (
         <div className="flex items-center -space-x-2 mr-2">
-            {users.slice(0, 4).map((u, i) => (
-                <TooltipProvider key={i}>
+            {users.slice(0, 4).map((u) => (
+                <TooltipProvider key={u.name}>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <div

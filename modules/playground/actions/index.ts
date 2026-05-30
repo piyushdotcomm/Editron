@@ -246,9 +246,8 @@ export const duplicateProjectById = async (id: string) => {
                 template: originalPlayground.template,
                 userId,
                 templateFiles: {
-                  // @ts-ignore
                     create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content,
+                        content: file.content as Prisma.InputJsonValue,
                     })),
                 },
             },
