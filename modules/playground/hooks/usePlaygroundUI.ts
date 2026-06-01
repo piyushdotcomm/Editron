@@ -13,28 +13,35 @@ import { create } from "zustand";
 interface PlaygroundUIState {
   isPreviewVisible: boolean;
   showAISettings: boolean;
+  showPreferences: boolean;
   isCommandPaletteOpen: boolean;
   isDeployDialogOpen: boolean;
   isReadmeDialogOpen: boolean;
+  isTimeTravelOpen: boolean;
   cursorPosition: { line: number; col: number };
 
   // Actions
   setIsPreviewVisible: (v: boolean | ((prev: boolean) => boolean)) => void;
   setShowAISettings: (v: boolean) => void;
+  setShowPreferences: (v: boolean) => void;
   setIsCommandPaletteOpen: (v: boolean) => void;
   setIsDeployDialogOpen: (v: boolean) => void;
   setIsReadmeDialogOpen: (v: boolean) => void;
+  setIsTimeTravelOpen: (v: boolean) => void;
   setCursorPosition: (pos: { line: number; col: number }) => void;
   togglePreview: () => void;
+  toggleTimeTravel: () => void;
   resetUI: () => void;
 }
 
 export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
   isPreviewVisible: false,
   showAISettings: false,
+  showPreferences: false,
   isCommandPaletteOpen: false,
   isDeployDialogOpen: false,
   isReadmeDialogOpen: false,
+  isTimeTravelOpen: false,
   cursorPosition: { line: 1, col: 1 },
 
   setIsPreviewVisible: (v) =>
@@ -42,19 +49,25 @@ export const usePlaygroundUI = create<PlaygroundUIState>((set) => ({
       isPreviewVisible: typeof v === "function" ? v(s.isPreviewVisible) : v,
     })),
   setShowAISettings: (v) => set({ showAISettings: v }),
+  setShowPreferences: (v) => set({ showPreferences: v }),
   setIsCommandPaletteOpen: (v) => set({ isCommandPaletteOpen: v }),
   setIsDeployDialogOpen: (v) => set({ isDeployDialogOpen: v }),
   setIsReadmeDialogOpen: (v) => set({ isReadmeDialogOpen: v }),
+  setIsTimeTravelOpen: (v) => set({ isTimeTravelOpen: v }),
   setCursorPosition: (pos) => set({ cursorPosition: pos }),
   togglePreview: () =>
     set((s) => ({ isPreviewVisible: !s.isPreviewVisible })),
+  toggleTimeTravel: () =>
+    set((s) => ({ isTimeTravelOpen: !s.isTimeTravelOpen })),
   resetUI: () =>
     set({
       isPreviewVisible: false,
       showAISettings: false,
+      showPreferences: false,
       isCommandPaletteOpen: false,
       isDeployDialogOpen: false,
       isReadmeDialogOpen: false,
+      isTimeTravelOpen: false,
       cursorPosition: { line: 1, col: 1 },
     }),
 }));

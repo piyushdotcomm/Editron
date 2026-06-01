@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import type { TemplateFile, TemplateFolder } from "../lib/path-to-json";
+import type { TemplateFile } from "../lib/path-to-json";
 import {
   collectFilePaths,
   deleteFileByPath,
@@ -253,7 +253,6 @@ describe("useAI store", () => {
       chatMessages: [],
       isGenerating: false,
       inlineSuggestionsEnabled: true,
-      editorTheme: "vs-dark",
       userGeminiKey: "",
       userGroqKey: "",
       userMistralKey: "",
@@ -405,20 +404,6 @@ describe("useAI store", () => {
       useAI.setState({ inlineSuggestionsEnabled: true });
       useAI.getState().toggleInlineSuggestions();
       expect(spy).toHaveBeenCalledWith("editron_inline_suggestions", "false");
-    });
-  });
-
-  // --- editor theme -----------------------------------------------------------
-  describe("setEditorTheme", () => {
-    it("updates the editorTheme state", () => {
-      useAI.getState().setEditorTheme("github-dark");
-      expect(useAI.getState().editorTheme).toBe("github-dark");
-    });
-
-    it("persists the theme to localStorage", () => {
-      const spy = vi.spyOn(Storage.prototype, "setItem");
-      useAI.getState().setEditorTheme("monokai");
-      expect(spy).toHaveBeenCalledWith("editron_editor_theme", "monokai");
     });
   });
 });

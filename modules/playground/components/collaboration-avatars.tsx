@@ -2,10 +2,13 @@
 import { useEffect, useState } from "react";
 import { fetchCollabToken, getOrCreateYDoc } from "@/lib/yjs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+interface Collaborator {
+    name: string;
+    color: string;
+}
 
 export function CollaborationAvatars({ playgroundId }: { playgroundId: string }) {
-    const [users, setUsers] = useState<any[]>([]);
-
+const [users, setUsers] = useState<Collaborator[]>([]);
     useEffect(() => {
         if (!playgroundId) return;
         let disposed = false;
@@ -19,8 +22,7 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
                 const { provider } = getOrCreateYDoc(playgroundId, token);
                 const updateUsers = () => {
                     const states = Array.from(provider.awareness.getStates().values());
-                    const activeUsers = states.filter(s => s.user).map(s => s.user);
-
+                    const activeUsers = states.filter(s => s.user).map(s => s.user as Collaborator);
                     // Deduplicate by name just in case a user has multiple tabs
                     const uniqueUsers = Array.from(new Map(activeUsers.map(u => [u.name, u])).values());
                     setUsers(uniqueUsers);
@@ -46,8 +48,8 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
 
     return (
         <div className="flex items-center -space-x-2 mr-2">
-            {users.slice(0, 4).map((u, i) => (
-                <TooltipProvider key={i}>
+            {users.slice(0, 4).map((u) => (
+                <TooltipProvider key={u.name}>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <div

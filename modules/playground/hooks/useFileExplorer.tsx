@@ -6,7 +6,7 @@ import type { WebContainer } from "@webcontainer/api";
 
 import { generateFileId } from "../lib";
 
-interface OpenFile extends TemplateFile {
+export interface OpenFile extends TemplateFile {
   id: string;
   hasUnsavedChanges: boolean;
   content: string;
@@ -16,20 +16,36 @@ interface OpenFile extends TemplateFile {
 interface FileExplorerState {
   playgroundId: string;
   templateData: TemplateFolder | null;
+  
+  // Global file objects
   openFiles: OpenFile[];
+  
+  // Pane State
+  splitLayout: 'none' | 'vertical' | 'horizontal';
+  focusedPane: 'primary' | 'secondary';
+  
+  primaryPaneFiles: string[];
   activeFileId: string | null;
-  editorContent: string;
+  
+  secondaryPaneFiles: string[];
+  secondaryActiveFileId: string | null;
+  
+  editorContent: string; // Used mostly for primary pane backward compat
+  secondaryEditorContent: string;
 
-  //   Setter Functions
+  // Setter Functions
   setPlaygroundId: (id: string) => void;
   setTemplateData: (data: TemplateFolder | null) => void;
   setEditorContent: (content: string) => void;
   setOpenFiles: (files: OpenFile[]) => void;
-  setActiveFileId: (fileId: string | null) => void;
+  setActiveFileId: (fileId: string | null, pane?: 'primary' | 'secondary') => void;
+  
+  setSplitLayout: (layout: 'none' | 'vertical' | 'horizontal') => void;
+  setFocusedPane: (pane: 'primary' | 'secondary') => void;
 
-  //   Functions
-  openFile: (file: TemplateFile) => void;
-  closeFile: (fileId: string) => void;
+  // Functions
+  openFile: (file: TemplateFile, forcePane?: 'primary' | 'secondary') => void;
+  closeFile: (fileId: string, pane?: 'primary' | 'secondary') => void;
   closeAllFiles: () => void;
 
   // File explorer methods
@@ -80,8 +96,18 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
   templateData: null,
   playgroundId: "",
   openFiles: [] satisfies OpenFile[],
+  
+  splitLayout: 'none',
+  focusedPane: 'primary',
+  
+  primaryPaneFiles: [],
   activeFileId: null,
+  
+  secondaryPaneFiles: [],
+  secondaryActiveFileId: null,
+  
   editorContent: "",
+  secondaryEditorContent: "",
 
   setTemplateData: (data) => set({ templateData: data }),
   setPlaygroundId(id) {
@@ -89,69 +115,131 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
   },
   setEditorContent: (content) => set({ editorContent: content }),
   setOpenFiles: (files) => set({ openFiles: files }),
-  setActiveFileId: (fileId) => set({ activeFileId: fileId }),
-
-  openFile: (file) => {
-    const fileId = generateFileId(file, get().templateData!);
-    const { openFiles } = get();
-    const existingFile = openFiles.find((f) => f.id === fileId);
-
-    if (existingFile) {
-      set({ activeFileId: fileId, editorContent: existingFile.content });
-      return;
-    }
-
-    const newOpenFile: OpenFile = {
-      ...file,
-      id: fileId,
-      hasUnsavedChanges: false,
-      content: file.content || "",
-      originalContent: file.content || "",
-    };
-
-    set((state) => ({
-      openFiles: [...state.openFiles, newOpenFile],
-      activeFileId: fileId,
-      editorContent: file.content || "",
-    }));
-  },
-
-  closeFile:(fileId)=>{
-    const {openFiles , activeFileId} = get();
-     const newFiles = openFiles.filter((f) => f.id !== fileId);
-
-      // If we're closing the active file, switch to another file or clear active
-    let newActiveFileId = activeFileId;
-    let newEditorContent = get().editorContent;
-
-    if(activeFileId === fileId){
-        if(newFiles.length > 0){
-              const lastFile = newFiles[newFiles.length - 1];
-        newActiveFileId = lastFile.id;
-        newEditorContent = lastFile.content;
-        }
-        else{
-            newActiveFileId = null;
-            newEditorContent = "";
-        }
-    }
-
-    set({
-        openFiles:newFiles,
-        activeFileId:newActiveFileId,
-        editorContent:newEditorContent
-    })
+  
+  setActiveFileId: (fileId, pane) => {
+    const targetPane = pane || get().focusedPane;
+    const file = get().openFiles.find(f => f.id === fileId);
+    const content = file ? file.content : "";
     
+    if (targetPane === 'primary') {
+      set({ activeFileId: fileId, editorContent: content, focusedPane: 'primary' });
+    } else {
+      set({ secondaryActiveFileId: fileId, secondaryEditorContent: content, focusedPane: 'secondary' });
+    }
   },
-    closeAllFiles: () => {
+  
+  setSplitLayout: (layout) => set({ splitLayout: layout }),
+  setFocusedPane: (pane) => set({ focusedPane: pane }),
+
+  openFile: (file, forcePane) => {
+    const fileId = generateFileId(file, get().templateData!);
+    const state = get();
+    const targetPane = forcePane || state.focusedPane;
+    const existingFile = state.openFiles.find((f) => f.id === fileId);
+
+    // Ensure the file is globally in openFiles
+    let newOpenFiles = state.openFiles;
+    if (!existingFile) {
+      const newOpenFile: OpenFile = {
+        ...file,
+        id: fileId,
+        hasUnsavedChanges: false,
+        content: file.content || "",
+        originalContent: file.content || "",
+      };
+      newOpenFiles = [...state.openFiles, newOpenFile];
+    }
+    
+    const contentToSet = existingFile ? existingFile.content : (file.content || "");
+
+    // Push to pane list if not present, and set active
+    if (targetPane === 'primary') {
+      const newPaneFiles = state.primaryPaneFiles.includes(fileId) 
+        ? state.primaryPaneFiles 
+        : [...state.primaryPaneFiles, fileId];
+        
+      set({ 
+        openFiles: newOpenFiles,
+        primaryPaneFiles: newPaneFiles,
+        activeFileId: fileId,
+        editorContent: contentToSet,
+        focusedPane: 'primary'
+      });
+    } else {
+      const newPaneFiles = state.secondaryPaneFiles.includes(fileId) 
+        ? state.secondaryPaneFiles 
+        : [...state.secondaryPaneFiles, fileId];
+        
+      set({ 
+        openFiles: newOpenFiles,
+        secondaryPaneFiles: newPaneFiles,
+        secondaryActiveFileId: fileId,
+        secondaryEditorContent: contentToSet,
+        focusedPane: 'secondary'
+      });
+    }
+  },
+
+  closeFile: (fileId, pane) => {
+    const state = get();
+    const targetPane = pane || state.focusedPane;
+    
+    let newPrimaryFiles = state.primaryPaneFiles;
+    let newSecondaryFiles = state.secondaryPaneFiles;
+    let newActiveId = state.activeFileId;
+    let newSecondaryActiveId = state.secondaryActiveFileId;
+    
+    if (targetPane === 'primary') {
+      newPrimaryFiles = newPrimaryFiles.filter(id => id !== fileId);
+      if (newActiveId === fileId) {
+        newActiveId = newPrimaryFiles.length > 0 ? newPrimaryFiles[newPrimaryFiles.length - 1] : null;
+      }
+    } else {
+      newSecondaryFiles = newSecondaryFiles.filter(id => id !== fileId);
+      if (newSecondaryActiveId === fileId) {
+        newSecondaryActiveId = newSecondaryFiles.length > 0 ? newSecondaryFiles[newSecondaryFiles.length - 1] : null;
+      }
+    }
+    
+    // Remove from global openFiles if it's no longer in ANY pane
+    const stillOpen = newPrimaryFiles.includes(fileId) || newSecondaryFiles.includes(fileId);
+    const newOpenFiles = stillOpen 
+      ? state.openFiles 
+      : state.openFiles.filter(f => f.id !== fileId);
+      
+    // Determine content based on new active IDs
+    const newEditorContent = newActiveId 
+      ? newOpenFiles.find(f => f.id === newActiveId)?.content || "" 
+      : "";
+    const newSecondaryEditorContent = newSecondaryActiveId 
+      ? newOpenFiles.find(f => f.id === newSecondaryActiveId)?.content || "" 
+      : "";
+      
     set({
-      openFiles: [],
-      activeFileId: null,
-      editorContent: "",
+      openFiles: newOpenFiles,
+      primaryPaneFiles: newPrimaryFiles,
+      secondaryPaneFiles: newSecondaryFiles,
+      activeFileId: newActiveId,
+      secondaryActiveFileId: newSecondaryActiveId,
+      editorContent: newEditorContent,
+      secondaryEditorContent: newSecondaryEditorContent
     });
   },
-  handleAddFile:async(newFile , parentPath , writeFileSync , instance , saveTemplateData)=>{
-        const { templateData } = get();
+
+  closeAllFiles: () => {
+    set({
+      openFiles: [],
+      primaryPaneFiles: [],
+      secondaryPaneFiles: [],
+      activeFileId: null,
+      secondaryActiveFileId: null,
+      editorContent: "",
+      secondaryEditorContent: ""
+    });
+  },
+
+  handleAddFile: async(newFile , parentPath , writeFileSync , instance , saveTemplateData) => {
+    const { templateData } = get();
     if (!templateData) return;
 
     try {
@@ -172,10 +260,8 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       set({ templateData: updatedTemplateData });
       toast.success(`Created file: ${newFile.filename}.${newFile.fileExtension}`);
 
-      // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
 
-      // Sync with web container
       if (writeFileSync) {
         const filePath = parentPath
           ? `${parentPath}/${newFile.filename}.${newFile.fileExtension}`
@@ -190,7 +276,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-    handleAddFolder: async (newFolder, parentPath, instance, saveTemplateData) => {
+  handleAddFolder: async (newFolder, parentPath, instance, saveTemplateData) => {
     const { templateData } = get();
     if (!templateData) return;
 
@@ -212,10 +298,8 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       set({ templateData: updatedTemplateData });
       toast.success(`Created folder: ${newFolder.folderName}`);
 
-      // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
 
-      // Sync with web container
       if (instance && instance.fs) {
         const folderPath = parentPath
           ? `${parentPath}/${newFolder.folderName}`
@@ -228,8 +312,8 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-    handleDeleteFile: async (file, parentPath, saveTemplateData) => {
-    const { templateData, openFiles } = get();
+  handleDeleteFile: async (file, parentPath, saveTemplateData) => {
+    const { templateData } = get();
     if (!templateData) return;
 
     try {
@@ -255,19 +339,13 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
           item.fileExtension !== file.fileExtension
       );
 
-      // Find and close the file if it's open
-      // Use the same ID generation logic as in openFile
       const fileId = generateFileId(file, templateData);
-      const openFile = openFiles.find((f) => f.id === fileId);
       
-      if (openFile) {
-        // Close the file using the closeFile method
-        get().closeFile(fileId);
-      }
+      // Close in both panes to be safe
+      get().closeFile(fileId, 'primary');
+      get().closeFile(fileId, 'secondary');
 
       set({ templateData: updatedTemplateData });
-
-      // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
       toast.success(`Deleted file: ${file.filename}.${file.fileExtension}`);
     } catch (error) {
@@ -276,7 +354,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-    handleDeleteFolder: async (folder, parentPath, saveTemplateData) => {
+  handleDeleteFolder: async (folder, parentPath, saveTemplateData) => {
     const { templateData } = get();
     if (!templateData) return;
 
@@ -301,13 +379,12 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
           !("folderName" in item) || item.folderName !== folder.folderName
       );
 
-      // Close all files in the deleted folder recursively
       const closeFilesInFolder = (folder: TemplateFolder, currentPath: string = "") => {
         folder.items.forEach((item) => {
           if ("filename" in item) {
-            // Generate the correct file ID using the same logic as openFile
             const fileId = generateFileId(item, templateData);
-            get().closeFile(fileId);
+            get().closeFile(fileId, 'primary');
+            get().closeFile(fileId, 'secondary');
           } else if ("folderName" in item) {
             const newPath = currentPath ? `${currentPath}/${item.folderName}` : item.folderName;
             closeFilesInFolder(item, newPath);
@@ -318,8 +395,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       closeFilesInFolder(folder, parentPath ? `${parentPath}/${folder.folderName}` : folder.folderName);
 
       set({ templateData: updatedTemplateData });
-
-      // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
       toast.success(`Deleted folder: ${folder.folderName}`);
     } catch (error) {
@@ -328,17 +403,16 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-   handleRenameFile: async (
+  handleRenameFile: async (
     file,
     newFilename,
     newExtension,
     parentPath,
     saveTemplateData
   ) => {
-    const { templateData, openFiles, activeFileId } = get();
+    const { templateData, openFiles, primaryPaneFiles, secondaryPaneFiles, activeFileId, secondaryActiveFileId } = get();
     if (!templateData) return;
 
-    // Generate old and new file IDs using the same logic as openFile
     const oldFileId = generateFileId(file, templateData);
     const newFile = { ...file, filename: newFilename, fileExtension: newExtension };
     const newFileId = generateFileId(newFile, templateData);
@@ -374,7 +448,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
         } as TemplateFile;
         currentFolder.items[fileIndex] = updatedFile;
 
-        // Update open files with new ID and names
         const updatedOpenFiles = openFiles.map((f) =>
           f.id === oldFileId
             ? {
@@ -389,10 +462,12 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
         set({
           templateData: updatedTemplateData,
           openFiles: updatedOpenFiles,
+          primaryPaneFiles: primaryPaneFiles.map(id => id === oldFileId ? newFileId : id),
+          secondaryPaneFiles: secondaryPaneFiles.map(id => id === oldFileId ? newFileId : id),
           activeFileId: activeFileId === oldFileId ? newFileId : activeFileId,
+          secondaryActiveFileId: secondaryActiveFileId === oldFileId ? newFileId : secondaryActiveFileId,
         });
 
-        // Use the passed saveTemplateData function
         await saveTemplateData(updatedTemplateData);
         toast.success(`Renamed file to: ${newFilename}.${newExtension}`);
       }
@@ -401,7 +476,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       toast.error("Failed to rename file");
     }
   },
-
   
   handleRenameFolder: async (folder, newFolderName, parentPath, saveTemplateData) => {
     const { templateData } = get();
@@ -435,8 +509,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
         currentFolder.items[folderIndex] = updatedFolder;
 
         set({ templateData: updatedTemplateData });
-
-        // Use the passed saveTemplateData function
         await saveTemplateData(updatedTemplateData);
         toast.success(`Renamed folder to: ${newFolderName}`);
       }
@@ -446,7 +518,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-updateFileContent: (fileId, content) => {
+  updateFileContent: (fileId, content) => {
     set((state) => ({
       openFiles: state.openFiles.map((file) =>
         file.id === fileId
@@ -457,8 +529,8 @@ updateFileContent: (fileId, content) => {
             }
           : file
       ),
-      editorContent:
-        fileId === state.activeFileId ? content : state.editorContent,
+      editorContent: fileId === state.activeFileId ? content : state.editorContent,
+      secondaryEditorContent: fileId === state.secondaryActiveFileId ? content : state.secondaryEditorContent,
     }));
   },
 

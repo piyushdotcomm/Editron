@@ -9,6 +9,7 @@ import React from 'react'
 
 import { currentUser } from '@/modules/auth/actions';
 import LogoutButton from '@/modules/auth/components/logout-button';
+import DeleteAccountButton from '@/app/(auth)/auth/components/delete-account-button';
 import { LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -67,6 +68,8 @@ const Page = async () => {
                       <span>Logout</span>
                     </div>
                   </LogoutButton>
+
+                  <DeleteAccountButton />
                 </div>
               </div>
             </div>
