@@ -43,8 +43,8 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
 
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
-            // @ts-expect-error - access internal JSZip metadata for safety
-            const size = file._data?.uncompressedSize;
+            // Access internal JSZip metadata for uncompressed size check
+            const size = (file as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize;
 
             if (typeof size !== "number") {
                 throw new ValidationError(`Cannot determine uncompressed size for file: ${relativePath}`, 400);
