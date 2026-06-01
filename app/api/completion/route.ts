@@ -19,9 +19,12 @@ const RequestBodySchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        // Rate limiting: 60 requests per minute per IP (autocomplete fires rapidly)
+        const session = await auth();
+
+        // Rate limiting: 60 requests per minute per user (if logged in) or per IP
         const ip = getClientIp(request);
-        const { allowed, remaining } = await rateLimit(`completion:${ip}`, 60, 60_000);
+        const identifier = session?.user?.id ? `completion_user:${session.user.id}` : `completion_ip:${ip}`;
+        const { allowed, remaining } = await rateLimit(identifier, 60, 60_000);
 
         if (!allowed) {
             return NextResponse.json(
@@ -46,9 +49,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-       const { prompt, language, provider, userApiKey } = result.data;
-const session = await auth();
-const hasValidUserKey = userApiKey && userApiKey.trim() !== "";
+        const { prompt, language, provider, userApiKey } = result.data;
+        const hasValidUserKey = userApiKey && userApiKey.trim() !== "";
 
 const contextPrompt = language ? `Language: ${language}\n\n${prompt}` : prompt;
 let model;

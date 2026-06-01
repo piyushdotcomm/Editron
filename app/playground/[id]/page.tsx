@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { AlertCircle, FolderOpen } from "lucide-react";
@@ -11,6 +11,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import PlaygroundSkeleton from "@/modules/playground/components/loader";
 import { PlaygroundProvider } from "@/modules/playground/contexts/playground-context";
+import type {
+  EditorPane,
+  SplitDirection,
+} from "@/modules/playground/contexts/playground-context";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
@@ -38,10 +42,32 @@ const PlaygroundPageContent = () => {
   } = usePlayground(id);
 
   // 2. Initialize stores and hooks
-  const { setTemplateData, setPlaygroundId, openFiles, activeFileId, closeFile, setOpenFiles } = useFileExplorer();
+  const {
+    setTemplateData,
+    setPlaygroundId,
+    openFiles,
+    activeFileId,
+    closeFile,
+    setOpenFiles,
+  } = useFileExplorer();
   const setIsPreviewVisible = usePlaygroundUI((s) => s.setIsPreviewVisible);
-  const setIsCommandPaletteOpen = usePlaygroundUI((s) => s.setIsCommandPaletteOpen);
+  const setIsCommandPaletteOpen = usePlaygroundUI(
+    (s) => s.setIsCommandPaletteOpen,
+  );
   const resetUI = usePlaygroundUI((s) => s.resetUI);
+
+  // Split-view state
+  const [editorPanes, setEditorPanes] = useState<EditorPane[]>([
+    {
+      id: "pane-1",
+      activeFileId: null,
+    },
+  ]);
+
+  const [splitDirection, setSplitDirection] =
+    useState<SplitDirection>("horizontal");
+
+  const [activePaneId, setActivePaneId] = useState<string | null>("pane-1");
 
   useEffect(() => {
     if (isSuccess && templateData) {
@@ -88,7 +114,7 @@ const PlaygroundPageContent = () => {
       closeFile,
       setIsPreviewVisible,
       setIsCommandPaletteOpen,
-    }
+    },
   );
 
   // Error States
@@ -138,6 +164,12 @@ const PlaygroundPageContent = () => {
       serverUrl={serverUrl || null}
       containerLoading={containerLoading}
       containerError={containerError || null}
+      editorPanes={editorPanes}
+      setEditorPanes={setEditorPanes}
+      splitDirection={splitDirection}
+      setSplitDirection={setSplitDirection}
+      activePaneId={activePaneId}
+      setActivePaneId={setActivePaneId}
     >
       <TooltipProvider>
         <>
@@ -152,7 +184,7 @@ const PlaygroundPageContent = () => {
               handleSaveAll={handleSaveAll}
               handleDownloadZip={handleDownloadZip}
             />
-            
+
             <EditorArea handleDownloadZip={handleDownloadZip} />
           </SidebarInset>
 

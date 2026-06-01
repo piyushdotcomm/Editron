@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import type { Project } from "@/modules/dashboard/types";
 import { currentUser } from "@/modules/auth/actions";
 import { getUserProfileStats } from "@/modules/profile/actions";
 import KPIStats from "@/modules/profile/components/KPIStats";
@@ -128,9 +129,9 @@ export default async function ProfilePage() {
                                 )}
                             </TabsContent>
                             <TabsContent value="starred" className="mt-0 min-w-0">
-                                {stats.playgrounds.filter((p: any) => p.Starmark?.length > 0 && p.Starmark[0].isMarked).length > 0 ? (
+                                {stats.playgrounds.filter((p) => p.Starmark?.length > 0 && p.Starmark[0].isMarked).length > 0 ? (
                                     <CompactProjectTable
-                                        projects={stats.playgrounds.filter((p: any) => p.Starmark?.length > 0 && p.Starmark[0].isMarked)}
+                                        projects={stats.playgrounds.filter((p) => p.Starmark?.length > 0 && p.Starmark[0].isMarked)}
                                         onDeleteProject={deleteProjectById}
                                         onUpdateProject={editProjectById}
                                         onDuplicateProject={duplicateProjectById}

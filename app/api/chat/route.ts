@@ -24,14 +24,43 @@ WORKFLOW for every request that involves code:
 
 If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
 
+//Size Limits Configuration
+const SIZE_LIMITS = {
+  MAX_MESSAGE_CONTENT: 100_000,
+  MAX_PART_TEXT: 50_000,   
+  MAX_TOTAL_PAYLOAD: 1_000_000,
+  MAX_MESSAGE_COUNT: 100,
+};
 
+//Zod Schemas for Validation
+const MessagePartSchema = z.object({
+  type: z.string().max(20),
+  text: z.string().max(SIZE_LIMITS.MAX_PART_TEXT)
+    .refine(text => text.trim().length > 0, "Part text cannot be empty"),
+}).strict();
+
+const MessageSchema = z.object({
+  role: z.enum(["system", "user", "assistant", "data", "tool"]),
+  content: z.string().max(SIZE_LIMITS.MAX_MESSAGE_CONTENT).optional(),
+  parts: z.array(MessagePartSchema).optional(),
+}).refine(
+  msg => msg.content || (msg.parts && msg.parts.length > 0),
+  "Message must have either content or parts"
+);
 
 const RequestBodySchema = z.object({
-    messages: z.array(z.any()).max(100),
-    provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
-    fileTree: z.string().max(50_000).optional(),
-    userApiKey: z.string().max(256).optional(),
-});
+  messages: z.array(MessageSchema).max(SIZE_LIMITS.MAX_MESSAGE_COUNT),
+  provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
+  fileTree: z.string().max(50_000).optional(),
+  userApiKey: z.string().max(256).optional(),
+}).refine(
+  body => {
+    // Calculate total payload size to prevent DoS attacks
+    const totalSize = JSON.stringify(body).length;
+    return totalSize <= SIZE_LIMITS.MAX_TOTAL_PAYLOAD;
+  },
+  { message: `Total payload exceeds maximum allowed size (${SIZE_LIMITS.MAX_TOTAL_PAYLOAD} bytes)` }
+);
 
 /**
  * HTTP POST handler for the AI chat endpoint. Validates request body,
@@ -40,9 +69,13 @@ const RequestBodySchema = z.object({
 export async function POST(request: NextRequest) {
     try {        
 
-        // Rate limiting: 20 requests per minute per IP
+        const session = await auth();
+        const isAuthenticated = !!session?.user;
+        
+        // Rate limiting: 20 requests per minute per user (if logged in) or per IP
         const ip = getClientIp(request);
-        const { allowed, remaining } = await rateLimit(ip, 20, 60_000);
+        const identifier = session?.user?.id ? `chat_user:${session.user.id}` : `chat_ip:${ip}`;
+        const { allowed, remaining } = await rateLimit(identifier, 20, 60_000);
 
         if (!allowed) {
             return NextResponse.json(
@@ -57,16 +90,47 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Fail fast before parsing JSON to prevent DoS attacks
+        const contentLength = request.headers.get("content-length");
+        if (contentLength) {
+            const length = parseInt(contentLength, 10);
+            if (length > SIZE_LIMITS.MAX_TOTAL_PAYLOAD) {
+                return NextResponse.json(
+                    { 
+                        success: false, 
+                        error: `Request payload exceeds maximum size (${SIZE_LIMITS.MAX_TOTAL_PAYLOAD} bytes)` 
+                    },
+                    { status: 413 }
+                );
+            }
+        }
+
         const session = await auth();
         const isAuthenticated = !!session?.user;
         
-        const body = await request.json();
+        // Parse and validate request body
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch (error) {
+            return NextResponse.json(
+                { success: false, error: "Invalid JSON in request body" },
+                { status: 400 }
+            );
+        }
+
         const result = RequestBodySchema.safeParse(body);
 
         if (!result.success) {
+            // Check if validation error is about total payload size
+            const isSizeError = result.error.issues.some(issue => 
+                issue.message.includes("Total payload exceeds")
+            );
+            
+            const statusCode = isSizeError ? 413 : 400;
             return NextResponse.json(
                 { success: false, error: "Invalid request", details: result.error.issues },
-                { status: 400 }
+                { status: statusCode }
             );
         }
 
@@ -137,45 +201,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        type MessagePart = { type: string; text: string };
-
-        const validRoles = ["system", "user", "assistant", "data", "tool"];
-        const sanitizedMessages: Omit<UIMessage, 'id'>[] = [];
-        for (const raw of messages) {
-            if (!raw || typeof raw !== "object") {
-                return NextResponse.json(
-                    { success: false, error: "Invalid request: each message must be an object" },
-                    { status: 400 }
-                );
-            }
-            
-            const role = (raw as Record<string, unknown>).role;
-            if (typeof role !== "string" || !validRoles.includes(role)) {
-                return NextResponse.json(
-                    { success: false, error: "Invalid request: each message must have a valid role" },
-                    { status: 400 }
-                );
-            }
-            
-            const m = raw as { role: "system" | "user" | "assistant" | "data" | "tool"; content?: string; parts?: MessagePart[] };
-            if (Array.isArray(m.parts)) {
-                // Ensure each part has at least a type property
-                if (!m.parts.every(p => p && typeof p === "object" && "type" in p)) {
-                     return NextResponse.json(
-                        { success: false, error: "Invalid request: malformed parts" },
-                        { status: 400 }
-                    );
-                }
-                sanitizedMessages.push({ role: m.role as UIMessage['role'], parts: m.parts as UIMessage['parts'] });
-                continue;
-            }
-            sanitizedMessages.push({
-                role: m.role as UIMessage['role'],
-                parts: typeof m.content === "string" && m.content.trim()
-                    ? [{ type: "text" as const, text: m.content }]
-                    : [],
-            });
-        }
+        // Transform validated messages into UIMessage format
+        const sanitizedMessages = messages.map((msg) => ({
+            role: msg.role,
+            parts: msg.parts || (msg.content ? [{ type: "text" as const, text: msg.content }] : []),
+        })) as Omit<UIMessage, 'id'>[];
 
         const resultStream = streamText({
             model,
@@ -191,3 +221,10 @@ export async function POST(request: NextRequest) {
         return handleApiError(error, "POST /api/chat");
     }
 }
+
+// Export schemas for testing and external validation
+export const schemas = {
+    MessagePartSchema,
+    MessageSchema,
+    RequestBodySchema,
+};

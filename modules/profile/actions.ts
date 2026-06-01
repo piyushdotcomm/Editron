@@ -2,7 +2,10 @@
 
 import { currentUser } from "@/modules/auth/actions";
 import { db } from "@/lib/db";
-import { Templates } from "@prisma/client";
+import { Templates, Prisma } from "@prisma/client";
+type PlaygroundWithRelations = Prisma.PlaygroundGetPayload<{
+    include: { Starmark: true }
+}>;
 
 export interface ProfileStats {
     totalProjects: number;
@@ -17,7 +20,7 @@ export interface ProfileStats {
         projectName: string;
     }[];
     heatmapData: { date: string; count: number }[];
-    playgrounds: any[];
+    playgrounds: PlaygroundWithRelations[];
 }
 
 export async function getUserProfileStats(userId?: string): Promise<ProfileStats | null> {
