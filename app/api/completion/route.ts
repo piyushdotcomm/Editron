@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateText } from "ai";
+import { generateText, type LanguageModel } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -52,8 +52,8 @@ export async function POST(request: NextRequest) {
         const { prompt, language, provider, userApiKey } = result.data;
         const hasValidUserKey = userApiKey && userApiKey.trim() !== "";
 
-const contextPrompt = language ? `Language: ${language}\n\n${prompt}` : prompt;
-let model;
+        const contextPrompt = language ? `Language: ${language}\n\n${prompt}` : prompt;
+        let model: LanguageModel;
 
 if (provider === "gemini") {
   const apiKey = hasValidUserKey ? userApiKey : session?.user ? process.env.GEMINI_API_KEY : null;

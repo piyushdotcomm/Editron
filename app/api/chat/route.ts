@@ -1,4 +1,4 @@
-import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from "ai";
 import { z } from "zod";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -104,9 +104,6 @@ export async function POST(request: NextRequest) {
                 );
             }
         }
-
-        const session = await auth();
-        const isAuthenticated = !!session?.user;
         
         // Parse and validate request body
         let body: unknown;
@@ -147,7 +144,7 @@ export async function POST(request: NextRequest) {
             ? `${SYSTEM_PROMPT}\n\nProject file tree:\n${fileTree}`
             : SYSTEM_PROMPT;
 
-        let model;
+        let model: LanguageModel;
 
         if (provider === "gemini") {
             const apiKey = userApiKey || (isAuthenticated ? process.env.GEMINI_API_KEY : undefined);

@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
-
-declare module "jszip" {
-    interface JSZipObject {
-        _data?: {
-            uncompressedSize?: number;
-        };
-    }
-}
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
@@ -51,7 +43,9 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
 
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
-            const size = file._data?.uncompressedSize;
+            // Access internal JSZip metadata for safety to prevent decompression bombs
+            const internalData = file as unknown as { _data?: { uncompressedSize?: number } };
+            const size = internalData._data?.uncompressedSize;
 
             if (typeof size !== "number") {
                 throw new ValidationError(`Cannot determine uncompressed size for file: ${relativePath}`, 400);
@@ -196,10 +190,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const errorMessage = error instanceof Error ? error.message : "Failed to process ZIP file";
-
+        const message = error instanceof Error ? error.message : "Failed to process ZIP file";
         return NextResponse.json(
-            { error: errorMessage },
+            { error: message },
             { status: 500 }
         );
     }

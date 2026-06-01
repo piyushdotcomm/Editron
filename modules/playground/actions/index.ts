@@ -66,7 +66,7 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
-        throw error;
+        console.log(error)
     }
 }
 
@@ -95,7 +95,7 @@ export const getAllPlaygroundForUser = async ()=>{
       
         return playground;
     } catch (error) {
-        throw error;
+        console.log(error)
     }
 }
 
@@ -192,6 +192,7 @@ export const SaveUpdatedCode = async (
 
     return updatedPlayground;
   } catch (error) {
+    console.log("SaveUpdatedCode error:", error);
     throw error;
   }
 };
@@ -204,7 +205,7 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        throw error;
+        console.log(error)
     }
 }
 
@@ -218,7 +219,7 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        throw error;
+        console.log(error)
     }
 }
 
@@ -246,7 +247,7 @@ export const duplicateProjectById = async (id: string) => {
                 userId,
                 templateFiles: {
                     create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content as Prisma.InputJsonValue,
+                        content: file.content ? (file.content as Prisma.InputJsonValue) : Prisma.JsonNull,
                     })),
                 },
             },
