@@ -75,21 +75,11 @@ async function handleUserAccountSync(
 
       // Step 4: Create or update account
       if (!existingAccount) {
-        await tx.account.create({
-          data: {
-            userId: user.id,
-            type: account.type,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
-            refreshToken: account.refresh_token,
-            accessToken: account.access_token,
-            expiresAt: account.expires_at,
-            tokenType: account.token_type,
-            scope: account.scope,
-            idToken: account.id_token,
-            sessionState,
-          },
-        });
+        // If the account does not exist, we MUST NOT automatically link it.
+        // Automatically linking accounts based solely on email allows Account Takeover
+        // if an attacker creates an account on a provider with the victim's email.
+        console.warn(`Blocked automatic account linking for ${user.email} to prevent OAuth Hijacking.`);
+        throw new Error("OAuthAccountNotLinked");
       } else {
         // Update tokens and expiry for existing account
         await tx.account.update({
