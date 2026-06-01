@@ -110,6 +110,7 @@ model Playground{
 
 
   templateFiles TemplateFile[]
+  secrets Secret[]
 }
 
 
@@ -131,4 +132,17 @@ model TemplateFile{
   updatedAt DateTime @updatedAt
   playgroundId String @unique
   playground Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+}
+
+model Secret {
+  id String @id @default(cuid()) @map("_id")
+  key String
+  value String
+  playgroundId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  playground Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+
+  @@unique([playgroundId, key])
 }

@@ -17,6 +17,14 @@ function sanitizeRelativePath(filePath: string): string {
   return result;
 }
 
+// ─── Runtime Event Type ───────────────────────────────────────────────────────
+interface RuntimeEvent {
+  id: string;
+  type: "info" | "success" | "error";
+  message: string;
+  timestamp: number;
+}
+
 // ─── Zustand Store ────────────────────────────────────────────────────────────
 interface WebContainerState {
   instance: WebContainer | null;
@@ -24,9 +32,12 @@ interface WebContainerState {
   isLoading: boolean;
   error: string | null;
   serverUrl: string | null;
+  runtimeEvents: RuntimeEvent[];
   initialize: () => Promise<void>;
   reset: () => void;
   setServerUrl: (url: string | null) => void;
+  addRuntimeEvent: (event: Omit<RuntimeEvent, "id" | "timestamp">) => void;
+  clearRuntimeEvents: () => void;
 }
 
 export const useWebContainerStore = create<WebContainerState>((set, get) => ({
@@ -35,6 +46,21 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
   isLoading: false,
   error: null,
   serverUrl: null,
+  runtimeEvents: [],
+
+  addRuntimeEvent: (event) =>
+    set((state) => ({
+      runtimeEvents: [
+        ...state.runtimeEvents.slice(-49),
+        {
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          ...event,
+        },
+      ],
+    })),
+
+  clearRuntimeEvents: () => set({ runtimeEvents: [] }),
 
   initialize: async () => {
     const { instance, bootPromise } = get();
@@ -93,6 +119,7 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
       isLoading: false,
       error: null,
       serverUrl: null,
+      runtimeEvents: [],
     });
   },
 
@@ -116,11 +143,11 @@ export const useWebContainer = (): UseWebContainerReturn => {
     useWebContainerStore();
 
   // Auto-initialize on first use
-useEffect(() => {
-  if (!instance && !isLoading) {
-    initialize();
-  }
-}, [instance, isLoading, initialize]);
+  useEffect(() => {
+    if (!instance && !isLoading) {
+      initialize();
+    }
+  }, [instance, isLoading, initialize]);
 
   const writeFileSync = useCallback(
     async (path: string, content: string): Promise<void> => {
@@ -146,7 +173,7 @@ useEffect(() => {
         throw new Error(`Failed to write file at ${path}: ${errorMessage}`);
       }
     },
-    [instance]
+    [instance],
   );
 
   return {

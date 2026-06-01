@@ -4,6 +4,11 @@ import JSZip from "jszip";
 import { rateLimit } from "@/lib/api-utils";
 import { NETLIFY_API } from "@/lib/constants/config";
 
+interface DeployFile {
+    path: string;
+    content: string;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const session = await auth();
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
         // For Netlify, the easiest way to deploy raw files is to zip them and POST to the API.
         const zip = new JSZip();
 
-        files.forEach((f: any) => {
+        files.forEach((f: DeployFile) => {
             // Netlify requires files to be in a flat structure inside the zip or root
             zip.file(f.path, f.content);
         });

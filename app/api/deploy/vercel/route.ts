@@ -1,12 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { rateLimit } from "@/lib/api-utils";
 import { VERCEL_API } from "@/lib/constants/config";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Cap each authenticated user to 5 Vercel deploys per minute, matching
+        // the identical guard on the Netlify deploy endpoint. Without this, any
+        // authenticated user can loop against the endpoint and exhaust the
+        // shared VERCEL_MASTER_TOKEN quota (or incur billing on their own key).
+        const { allowed, remaining } = await rateLimit(
+            `deploy-vercel:${session.user.id}`,
+            5,
+            60_000
+        );
+
+        if (!allowed) {
+            return NextResponse.json(
+                { error: "Rate limit exceeded. Please wait before deploying again." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Limit": "5",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
+            );
         }
 
         const { files, name, userApiKey } = await req.json();
@@ -29,7 +54,7 @@ export async function POST(req: Request) {
         // [{ file: "index.html", data: "..." }]
 
         // Convert our internal `TemplateData` format to flat Vercel format
-        const flatFiles = files.map(f => ({
+        const flatFiles = files.map((f: { path: string; content: string }) => ({
             file: f.path,
             data: f.content
         }));
