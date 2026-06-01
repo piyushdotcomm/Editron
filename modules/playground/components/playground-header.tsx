@@ -17,6 +17,7 @@ import {
     XCircle,
     FolderDown,
     Menu,
+    ScrollText,
     Clock
 } from "lucide-react";
 
@@ -42,8 +43,9 @@ export const PlaygroundHeader = ({
         setIsPreviewVisible,
         setIsDeployDialogOpen,
         setShowAISettings,
+        setIsReadmeDialogOpen,
         toggleTimeTravel,
-        isTimeTravelOpen
+        isTimeTravelOpen,
         setShowPreferences
     } = usePlaygroundUI();
     const { openFiles, activeFileId, closeAllFiles } = useFileExplorer();
@@ -132,6 +134,22 @@ export const PlaygroundHeader = ({
                 </div>
 
                 {/* Deploy */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2.5 text-xs rounded-md text-muted-foreground hover:text-foreground"
+                            onClick={() => setIsReadmeDialogOpen(true)}
+                            aria-label="Generate README"
+                        >
+                            <ScrollText className="h-3.5 w-3.5 mr-1" />
+                            README
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Generate README.md</TooltipContent>
+                </Tooltip>
+
                 <Button
                     size="sm"
                     onClick={() => setIsDeployDialogOpen(true)}
