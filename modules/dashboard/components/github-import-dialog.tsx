@@ -68,8 +68,16 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
                 body: JSON.stringify(body),
             });
 
+            // 1. Check content type first to safely prevent standard HTML parser crash
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received an invalid server response. If running locally, make sure your collaboration server is active.");
+            }
+
+            // 2. Safe to parse now that we know it is valid JSON
             const data = await response.json();
 
+            // 3. Evaluate internal error messages returned from the API handler
             if (!response.ok) {
                 throw new Error(data.error || "Failed to import repository");
             }

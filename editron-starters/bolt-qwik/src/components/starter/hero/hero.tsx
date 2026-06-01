@@ -2,6 +2,23 @@ import { component$ } from '@builder.io/qwik';
 import styles from './hero.module.css';
 import ImgThunder from '../../../media/thunder.png?jsx';
 
+export interface ConfettiOptions {
+  particleCount?: number;
+  angle?: number;
+  spread?: number;
+  startVelocity?: number;
+  decay?: number;
+  gravity?: number;
+  drift?: number;
+  ticks?: number;
+  origin?: { x?: number; y?: number };
+  colors?: string[];
+  shapes?: string[];
+  scalar?: number;
+  zIndex?: number;
+  disableForReducedMotion?: boolean;
+}
+
 export default component$(() => {
   return (
     <div class={['container', styles.hero]}>
@@ -29,7 +46,7 @@ export default component$(() => {
             };
 
             function loadConfetti() {
-              return new Promise<(opts: any) => void>((resolve, reject) => {
+              return new Promise<(opts: ConfettiOptions) => void>((resolve, reject) => {
                 if ((globalThis as any).confetti) {
                   return resolve((globalThis as any).confetti as any);
                 }
