@@ -120,6 +120,9 @@ export function EnvManager({
                     <Lock className="h-3.5 w-3.5 text-primary" />
                     Secrets Manager
                 </div>
+                <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleAddVar} title="Add Variable" aria-label="Add environment variable">
+                    <Plus className="h-3.5 w-3.5" />
+                </Button>
             </SidebarGroupLabel>
             
             <SidebarGroupContent className="p-2 space-y-3">
@@ -156,31 +159,56 @@ export function EnvManager({
                         No secrets found
                     </div>
                 ) : (
-                    <div className="space-y-2 mt-2">
-                        {secrets.map((secret) => (
-                            <div key={secret.id || secret.key} className="flex flex-col gap-1 bg-muted/40 p-2 rounded-md border text-sm group">
-                                <div className="flex items-center justify-between">
-                                    <span className="font-mono text-[10px] font-semibold truncate text-primary">{secret.key}</span>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            type="button"
-                                            className="h-5 w-5 hover:bg-muted"
-                                            onClick={() => toggleShowValue(secret.key)}
-                                        >
-                                            {showValues[secret.key] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            type="button"
-                                            className="h-5 w-5 text-destructive hover:bg-destructive/10"
-                                            onClick={() => handleDeleteSecret(secret.key)}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
+                    <div className="space-y-2">
+                        {envVars.map((v, idx) => {
+                            const keyTrimmed = v.key.trim();
+                            const isDup = duplicateKeys.has(keyTrimmed);
+                            const isMalformed = keyTrimmed !== "" && !isValidKey(keyTrimmed);
+                            const itemHasError = isDup || isMalformed;
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`flex items-center gap-1.5 border p-1.5 rounded bg-muted/20 ${itemHasError ? "border-destructive/40 bg-destructive/5" : "border-border"
+                                        }`}
+                                >
+                                    <div className="flex flex-col flex-1 gap-1">
+                                        <Input
+                                            value={v.key}
+                                            onChange={(e) => handleUpdateVar(idx, "key", e.target.value)}
+                                            placeholder="API_KEY"
+                                            className={`h-6 text-[10px] font-mono rounded-sm bg-background shadow-none border ${itemHasError
+                                                ? "border-destructive/60 text-destructive focus-visible:ring-destructive"
+                                                : "border-transparent focus-visible:ring-ring"
+                                                }`}
+                                        />
+                                        {isMalformed && (
+                                            <span className="text-[8px] text-destructive leading-tight px-1 font-sans">
+                                                A-Z, 0-9, _ only, must start with letter/_
+                                            </span>
+                                        )}
+                                        {isDup && (
+                                            <span className="text-[8px] text-destructive leading-tight px-1 font-sans">
+                                                Duplicate key name
+                                            </span>
+                                        )}
+                                        <Input
+                                            value={v.value}
+                                            onChange={(e) => handleUpdateVar(idx, "value", e.target.value)}
+                                            placeholder="Value..."
+                                            type="password"
+                                            className="h-6 text-[10px] font-mono rounded-sm border border-transparent focus-visible:border-input focus-visible:ring-ring bg-background shadow-none"
+                                        />
                                     </div>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0"
+                                        onClick={() => handleRemoveVar(idx)}
+                                        aria-label="Delete environment variable"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
                                 </div>
                                 <div className="font-mono text-[10px] text-muted-foreground truncate bg-background p-1 rounded border">
                                     {showValues[secret.key] ? secret.value : "••••••••••••••••"}
