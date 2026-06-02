@@ -12,6 +12,13 @@ export interface PlaygroundData {
   [key: string]: unknown;
 }
 
+export type SplitDirection = "horizontal" | "vertical";
+
+export interface EditorPane {
+  id: string;
+  activeFileId: string | null;
+}
+
 /**
  * Shared playground dependencies provided to all children.
  * Eliminates prop-drilling of templateData, saveTemplateData,
@@ -44,6 +51,15 @@ export interface PlaygroundContextValue {
 
   /** Container-level error message, if any */
   containerError: string | null;
+
+  editorPanes: EditorPane[];
+  setEditorPanes: React.Dispatch<React.SetStateAction<EditorPane[]>>;
+
+  splitDirection: SplitDirection;
+  setSplitDirection: React.Dispatch<React.SetStateAction<SplitDirection>>;
+
+  activePaneId: string | null;
+  setActivePaneId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const PlaygroundContext = createContext<PlaygroundContextValue | null>(null);
@@ -66,7 +82,7 @@ export function usePlaygroundContext(): PlaygroundContextValue {
   const ctx = useContext(PlaygroundContext);
   if (!ctx) {
     throw new Error(
-      "usePlaygroundContext must be used within a PlaygroundProvider"
+      "usePlaygroundContext must be used within a PlaygroundProvider",
     );
   }
   return ctx;

@@ -45,14 +45,14 @@ export default function RunningEnvironments({ runtimes }: { runtimes: RuntimeEnv
                         </div>
 
                         <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
-                            <button className="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-colors" title="View Logs">
-                                <Terminal size={14} />
+                            <button className="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-colors" title="View Logs" aria-label="View Logs">
+                                <Terminal size={14} aria-hidden="true"/>
                             </button>
-                            <button className="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-amber-500 transition-colors" title="Restart">
-                                <RotateCw size={14} />
+                            <button className="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-amber-500 transition-colors" title="Restart" aria-label="Restart">
+                                <RotateCw size={14} aria-hidden="true"/>
                             </button>
-                            <button className="p-1.5 hover:bg-red-500/10 rounded-md text-red-500 hover:text-red-600 transition-colors" title="Stop">
-                                <Power size={14} />
+                            <button className="p-1.5 hover:bg-red-500/10 rounded-md text-red-500 hover:text-red-600 transition-colors" title="Stop" aria-label="Stop">
+                                <Power size={14} aria-hidden="true"/>
                             </button>
                         </div>
                     </div>

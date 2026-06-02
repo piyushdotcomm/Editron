@@ -70,8 +70,45 @@
   }
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: stretch;
+  width: max-content;
+  white-space: nowrap;
+  animation: marquee 30s linear infinite;
+  animation-timing-function: linear;
+  will-change: transform;
+}
+
+.marquee-track:hover,
+.marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
 .animate-shimmer {
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out forwards;
 }
 
 .scrollbar-hide {
@@ -306,4 +343,36 @@
 
 .yRemoteSelectionHead:hover .yRemoteSelectionHead-name {
   opacity: 1;
+}
+
+/* Add these to your globals.css */
+
+/* Hero code card — replaces Framer Motion animate prop */
+@keyframes hero-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-card {
+  animation: hero-card-in 0.8s ease-out 0.2s both;
+  will-change: transform, opacity;
+}
+
+/* Respect OS-level reduced motion preference across the whole page */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-card,
+  .animate-in,
+  .animate-pulse,
+  .animate-highlight,
+  .animate-flash {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

@@ -66,7 +66,7 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -95,7 +95,7 @@ export const getAllPlaygroundForUser = async ()=>{
       
         return playground;
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -192,7 +192,6 @@ export const SaveUpdatedCode = async (
 
     return updatedPlayground;
   } catch (error) {
-    console.log("SaveUpdatedCode error:", error);
     throw error;
   }
 };
@@ -205,7 +204,7 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -219,7 +218,7 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -248,7 +247,7 @@ export const duplicateProjectById = async (id: string) => {
                 templateFiles: {
                   // @ts-expect-error: Prisma does not properly infer the mapped nested create array type here.
                     create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content,
+                        content: file.content as Prisma.InputJsonValue,
                     })),
                 },
             },
