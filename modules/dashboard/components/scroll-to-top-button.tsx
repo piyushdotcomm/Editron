@@ -3,7 +3,7 @@
 import { ChevronUp } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-export default function ScrollToTopButton() {
+export default function ScrollToTopButton({ revealThreshold = 300 }: { revealThreshold?: number } = {}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -20,7 +20,7 @@ export default function ScrollToTopButton() {
 
       const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
       const progress = documentHeight > 0 ? Math.min(100, (scrollTop / documentHeight) * 100) : 0;
-      const visible = scrollTop > 0;
+      const visible = scrollTop > revealThreshold;
 
       wrapperRef.current.style.opacity = visible ? "1" : "0";
       wrapperRef.current.style.pointerEvents = visible ? "auto" : "none";
@@ -30,6 +30,10 @@ export default function ScrollToTopButton() {
       buttonRef.current.style.boxShadow = visible
         ? "0 16px 40px rgba(239, 68, 68, 0.25)"
         : "0 10px 24px rgba(0, 0, 0, 0.1)";
+
+      buttonRef.current.tabIndex = visible ? 0 : -1;
+      buttonRef.current.disabled = !visible;
+      buttonRef.current.setAttribute("aria-hidden", visible ? "false" : "true");
     };
 
     handleScroll();
@@ -43,12 +47,17 @@ export default function ScrollToTopButton() {
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    const supportsSmoothScroll =
+      typeof window !== "undefined" &&
+      ((typeof CSS !== "undefined" && CSS.supports?.("scroll-behavior", "smooth")) ||
+        "scrollBehavior" in document.documentElement.style);
+
+    if (supportsSmoothScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
   };
 
   return (
