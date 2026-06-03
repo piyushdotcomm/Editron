@@ -31,8 +31,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import Image from "next/image"
+import { LogOut } from "lucide-react"
+import LogoutButton from "@/modules/auth/components/logout-button"
 
 // Define the interface for a single playground item, icon is now a string
 interface PlaygroundData {
@@ -56,6 +59,7 @@ const lucideIconMap: Record<string, LucideIcon> = {
 
 export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundData: PlaygroundData[] }) {
   const pathname = usePathname()
+  const { isMobile } = useSidebar()
   const [starredPlaygrounds] = useState(initialPlaygroundData.filter((p) => p.starred))
   const [recentPlaygrounds] = useState(initialPlaygroundData)
 
@@ -192,6 +196,16 @@ export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundD
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {isMobile && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Logout" className="h-10 hover:bg-background/80 transition-all duration-200">
+                <LogoutButton className="flex items-center gap-2 hover:text-red-500" >
+                  <LogOut className="h-4 w-4" />
+                  <span className="font-medium">Logout</span>
+                </LogoutButton>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />

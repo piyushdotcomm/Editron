@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -10,7 +9,7 @@ interface UsageAnalyticsProps {
 }
 
 export default function UsageAnalytics({ activityData, techStack }: UsageAnalyticsProps) {
-    const { theme } = useTheme();
+    
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

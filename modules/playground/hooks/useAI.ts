@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  STORAGE_KEYS,
-  DEFAULT_EDITOR_THEME,
-} from "@/lib/constants/config";
+import { STORAGE_KEYS } from "@/lib/constants/config";
 
 import { create } from "zustand";
 import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
@@ -25,7 +22,6 @@ interface AIState {
     chatMessages: ChatMessage[];
     isGenerating: boolean;
     inlineSuggestionsEnabled: boolean;
-    editorTheme: string;
 
     // User API keys (persisted to localStorage)
     userGeminiKey: string;
@@ -43,16 +39,15 @@ interface AIState {
     setUserApiKey: (provider: AIProvider, key: string) => void;
     getUserApiKey: (provider?: AIProvider) => string;
     toggleInlineSuggestions: () => void;
-    setEditorTheme: (theme: string) => void;
 }
 
 function loadUserKeys() {
     if (typeof window === "undefined") return { gemini: "", groq: "", mistral: "" };
     try {
         return {
-            gemini: localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY) || "",
-            groq: localStorage.getItem(STORAGE_KEYS.GROQ_API_KEY) || "",
-            mistral: localStorage.getItem(STORAGE_KEYS.MISTRAL_API_KEY) || "",
+            gemini: localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || "",
+            groq: localStorage.getItem(STORAGE_KEYS.GROQ_KEY) || "",
+            mistral: localStorage.getItem(STORAGE_KEYS.MISTRAL_KEY) || "",
         };
     } catch {
         return { gemini: "", groq: "", mistral: "" };
@@ -71,18 +66,17 @@ export const useAI = create<AIState>((set, get) => {
         chatMessages: [],
         isGenerating: false,
         inlineSuggestionsEnabled: inlineEnabled,
-        editorTheme: typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.EDITOR_THEME) || DEFAULT_EDITOR_THEME : DEFAULT_EDITOR_THEME,
         userGeminiKey: keys.gemini,
         userGroqKey: keys.groq,
         userMistralKey: keys.mistral,
 
-        setProvider: (provider) => set({ provider }),
-        toggleChat: () => set((s) => ({ isChatOpen: !s.isChatOpen })),
+        setProvider: (provider: AIProvider) => set({ provider }),
+        toggleChat: () => set((s: AIState) => ({ isChatOpen: !s.isChatOpen })),
         openChat: () => set({ isChatOpen: true }),
         closeChat: () => set({ isChatOpen: false }),
 
-        addMessage: (message) =>
-            set((s) => ({
+        addMessage: (message: Omit<ChatMessage, "id" | "timestamp">) =>
+            set((s: AIState) => ({
                 chatMessages: [
                     ...s.chatMessages,
                     {
@@ -94,7 +88,7 @@ export const useAI = create<AIState>((set, get) => {
             })),
 
         clearChat: () => set({ chatMessages: [] }),
-        setIsGenerating: (val) => set({ isGenerating: val }),
+        setIsGenerating: (val: boolean) => set({ isGenerating: val }),
 
         toggleInlineSuggestions: () => {
             const next = !get().inlineSuggestionsEnabled;
@@ -102,30 +96,26 @@ export const useAI = create<AIState>((set, get) => {
             set({ inlineSuggestionsEnabled: next });
         },
 
-        setEditorTheme: (theme: string) => {
-            try { localStorage.setItem(STORAGE_KEYS.EDITOR_THEME, theme); } catch { }
-            set({ editorTheme: theme });
-        },
-
         setUserApiKey: (provider, key) => {
             const storageKeys: Record<AIProvider, string> = {
-                gemini: STORAGE_KEYS.GEMINI_API_KEY,
-                groq: STORAGE_KEYS.GROQ_API_KEY,
-                mistral: STORAGE_KEYS.MISTRAL_API_KEY,
+                gemini: STORAGE_KEYS.GEMINI_KEY,
+                groq: STORAGE_KEYS.GROQ_KEY,
+                mistral: STORAGE_KEYS.MISTRAL_KEY,
             };
             try {
                 localStorage.setItem(storageKeys[provider], key);
             } catch { }
 
-            const stateKeys: Record<AIProvider, string> = {
+            const stateKeys: Record<AIProvider, keyof Pick<AIState, 'userGeminiKey' | 'userGroqKey' | 'userMistralKey'>> = {
                 gemini: "userGeminiKey",
                 groq: "userGroqKey",
                 mistral: "userMistralKey",
             };
-            set({ [stateKeys[provider]]: key } as any);
+            const partialState: Partial<AIState> = { [stateKeys[provider]]: key };
+            set(partialState);
         },
 
-        getUserApiKey: (provider) => {
+        getUserApiKey: (provider?: AIProvider) => {
             const p = provider || get().provider;
             if (p === "gemini") return get().userGeminiKey;
             if (p === "groq") return get().userGroqKey;

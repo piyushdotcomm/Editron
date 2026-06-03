@@ -3,6 +3,14 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+const isLowEnd = () => {
+  if (typeof navigator === "undefined") return false;
+  const mem = (navigator as { deviceMemory?: number }).deviceMemory;
+  if (mem !== undefined && mem <= 2) return true;
+  if (window.matchMedia("(hover: none)").matches) return true;
+  return false;
+};
+
 const AnimatedShaderBackground = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -10,9 +18,14 @@ const AnimatedShaderBackground = () => {
     const container = containerRef.current;
     if (!container) return;
 
+    const lowEnd = isLowEnd();
+    const pixelRatio = lowEnd ? 0.5 : Math.min(window.devicePixelRatio, 1.5);
+    const numIterations = lowEnd ? 18 : 35;
+
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd, powerPreference: "low-power" });
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
@@ -22,6 +35,7 @@ const AnimatedShaderBackground = () => {
         iResolution: {
           value: new THREE.Vector2(window.innerWidth, window.innerHeight),
         },
+        iIterations: { value: numIterations },
       },
       vertexShader: `
         void main() {
@@ -31,6 +45,7 @@ const AnimatedShaderBackground = () => {
       fragmentShader: `
         uniform float iTime;
         uniform vec2 iResolution;
+        uniform float iIterations;
 
         #define NUM_OCTAVES 3
 
@@ -71,8 +86,9 @@ const AnimatedShaderBackground = () => {
           float f = 2.0 + fbm(p + vec2(iTime * 5.0, 0.0)) * 0.5;
 
           for (float i = 0.0; i < 35.0; i++) {
+            if (i >= iIterations) break;
             v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5 + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
-            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
+            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / iIterations));
             vec4 auroraColors = vec4(
               0.75 + 0.25 * sin(i * 0.2 + iTime * 0.4),
               0.12 + 0.18 * cos(i * 0.3 + iTime * 0.5),
@@ -80,7 +96,7 @@ const AnimatedShaderBackground = () => {
               1.0
             );
             vec4 currentContribution = auroraColors * exp(sin(i * i + iTime * 0.8)) / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
-            float thinnessFactor = smoothstep(0.0, 1.0, i / 35.0) * 0.6;
+            float thinnessFactor = smoothstep(0.0, 1.0, i / iIterations) * 0.6;
             o += currentContribution * (1.0 + tailNoise * 0.8) * thinnessFactor;
           }
 
@@ -95,12 +111,27 @@ const AnimatedShaderBackground = () => {
     scene.add(mesh);
 
     let frameId: number;
-    const animate = () => {
-      material.uniforms.iTime.value += 0.016;
-      renderer.render(scene, camera);
+    let lastTime = 0;
+    const frameBudget = lowEnd ? 1000 / 30 : 0;
+
+    const animate = (time: number) => {
       frameId = requestAnimationFrame(animate);
+      if (frameBudget > 0 && time - lastTime < frameBudget) return;
+      lastTime = time;
+      material.uniforms.iTime.value += lowEnd ? 0.032 : 0.016;
+      renderer.render(scene, camera);
     };
-    animate();
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(frameId);
+      } else {
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    frameId = requestAnimationFrame(animate);
 
     const handleResize = () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -114,6 +145,7 @@ const AnimatedShaderBackground = () => {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibility);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }

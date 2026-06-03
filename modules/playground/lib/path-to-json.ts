@@ -157,7 +157,6 @@ async function processDirectory(
       if (entry.isDirectory()) {
         // Skip ignored folders
         if (options.ignoreFolders?.includes(entryName)) {
-          console.log(`Skipping ignored folder: ${entryPath}`);
           continue;
         }
         
@@ -167,14 +166,12 @@ async function processDirectory(
       } else if (entry.isFile()) {
         // Skip ignored files
         if (options.ignoreFiles?.includes(entryName)) {
-          console.log(`Skipping ignored file: ${entryPath}`);
           continue;
         }
         
         // Check against regex patterns
         const shouldSkip = options.ignorePatterns?.some(pattern => pattern.test(entryName));
         if (shouldSkip) {
-          console.log(`Skipping file matching ignore pattern: ${entryPath}`);
           continue;
         }
         
@@ -247,7 +244,6 @@ export async function saveTemplateStructureToJson(
       JSON.stringify(templateStructure, null, 2),
       'utf8'
     );
-    console.log(`Template structure saved to ${outputPath}`);
 
 
     

@@ -4,14 +4,18 @@ import React from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";
 import AISettingsDialog from "@/modules/playground/components/ai-settings-dialog";
+import PreferencesDialog from "@/modules/playground/components/preferences-dialog";
 import { CommandPalette } from "@/modules/playground/components/command-palette";
 import { DeployDialog } from "@/modules/playground/components/deploy-dialog";
+import { ReadmeGeneratorDialog } from "@/modules/playground/components/readme-generator-dialog";
 import { usePlaygroundContext } from "@/modules/playground/contexts/playground-context";
 import { usePlaygroundUI } from "@/modules/playground/hooks/usePlaygroundUI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import { useSidebar } from "@/components/ui/sidebar";
 import type { TemplateFile } from "@/modules/playground/lib/path-to-json";
+import { addOrUpdateFile } from "@/modules/playground/hooks/useAI";
+import type { FileSystemItem } from "@/modules/playground/hooks/useAI";
 
 interface PlaygroundModalsProps {
   handleSave: () => void;
@@ -35,18 +39,37 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
   const {
     showAISettings,
     setShowAISettings,
+    showPreferences,
+    setShowPreferences,
     isCommandPaletteOpen,
     setIsCommandPaletteOpen,
     isDeployDialogOpen,
     setIsDeployDialogOpen,
     isPreviewVisible,
     setIsPreviewVisible,
+    isReadmeDialogOpen,
+    setIsReadmeDialogOpen,
   } = usePlaygroundUI();
-  const { openFile, closeAllFiles } = useFileExplorer();
+  const { openFile, closeAllFiles, setTemplateData } = useFileExplorer();
   const sidebar = useSidebar();
 
   const handleFileSelect = (file: TemplateFile) => {
     openFile(file);
+  };
+
+  const handleReadmeGenerated = async (content: string) => {
+    if (!templateData) return;
+    const updatedItems = addOrUpdateFile(
+      templateData.items as FileSystemItem[],
+      "README.md",
+      content
+    );
+    const updatedTemplateData = { ...templateData, items: updatedItems };
+    setTemplateData(updatedTemplateData);
+    await saveTemplateData(updatedTemplateData);
+    // Open the file in the editor
+    const readmeFile: TemplateFile = { filename: "README", fileExtension: "md", content };
+    openFile(readmeFile);
   };
 
   return (
@@ -62,6 +85,17 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
       <AISettingsDialog
         open={showAISettings}
         onOpenChange={setShowAISettings}
+      />
+      <PreferencesDialog
+        open={showPreferences}
+        onOpenChange={setShowPreferences}
+      />
+
+      <ReadmeGeneratorDialog
+        open={isReadmeDialogOpen}
+        onOpenChange={setIsReadmeDialogOpen}
+        templateData={templateData}
+        onReadmeGenerated={handleReadmeGenerated}
       />
 
       {/* Command Palette */}
