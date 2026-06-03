@@ -379,18 +379,22 @@ const WebContainerPreview = ({
             });
 
             bindServerReady(instance, (port: number, url: string) => {
-              writeTerminal(`🌐 Server ready at ${url} (port ${port})\r\n`);
-              addRuntimeEvent({
-                type: "success",
-                message: `Server ready on port ${port}`,
-              });
+              writeTerminal(
+                `🌐 Server ready at ${url} (port ${port})\r\n`,
+              );
+              console.log("SERVER READY EVENT", port, url);
 
               const isCommonFrontendPort = [
                 3000, 5173, 8080, 4200, 8000,
               ].includes(port);
               setRefreshKey((k) => k + 1);
               setPreviewUrl((prevUrl) => {
+                if (prevUrl !== url) {
+                  setRefreshKey((k) => k + 1);
+                }
+
                 if (prevUrl && !isCommonFrontendPort) return prevUrl;
+
                 return url;
               });
 
@@ -847,6 +851,21 @@ const WebContainerPreview = ({
       useWebContainerStore.getState().setServerUrl(null);
     };
   }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      console.log("FORCING PREVIEW REFRESH AFTER YJS CONNECT");
+
+      setRefreshKey((k) => k + 1);
+    };
+
+    window.addEventListener("yjs-reconnected", handler);
+
+    return () => {
+      window.removeEventListener("yjs-reconnected", handler);
+    };
+  }, []);
+ 
 
   if (error || setupError) {
     return (
