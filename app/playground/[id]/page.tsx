@@ -16,6 +16,7 @@ import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { usePlaygroundActions } from "@/modules/playground/hooks/usePlaygroundActions";
 import { usePlaygroundUI } from "@/modules/playground/hooks/usePlaygroundUI";
+import { useUnsavedChangesWarning } from "@/modules/playground/hooks/useUnsavedChangesWarning";
 
 // New modular UI components
 import { PlaygroundSidebar } from "@/modules/playground/components/playground-sidebar";
@@ -42,6 +43,8 @@ const PlaygroundPageContent = () => {
   const setIsPreviewVisible = usePlaygroundUI((s) => s.setIsPreviewVisible);
   const setIsCommandPaletteOpen = usePlaygroundUI((s) => s.setIsCommandPaletteOpen);
   const resetUI = usePlaygroundUI((s) => s.resetUI);
+  const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
+  const { confirmNavigation } = useUnsavedChangesWarning(hasUnsavedChanges);
 
   useEffect(() => {
     if (isSuccess && templateData) {
@@ -151,6 +154,7 @@ const PlaygroundPageContent = () => {
               handleSave={handleSave}
               handleSaveAll={handleSaveAll}
               handleDownloadZip={handleDownloadZip}
+              confirmNavigation={confirmNavigation}
             />
             
             <EditorArea handleDownloadZip={handleDownloadZip} />
