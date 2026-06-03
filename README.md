@@ -81,6 +81,12 @@ The current Prisma schema centers around:
 
 ## Project Structure
 
+This project structure follows a modular architecture with separate directories for routes,
+components, utilities, APIs, and testing.
+
+<details>
+<summary>📂 View Complete Project Structure</summary>
+
 ```txt
 Editron/
 ├── .github/                    # CI workflows, issue & PR templates
@@ -207,6 +213,7 @@ Editron/
 └── package.json
 ```
 
+</details>
 
 ## Local Development
 
