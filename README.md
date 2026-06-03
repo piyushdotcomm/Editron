@@ -13,7 +13,7 @@ Editron is a browser-based development environment built with Next.js, WebContai
 [![Prisma](https://img.shields.io/badge/Prisma-MongoDB-2d3748?logo=prisma)](https://www.prisma.io/)
 
 > [!NOTE]
-> Editron is being maintained as an open-source project. Contributor-friendly docs, issue templates, PR templates, and repository checks are included so first-time and returning contributors can work with a predictable workflow.
+> Editron is being maintained as an open-source project. Contributor-friendly docs, CI, and contribution automation are included so first-time and returning contributors can work with a predictable workflow.
 
 ## What Editron Does
 
@@ -78,6 +78,135 @@ The current Prisma schema centers around:
 - The Next.js app proxies `/api/collab/:path*` to a standalone collaboration server.
 - The collaboration server runs from `server/collab.ts`.
 - Yjs document sync is handled between the editor layer and the WebSocket server.
+
+## Project Structure
+
+```txt
+Editron/
+├── .github/                    # CI workflows, issue & PR templates
+├── app/                        # Next.js App Router
+│   ├── (auth)/                 # Authenticated route group
+│   │   └── auth/
+│   │       ├── components/     # Auth-specific UI components
+│   │       ├── layout.tsx
+│   │       └── sign-in/
+│   │           └── page.tsx
+│   ├── (root)/                 # Public route group
+│   │   ├── docs/
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── privacy/
+│   │   │   └── page.tsx
+│   │   ├── templates/
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── terms/
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   └── page.tsx            # Home page
+│   ├── api/
+│   │   ├── auth/[...nextauth]/route.ts
+│   │   ├── chat/
+│   │   │   ├── route.ts        # Streaming AI chat endpoint
+│   │   │   ├── tools.ts        # Tool definitions for AI
+│   │   │   └── chat.test.ts
+│   │   ├── collab-token/[id]/route.ts
+│   │   ├── completion/route.ts # Code completion endpoint
+│   │   ├── delete-account/route.ts
+│   │   ├── deploy/
+│   │   │   ├── cloudflare/route.ts
+│   │   │   ├── netlify/route.ts
+│   │   │   └── vercel/route.ts
+│   │   ├── projects/[id]/download/route.ts
+│   │   ├── template/[id]/route.ts
+│   │   ├── templates/meta/route.ts
+│   │   └── upload-zip/route.ts
+│   ├── dashboard/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── playground/[id]/
+│   │   └── page.tsx            # Main editor shell
+│   ├── preview/
+│   │   └── page.tsx            # Sandbox preview route
+│   ├── error.tsx
+│   ├── icon.tsx
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── marketing/              # Landing page components
+│   │   ├── home-page-client.tsx
+│   │   ├── template-card.tsx
+│   │   └── template-grid.tsx
+│   ├── providers/              # React context providers
+│   │   ├── query-provider.tsx
+│   │   └── theme-providers.tsx
+│   └── ui/                     # shadcn/ui primitives and custom components
+├── lib/
+│   ├── constants/
+│   │   ├── config.ts
+│   │   ├── template-summaries.ts
+│   │   └── templates.ts        # Starter template registry
+│   ├── templates/
+│   │   ├── actions.ts
+│   │   ├── actions.test.ts
+│   │   └── types.ts
+│   ├── api-utils.ts            # HTTP client helpers
+│   ├── collab-token.ts         # Collaboration token utilities
+│   ├── db.ts                   # Prisma client singleton
+│   ├── playground-auth.ts      # Playground access control
+│   ├── template.ts             # Template mapping and processing
+│   ├── user-data.ts            # User data helpers
+│   ├── utils.ts                # General utilities
+│   └── yjs.ts                  # Yjs document helpers
+├── modules/
+│   ├── auth/
+│   │   ├── actions/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── types.ts
+│   ├── dashboard/
+│   │   ├── actions/
+│   │   ├── components/
+│   │   └── types.ts
+│   ├── home/                   # Home page sections and components
+│   ├── playground/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── lib/
+│   │       ├── editor-config.ts
+│   │       ├── index.ts
+│   │       └── path-to-json.ts
+│   ├── profile/
+│   │   ├── actions.ts
+│   │   ├── components/
+│   │   └── data/
+│   └── webcontainers/
+│       ├── components/
+│       └── hooks/
+├── server/
+│   └── collab.ts               # Standalone Yjs/WebSocket collaboration server
+├── editron-starters/           # Bundled starter templates
+│   ├── frontend/
+│   ├── full-stack/
+│   ├── backend/
+│   └── tooling/
+├── prisma/
+│   └── schema.prisma
+├── public/
+├── tests/
+│   ├── __mocks__/
+│   ├── smoke/
+│   ├── collab-token.test.ts
+│   ├── env-manager.test.tsx
+│   └── setup.ts
+├── types/
+│   ├── next-auth.d.ts
+│   └── y-websocket.d.ts
+├── .env.example
+├── next.config.ts
+└── package.json
+```
+
 
 ## Local Development
 
@@ -205,13 +334,21 @@ If you deploy collaboration separately from the web app, make sure:
 
 ## Where New Contributors Usually Start
 
-Good first areas to understand:
+Use this as a route map before digging into individual files:
 
-- `app/playground/[id]/page.tsx` for the editor shell
-- `modules/playground/` for file editing, AI, and workspace logic
-- `modules/webcontainers/` for browser runtime behavior
-- `app/api/chat/route.ts` for AI orchestration
-- `lib/template.ts` and `lib/constants/templates.ts` for starter-template mapping
+- `app/`: Next.js routes, API endpoints, layouts, and pages
+- `modules/playground/`: editor UI, file tree, AI chat, and workspace behavior
+- `modules/webcontainers/`: browser runtime and project execution
+- `lib/constants/templates.ts` and `editron-starters/`: starter catalog and template mapping
+- `server/collab.ts`: standalone Yjs/WebSocket collaboration server
+
+Start here if you want to work on:
+
+- Editor UI: `app/playground/[id]/page.tsx`, `modules/playground/`
+- Starter templates: `editron-starters/`, `lib/constants/templates.ts`, `lib/template.ts`
+- AI chat and completion: `app/api/chat/route.ts`, `app/api/completion/route.ts`
+- Auth and dashboard flows: `modules/auth/`, `modules/dashboard/`
+- Collaboration: `server/collab.ts`, `lib/yjs.ts`
 
 For contributor workflow, standards, and pull request expectations, read [CONTRIBUTING.md](./CONTRIBUTING.md). For security reporting, read [SECURITY.md](./SECURITY.md).
 
