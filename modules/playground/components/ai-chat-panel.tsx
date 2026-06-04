@@ -27,6 +27,7 @@ import {
   Zap,
   Code2,
   ChevronDown,
+  File,
 } from "lucide-react";
 import {
   useAI,
@@ -99,14 +100,22 @@ export default function AIChatPanel({
 
   const { openFiles, setOpenFiles, setTemplateData } = useFileExplorer();
   const [showProviderPicker, setShowProviderPicker] = useState(false);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const mentionRef = useRef<HTMLDivElement>(null);
 
   // Memoize the file tree string to avoid re-computing on every render
   const fileTree = useMemo(
     () => (templateData ? collectFilePaths(templateData.items).join("\n") : ""),
+    [templateData],
+  );
+
+  const allFilePaths = useMemo(
+    () => (templateData ? collectFilePaths(templateData.items) : []),
     [templateData],
   );
 
@@ -152,6 +161,100 @@ export default function AIChatPanel({
       );
     });
 
+  // find the active mention token near the cursor
+  const updateMentionSuggestions = useCallback(
+    (value: string) => {
+      const cursorPos = inputRef.current?.selectionStart ?? value.length;
+      const textBeforeCursor = value.slice(0, cursorPos);
+
+      let lastAtIndex = -1;
+      for (let i = cursorPos - 1; i >= 0; i--) {
+        if (textBeforeCursor[i] === "@") {
+          const afterAt = textBeforeCursor.slice(i + 1, cursorPos);
+          if (!afterAt.includes(" ") && !afterAt.includes("\n")) {
+            lastAtIndex = i;
+            break;
+          }
+        }
+      }
+
+      if (lastAtIndex === -1) {
+        setShowMentionSuggestions(false);
+        setMentionSuggestions([]);
+        return;
+      }
+
+      const query = textBeforeCursor.slice(lastAtIndex + 1);
+      if (query.includes(" ") || query.includes("\n")) {
+        setShowMentionSuggestions(false);
+        setMentionSuggestions([]);
+        return;
+      }
+
+      const matches = allFilePaths
+        .filter((path) => path.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 8);
+
+      if (matches.length > 0) {
+        setMentionSuggestions(matches);
+        setShowMentionSuggestions(true);
+      } else {
+        setShowMentionSuggestions(false);
+        setMentionSuggestions([]);
+      }
+    },
+    [allFilePaths],
+  );
+
+  const insertMention = useCallback(
+    (selectedPath: string) => {
+      const cursorPos = inputRef.current?.selectionStart ?? inputValue.length;
+      const textBeforeCursor = inputValue.slice(0, cursorPos);
+      const textAfterCursor = inputValue.slice(cursorPos);
+
+      let lastAtIndex = -1;
+      for (let i = cursorPos - 1; i >= 0; i--) {
+        if (textBeforeCursor[i] === "@") {
+          const afterAt = textBeforeCursor.slice(i + 1, cursorPos);
+          if (!afterAt.includes(" ") && !afterAt.includes("\n")) {
+            lastAtIndex = i;
+            break;
+          }
+        }
+      }
+
+      if (lastAtIndex === -1) return;
+
+      const newText =
+        textBeforeCursor.slice(0, lastAtIndex) +
+        "@" +
+        selectedPath +
+        textAfterCursor;
+      setInputValue(newText);
+      setShowMentionSuggestions(false);
+      setMentionSuggestions([]);
+
+      setTimeout(() => {
+        if (inputRef.current) {
+          const newCursorPos = lastAtIndex + 1 + selectedPath.length;
+          inputRef.current.selectionStart = newCursorPos;
+          inputRef.current.selectionEnd = newCursorPos;
+          inputRef.current.focus();
+        }
+      }, 0);
+    },
+    [inputValue],
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      setInputValue(newValue);
+      updateMentionSuggestions(newValue);
+    },
+    [updateMentionSuggestions],
+  );
+
   const sendMessage = useCallback(() => {
     const trimmed = inputValue.trim();
     if (!trimmed || isLoading || hasUnresolvedTools) return;
@@ -173,6 +276,8 @@ export default function AIChatPanel({
       },
     );
     setInputValue("");
+    setShowMentionSuggestions(false);
+    setMentionSuggestions([]);
     if (inputRef.current) {
       inputRef.current.style.height = "auto";
     }
@@ -196,16 +301,23 @@ export default function AIChatPanel({
       setTimeout(() => inputRef.current?.focus(), TIMEOUTS.CHAT_INPUT_FOCUS);
   }, [isChatOpen]);
 
-  // Close provider picker on outside click
+  // Close provider picker and mention dropdown on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
         setShowProviderPicker(false);
       }
+      if (
+        mentionRef.current &&
+        !mentionRef.current.contains(e.target as Node)
+      ) {
+        setShowMentionSuggestions(false);
+      }
     };
-    if (showProviderPicker) document.addEventListener("mousedown", handleClick);
+    if (showProviderPicker || showMentionSuggestions)
+      document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [showProviderPicker]);
+  }, [showProviderPicker, showMentionSuggestions]);
 
   // Track which tool calls we've already executed to prevent double-execution
   const processedToolCallIds = useRef(new Set<string>());
@@ -568,9 +680,9 @@ export default function AIChatPanel({
             <textarea
               ref={inputRef}
               className="flex-1 text-[13px] bg-transparent px-3 py-2.5 resize-none outline-none focus-visible:ring-1 focus-visible:ring-primary min-h-[40px] max-h-[160px] placeholder:text-muted-foreground/70 custom-scrollbar"
-              placeholder="Message AI Assistant..."
+              placeholder="Message AI Assistant... (use @ to mention files)"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               rows={1}
               disabled={isLoading}
@@ -599,6 +711,25 @@ export default function AIChatPanel({
                 )}
               </Button>
             </div>
+
+            {showMentionSuggestions && mentionSuggestions.length > 0 && (
+              <div
+                ref={mentionRef}
+                className="absolute bottom-full left-0 mb-2 ml-3 bg-background border rounded-xl shadow-lg shadow-black/5 p-1 min-w-[200px] max-w-[300px] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200"
+              >
+                {mentionSuggestions.map((path) => (
+                  <button
+                    key={path}
+                    type="button"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => insertMention(path)}
+                  >
+                    <File className="h-3.5 w-3.5 opacity-60" />
+                    <span className="truncate font-mono">{path}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div
