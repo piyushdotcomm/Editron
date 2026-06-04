@@ -24,6 +24,8 @@ WORKFLOW for every request that involves code:
 
 If the user asks you to create a new file, call the edit tool with the full content immediately. Do NOT tell the user what code to write - write it yourself using the tool.`;
 
+const MAX_MENTIONED_FILES_TOTAL_SIZE = 100_000;
+
 const RequestBodySchema = z.object({
   messages: z.array(z.any()).max(100),
   provider: z.enum(["gemini", "groq", "mistral"]).optional().default("gemini"),
@@ -104,12 +106,12 @@ export async function POST(request: NextRequest) {
         (sum, file) => sum + file.content.length,
         0,
       );
-      if (totalSize > 100_000) {
+      if (totalSize > MAX_MENTIONED_FILES_TOTAL_SIZE) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "Referenced files are too large. Reduce the number of mentioned files.",
+              "Referenced files exceed the maximum total size. Reduce file sizes or number of mentioned files.",
           },
           { status: 400 },
         );
