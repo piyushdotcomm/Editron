@@ -77,7 +77,9 @@ const extractMentionedFiles = (
   let match;
 
   while ((match = regex.exec(message)) !== null) {
-    const path = match[1];
+    let path = match[1];
+    // strip trailing punctuation that might be attached to the mention
+    path = path.replace(/[,.;:!?)\]}>]+$/, "");
     const file = findFileByPath(templateItems, path);
 
     if (file && "content" in file && typeof file.content === "string") {
@@ -322,6 +324,11 @@ export default function AIChatPanel({
   // Track which tool calls we've already executed to prevent double-execution
   const processedToolCallIds = useRef(new Set<string>());
 
+  const clearChat = () => {
+    setMessages([]);
+    processedToolCallIds.current.clear();
+  };
+
   // Handle incoming client-side tool calls
   // In AI SDK v3, static tool parts use type: "tool-{toolName}" with:
   //   part.toolCallId, part.toolName, part.input, part.state
@@ -524,7 +531,6 @@ export default function AIChatPanel({
     }
   };
 
-  const clearChat = () => setMessages([]);
   const currentProvider =
     PROVIDERS.find((p) => p.id === provider) || PROVIDERS[0];
 

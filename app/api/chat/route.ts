@@ -32,10 +32,11 @@ const RequestBodySchema = z.object({
   mentionedFiles: z
     .array(
       z.object({
-        path: z.string(),
-        content: z.string(),
+        path: z.string().max(500),
+        content: z.string().max(20_000),
       }),
     )
+    .max(10)
     .optional(),
 });
 
@@ -97,17 +98,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // validate total size of mentioned files
+    if (mentionedFiles && mentionedFiles.length > 0) {
+      const totalSize = mentionedFiles.reduce(
+        (sum, file) => sum + file.content.length,
+        0,
+      );
+      if (totalSize > 100_000) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Referenced files are too large. Reduce the number of mentioned files.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     let systemInstruction = SYSTEM_PROMPT;
 
     if (fileTree) {
       systemInstruction += `\n\nProject file tree:\n${fileTree}`;
-    }
-
-    if (mentionedFiles && mentionedFiles.length > 0) {
-      systemInstruction += `\n\nReferenced Files:\n\n`;
-      for (const file of mentionedFiles) {
-        systemInstruction += `File: ${file.path}\n\n${file.content}\n\n----------------------------------------\n\n`;
-      }
     }
 
     let model;
@@ -220,6 +232,18 @@ export async function POST(request: NextRequest) {
           typeof m.content === "string" && m.content.trim()
             ? [{ type: "text" as const, text: m.content }]
             : [],
+      });
+    }
+
+    // add referenced files as a user message if they exist
+    if (mentionedFiles && mentionedFiles.length > 0) {
+      let referencedFilesContent = "Referenced files:\n\n";
+      for (const file of mentionedFiles) {
+        referencedFilesContent += `File: ${file.path}\n\n${file.content}\n\n----------------------------------------\n\n`;
+      }
+      sanitizedMessages.push({
+        role: "user",
+        parts: [{ type: "text", text: referencedFilesContent }],
       });
     }
 
