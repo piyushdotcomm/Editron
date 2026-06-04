@@ -138,9 +138,10 @@ export default function AIChatPanel({
           (typeof p.type === "string" && p.type.startsWith("tool-"))) &&
         (!p.state ||
           (p.state !== "result" && p.state !== "output-available")) &&
-        p.toolInvocation &&
-        typeof p.toolInvocation === "object" &&
-        (p.toolInvocation as Record<string, unknown>).state === "call"
+        ((p.toolInvocation &&
+          typeof p.toolInvocation === "object" &&
+          (p.toolInvocation as Record<string, unknown>).state === "call") ||
+          (p.toolCallId && p.state === "call"))
       );
     });
 
@@ -194,7 +195,7 @@ export default function AIChatPanel({
   // Track which tool calls we've already executed to prevent double-execution
   const processedToolCallIds = useRef(new Set<string>());
 
-  const handleAcceptChanges = () => {
+  const handleAcceptChanges = async () => {
     if (!pendingChanges) return;
 
     // Apply the pending changes
@@ -218,13 +219,18 @@ export default function AIChatPanel({
     }
 
     const updatedTemplate = { ...templateData!, items: currentItems };
-    setTemplateData(updatedTemplate);
-    setOpenFiles(currentOpenFiles);
-    saveTemplateData(updatedTemplate).catch(console.error);
-    toast.success(`Applied ${pendingChanges.changes.length} AI change(s)`);
 
-    setPendingChanges(null);
-    setIsReviewPending(false);
+    try {
+      await saveTemplateData(updatedTemplate);
+      setTemplateData(updatedTemplate);
+      setOpenFiles(currentOpenFiles);
+      toast.success(`Applied ${pendingChanges.changes.length} AI change(s)`);
+      setPendingChanges(null);
+      setIsReviewPending(false);
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+      toast.error("Failed to apply changes. Please try again.");
+    }
   };
 
   const handleRejectChanges = () => {
@@ -243,8 +249,8 @@ export default function AIChatPanel({
     const rawParts: unknown[] =
       (lastMessage as unknown as { parts?: unknown[] }).parts ?? [];
 
-    // Debug: log all parts to see what v3 sends
-    if (rawParts.length > 0) {
+    // Debug: log safe metadata only
+    if (process.env.NODE_ENV === "development" && rawParts.length > 0) {
       const toolParts = rawParts.filter(
         (p) =>
           typeof (p as Record<string, unknown>).type === "string" &&
@@ -252,8 +258,10 @@ export default function AIChatPanel({
       );
       if (toolParts.length > 0) {
         console.log(
-          "[AIChatPanel] Tool parts in last message:",
-          JSON.stringify(toolParts, null, 2),
+          "[AIChatPanel] Tool parts count:",
+          toolParts.length,
+          "tool types:",
+          toolParts.map((p) => (p as Record<string, unknown>).type),
         );
       }
     }
@@ -381,6 +389,9 @@ export default function AIChatPanel({
             const updatedOpenFiles = openFiles.filter((f) => {
               const ext = f.fileExtension ? `.${f.fileExtension}` : "";
               const fullName = `${f.filename}${ext}`;
+              // Note: Using endsWith for now as the open file object doesn't contain
+              // a full path property. This is filename-based matching which may have
+              // false positives if multiple files share the same name.
               return !path.endsWith(fullName);
             });
 
@@ -398,10 +409,9 @@ export default function AIChatPanel({
 
       // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
       processedToolCallIds.current.add(toolCallId);
-      console.log(
-        `[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`,
-        result.slice(0, 100),
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId})`);
+      }
 
       addToolResult({
         toolCallId,
