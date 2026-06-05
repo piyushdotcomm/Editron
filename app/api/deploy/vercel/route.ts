@@ -41,7 +41,17 @@ export async function POST(req: NextRequest) {
         // VERCEL_MASTER_TOKEN is intentionally NOT used as a fallback here —
         // doing so would let any authenticated user deploy on the server's
         // Vercel account without explicit per-deployment consent (issue #449).
-        const token = (userApiKey as string | undefined)?.trim();
+        if (typeof userApiKey !== "string") {
+            return NextResponse.json(
+                {
+                    error:
+                        "A Vercel API key is required. Please provide your own token in the deploy dialog.",
+                },
+                { status: 400 }
+            );
+        }
+
+        const token = userApiKey.trim();
         if (!token) {
             return NextResponse.json(
                 {

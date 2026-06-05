@@ -86,6 +86,10 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                 throw new Error(data.error || "Deployment failed");
             }
 
+            if (typeof data.url !== "string" || !data.url.trim()) {
+                throw new Error("Deployment URL missing from response");
+            }
+
             setDeployedUrl(data.url.startsWith("http") ? data.url : `https://${data.url}`);
             toast.success("Successfully deployed!");
         } catch (error: unknown) {
