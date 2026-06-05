@@ -1,12 +1,34 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { VERCEL_API } from "@/lib/constants/config";
+import { rateLimit } from "@/lib/api-utils";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const session = await auth();
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Mirror the same rate limit as the Netlify deploy route (5 deploys / minute)
+        const { allowed, remaining } = await rateLimit(
+            `deploy-vercel:${session.user.id}`,
+            5,
+            60_000
+        );
+
+        if (!allowed) {
+            return NextResponse.json(
+                { error: "Rate limit exceeded. Please wait before deploying again." },
+                {
+                    status: 429,
+                    headers: {
+                        "Retry-After": "60",
+                        "X-RateLimit-Limit": "5",
+                        "X-RateLimit-Remaining": String(remaining),
+                    },
+                }
+            );
         }
 
         const { files, name, userApiKey } = await req.json();
@@ -15,26 +37,29 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        // Try user key first, fallback to Editron Master Key
-        const token = userApiKey || process.env.VERCEL_MASTER_TOKEN;
-
+        // Require the caller to supply their own token.
+        // VERCEL_MASTER_TOKEN is intentionally NOT used as a fallback here —
+        // doing so would let any authenticated user deploy on the server's
+        // Vercel account without explicit per-deployment consent (issue #449).
+        const token = (userApiKey as string | undefined)?.trim();
         if (!token) {
             return NextResponse.json(
-                { error: "No Vercel API token provided and no master token available." },
+                {
+                    error:
+                        "A Vercel API key is required. Please provide your own token in the deploy dialog.",
+                },
                 { status: 400 }
             );
         }
 
-        // Vercel API requires an array of standard file objects:
-        // [{ file: "index.html", data: "..." }]
-
-        // Convert our internal `TemplateData` format to flat Vercel format
-        const flatFiles = files.map(f => ({
+        const flatFiles = files.map((f: { path: string; content: string }) => ({
             file: f.path,
-            data: f.content
+            data: f.content,
         }));
 
-        const projectName = name ? name.toLowerCase().replace(/[^a-z0-9-]/g, '-') : "editron-deploy";
+        const projectName = name
+            ? (name as string).toLowerCase().replace(/[^a-z0-9-]/g, "-")
+            : "editron-deploy";
 
         const response = await fetch(VERCEL_API.DEPLOYMENTS, {
             method: "POST",
@@ -45,7 +70,7 @@ export async function POST(req: Request) {
             body: JSON.stringify({
                 name: projectName,
                 files: flatFiles,
-                target: "production"
+                target: "production",
             }),
         });
 
@@ -61,14 +86,10 @@ export async function POST(req: Request) {
         return NextResponse.json({
             url: data.url,
             deploymentId: data.id,
-            readyState: data.readyState
+            readyState: data.readyState,
         });
-
     } catch (error) {
         console.error("Vercel deployment error:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

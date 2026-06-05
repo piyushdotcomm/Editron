@@ -25,10 +25,11 @@ interface DeployDialogProps {
 
 export function DeployDialog({ open, onOpenChange, templateData, projectName }: DeployDialogProps) {
     const [provider, setProvider] = useState<"vercel" | "netlify" | "cloudflare">("vercel");
-    const [useMasterKey, setUseMasterKey] = useState(true);
     const [userKey, setUserKey] = useState("");
     const [isDeploying, setIsDeploying] = useState(false);
     const [deployedUrl, setDeployedUrl] = useState("");
+
+    const providerLabel = provider === "vercel" ? "Vercel" : provider === "netlify" ? "Netlify" : "Cloudflare";
 
     const flattenFileTree = (data: TemplateFolder, parentPath = ""): { path: string; content: string }[] => {
         let files: { path: string; content: string }[] = [];
@@ -42,7 +43,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                 const extension = item.fileExtension ? `.${item.fileExtension}` : "";
                 files.push({
                     path: `${parentPath}${item.filename}${extension}`,
-                    content: item.content
+                    content: item.content,
                 });
             }
         }
@@ -50,8 +51,8 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
     };
 
     const handleDeploy = async () => {
-        if (!useMasterKey && !userKey) {
-            toast.error(`Please enter your ${provider === "vercel" ? "Vercel" : provider === "netlify" ? "Netlify" : "Cloudflare"} API key`);
+        if (!userKey.trim()) {
+            toast.error(`Please enter your ${providerLabel} API key.`);
             return;
         }
 
@@ -65,9 +66,9 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
 
         try {
             const flatFiles = flattenFileTree(templateData);
-
-            // We don't deploy node_modules or big cache folders
-            const filteredFiles = flatFiles.filter(f => !f.path.startsWith("node_modules/") && !f.path.startsWith(".next/"));
+            const filteredFiles = flatFiles.filter(
+                (f) => !f.path.startsWith("node_modules/") && !f.path.startsWith(".next/")
+            );
 
             const res = await fetch(`/api/deploy/${provider}`, {
                 method: "POST",
@@ -75,8 +76,8 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                 body: JSON.stringify({
                     files: filteredFiles,
                     name: projectName,
-                    userApiKey: useMasterKey ? undefined : userKey
-                })
+                    userApiKey: userKey.trim(),
+                }),
             });
 
             const data = await res.json();
@@ -87,10 +88,13 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
 
             setDeployedUrl(data.url.startsWith("http") ? data.url : `https://${data.url}`);
             toast.success("Successfully deployed!");
-
         } catch (error: unknown) {
             console.error(error);
-            toast.error(error instanceof Error ? error.message : "Failed to deploy. Check your API key or try again.");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to deploy. Check your API key or try again."
+            );
         } finally {
             setIsDeploying(false);
         }
@@ -115,16 +119,33 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                             <CheckCircle2 className="h-6 w-6 text-green-500" />
                         </div>
                         <p className="font-medium text-center">Deployment Successful!</p>
-                        <a href={deployedUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline break-all text-center px-4">
+                        <a
+                            href={deployedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-500 hover:underline break-all text-center px-4"
+                        >
                             {deployedUrl}
                         </a>
-                        <Button className="w-full mt-4" variant="outline" onClick={() => window.open(deployedUrl, '_blank')}>
+                        <Button
+                            className="w-full mt-4"
+                            variant="outline"
+                            onClick={() => window.open(deployedUrl, "_blank")}
+                        >
                             Visit Site <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                     </div>
                 ) : (
                     <div className="grid gap-4 py-4">
-                        <Tabs value={provider} onValueChange={(v) => { if (v === "vercel" || v === "netlify" || v === "cloudflare") { setProvider(v); } }}>
+                        <Tabs
+                            value={provider}
+                            onValueChange={(v) => {
+                                if (v === "vercel" || v === "netlify" || v === "cloudflare") {
+                                    setProvider(v);
+                                    setUserKey("");
+                                }
+                            }}
+                        >
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="vercel">Vercel</TabsTrigger>
                                 <TabsTrigger value="netlify">Netlify</TabsTrigger>
@@ -132,64 +153,54 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                             </TabsList>
                         </Tabs>
 
-                        <div className="rounded-md border p-4 bg-muted/30">
-                            <div className="flex items-center justify-between mb-4">
-                                <Label className="text-sm font-medium">Authentication Policy</Label>
-                            </div>
-                            <div className="space-y-4">
-                                <div
-                                    className={`flex items-start space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${useMasterKey ? 'bg-background border-primary' : 'hover:bg-muted/50'}`}
-                                    onClick={() => setUseMasterKey(true)}
-                                >
-                                    <div className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center ${useMasterKey ? 'border-primary' : 'border-muted-foreground'}`}>
-                                        {useMasterKey && <div className="h-2 w-2 rounded-full bg-primary" />}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium">Use Editron Deployment</p>
-                                        <p className="text-xs text-muted-foreground">Deploy immediately using our master key. Ideal for quick demos.</p>
-                                    </div>
-                                </div>
-
-                                <div
-                                    className={`flex flex-col space-y-2 rounded-lg border p-3 cursor-pointer transition-colors ${!useMasterKey ? 'bg-background border-primary' : 'hover:bg-muted/50'}`}
-                                    onClick={() => setUseMasterKey(false)}
-                                >
-                                    <div className="flex items-start space-x-3 md:items-center">
-                                        <div className={`mt-0.5 md:mt-0 h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${!useMasterKey ? 'border-primary' : 'border-muted-foreground'}`}>
-                                            {!useMasterKey && <div className="h-2 w-2 rounded-full bg-primary" />}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium">Bring Your Own Key</p>
-                                            <p className="text-xs text-muted-foreground">Deploy to your personal {provider === 'vercel' ? 'Vercel' : provider === 'netlify' ? 'Netlify' : 'Cloudflare'} account.</p>
-                                        </div>
-                                    </div>
-
-                                    {!useMasterKey && (
-                                        <div className="pl-7 pt-2">
-                                            <Input
-                                                placeholder={`${provider.charAt(0).toUpperCase() + provider.slice(1)} API Token`}
-                                                value={userKey}
-                                                onChange={(e) => setUserKey(e.target.value)}
-                                                type="password"
-                                                autoFocus
-                                            />
-                                            <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
-                                                Tokens are only used for this deployment and never saved.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="rounded-md border p-4 bg-muted/30 space-y-3">
+                            <Label htmlFor="api-key" className="text-sm font-medium">
+                                {providerLabel} API Token
+                            </Label>
+                            <Input
+                                id="api-key"
+                                placeholder={`Paste your ${providerLabel} API token`}
+                                value={userKey}
+                                onChange={(e) => setUserKey(e.target.value)}
+                                type="password"
+                            />
+                            <p className="text-[11px] text-muted-foreground">
+                                Tokens are used only for this deployment and are never stored.{" "}
+                                {provider === "vercel" && (
+                                    <a
+                                        href="https://vercel.com/account/tokens"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline"
+                                    >
+                                        Get a Vercel token
+                                    </a>
+                                )}
+                                {provider === "netlify" && (
+                                    <a
+                                        href="https://app.netlify.com/user/applications/personal"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline"
+                                    >
+                                        Get a Netlify token
+                                    </a>
+                                )}
+                            </p>
                         </div>
 
-                        <Button onClick={handleDeploy} disabled={isDeploying} className="w-full">
+                        <Button
+                            onClick={handleDeploy}
+                            disabled={isDeploying || !userKey.trim()}
+                            className="w-full"
+                        >
                             {isDeploying ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Deploying to {provider === "vercel" ? "Vercel" : provider === "netlify" ? "Netlify" : "Cloudflare"}...
+                                    Deploying to {providerLabel}...
                                 </>
                             ) : (
-                                `Deploy to ${provider === "vercel" ? "Vercel" : provider === "netlify" ? "Netlify" : "Cloudflare"}`
+                                `Deploy to ${providerLabel}`
                             )}
                         </Button>
 
