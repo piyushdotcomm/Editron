@@ -89,9 +89,9 @@ export default function ContributionHeatmap({ data }: { data: HeatmapData[] }) {
                 <div className="w-full overflow-x-auto pb-2">
                     <div className="flex gap-1 min-w-max">
                         {weeks.map((week, wIndex) => (
-                            <div key={wIndex} className="flex flex-col gap-1">
+                            <div key={week[0]?.date || wIndex} className="flex flex-col gap-1">
                                 {week.map((day, dIndex) => (
-                                    <TooltipProvider key={`${wIndex}-${dIndex}`}>
+                                    <TooltipProvider key={day.date}>
                                         <Tooltip>
                                             <TooltipTrigger>
                                                 <motion.div

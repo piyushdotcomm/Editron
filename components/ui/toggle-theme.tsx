@@ -30,9 +30,9 @@ export function ThemeToggle() {
             }}
         >
             {resolvedTheme === "light" ? (
-                <Moon className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
-            ) : (
                 <Sun className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+            ) : (
+                <Moon className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
             )}
         </button>
     );

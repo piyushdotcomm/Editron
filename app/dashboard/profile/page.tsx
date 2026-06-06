@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import type { Project } from "@/modules/dashboard/types";
 import { currentUser } from "@/modules/auth/actions";
 import { getUserProfileStats } from "@/modules/profile/actions";
 import KPIStats from "@/modules/profile/components/KPIStats";
@@ -21,26 +22,139 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const user = await currentUser();
-  if (!user?.id) {
-    return <div className="p-8 text-center text-muted-foreground">Please log in to view your profile.</div>;
-  }
+    const user = await currentUser();
+    if (!user?.id) {
+        return <div className="p-8 text-center text-muted-foreground">Please log in to view your profile.</div>;
+    }
 
-  // Optimization: Pass user.id directly to avoid re-fetching auth
-  const stats = await getUserProfileStats(user.id);
+    // Optimization: Pass user.id directly to avoid re-fetching auth
+    const stats = await getUserProfileStats(user.id);
 
-  if (!stats) {
-    return <div className="p-8 text-center text-muted-foreground">Error loading stats.</div>;
-  }
+    if (!stats) {
+        return <div className="p-8 text-center text-muted-foreground">Error loading stats.</div>;
+    }
 
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground font-sans pb-8">
+    return (
+        <div className="min-h-screen overflow-x-hidden bg-background text-foreground font-sans pb-8">
 
-      {/* Top Navigation Wrapper for Profile Context */}
-      <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-6 justify-between">
-        <div className="flex items-center gap-4 w-full max-w-xl">
-          <h1 className="text-xl font-bold tracking-tight mr-4 hidden md:block">Profile</h1>
-          <div className="relative w-full"></div>
+            {/* Top Navigation Wrapper for Profile Context */}
+            <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-6 justify-between">
+                <div className="flex items-center gap-4 w-full max-w-xl">
+                    <h1 className="text-xl font-bold tracking-tight mr-4 hidden md:block">Profile</h1>
+                    <div className="relative w-full"></div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <HeaderNewProjectButton />
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 p-[1px]">
+                        <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                            <Image src={user.image || "/placeholder.svg"} alt="User" width={32} height={32} className="object-cover" />
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+                {/* User Header */}
+                <div className="flex min-w-0 flex-col md:flex-row items-start md:items-center gap-6 mb-8">
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full opacity-75 blur group-hover:opacity-100 transition duration-500"></div>
+                        <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-background">
+                            <Image src={user.image || "/placeholder.svg"} alt={user.name || "User"} width={96} height={96} className="object-cover" />
+                        </div>
+                        <div className="absolute bottom-0 right-0 h-6 w-6 bg-green-500 border-2 border-background rounded-full" title="Online" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 items-center gap-3 mb-1">
+                            <h2 className="min-w-0 text-2xl sm:text-3xl font-bold tracking-tight break-words">{user.name}</h2>
+                        </div>
+                        <p className="text-muted-foreground flex min-w-0 items-center gap-2 mt-1 break-words">
+                            {user.email}
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <LogoutButton>
+                            <Button
+                                variant="outline"
+                                className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-600">
+                                <LogOut className="w-4 h-4" />
+                                Logout
+                            </Button>
+                        </LogoutButton>
+                        <DeleteAccountButton />
+                    </div>
+                </div>
+
+                {/* 2. KPI Stats */}
+                <KPIStats stats={stats} />
+
+                {/* 3. Heatmap */}
+                <ContributionHeatmap data={stats.heatmapData} />
+
+                <div className="grid min-w-0 grid-cols-1 xl:grid-cols-3 gap-6 xl:gap-8">
+                    {/* Main Content Column */}
+                    <div className="min-w-0 xl:col-span-2 space-y-8">
+
+                        {/* 4. Analytics */}
+                        <UsageAnalytics activityData={stats.heatmapData} techStack={stats.techStackDistribution} />
+
+                        {/* 6. Running Environments & AI Insights removed as per request */}
+
+                        {/* Projects Tabs */}
+                        <Tabs defaultValue="all" className="w-full min-w-0">
+                            <div className="flex min-w-0 items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold">Projects</h3>
+                                <TabsList>
+                                    <TabsTrigger value="all">All</TabsTrigger>
+                                    <TabsTrigger value="starred">Starred</TabsTrigger>
+                                </TabsList>
+                            </div>
+                            <TabsContent value="all" className="mt-0 min-w-0">
+                                {stats.playgrounds.length > 0 ? (
+                                    <CompactProjectTable
+                                        projects={stats.playgrounds}
+                                        onDeleteProject={deleteProjectById}
+                                        onUpdateProject={editProjectById}
+                                        onDuplicateProject={duplicateProjectById}
+                                    />
+                                ) : (
+                                    <div className="bg-card border border-border/50 rounded-xl p-8">
+                                        <EmptyState />
+                                    </div>
+                                )}
+                            </TabsContent>
+                            <TabsContent value="starred" className="mt-0 min-w-0">
+                                {stats.playgrounds.filter((p) => p.Starmark?.length > 0 && p.Starmark[0].isMarked).length > 0 ? (
+                                    <CompactProjectTable
+                                        projects={stats.playgrounds.filter((p) => p.Starmark?.length > 0 && p.Starmark[0].isMarked)}
+                                        onDeleteProject={deleteProjectById}
+                                        onUpdateProject={editProjectById}
+                                        onDuplicateProject={duplicateProjectById}
+                                    />
+                                ) : (
+                                    <div className="bg-card border border-border/50 rounded-xl p-8 text-center text-muted-foreground">
+                                        No starred projects yet.
+                                    </div>
+                                )}
+                            </TabsContent>
+                        </Tabs>
+
+                    </div>
+
+                    {/* Sidebar Column */}
+                    <div className="min-w-0 space-y-8">
+                        {/* 9. Quick Actions */}
+                        <QuickActions />
+
+                        {/* H. Recent Activity */}
+                        <RecentActivity activities={stats.recentActivity} />
+                    </div>
+                </div>
+
+            </main>
         </div>
 
         <div className="flex items-center gap-4">

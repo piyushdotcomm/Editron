@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { TemplateCategory } from "@/lib/templates/types";
-import { getTemplateSummaries } from "@/lib/templates/actions";
+
 import type { TemplateKey } from "@/lib/template";
 import {
   ChevronRight,
