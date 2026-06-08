@@ -238,6 +238,12 @@ export const duplicateProjectById = async (id: string) => {
             throw new Error("Original playground not found");
         }
 
+        // TemplateFile has a unique constraint on playgroundId, so each playground
+        // can have at most one TemplateFile record. If the original playground was
+        // never edited by the user, templateFiles will be empty and the duplicate
+        // will load its starter files on-demand from disk via /api/template/[id].
+        const firstFile = originalPlayground.templateFiles[0];
+
         // Create a new playground with the same data but a new ID
         const duplicatedPlayground = await db.playground.create({
             data: {
@@ -245,11 +251,13 @@ export const duplicateProjectById = async (id: string) => {
                 description: originalPlayground.description,
                 template: originalPlayground.template,
                 userId,
-                templateFiles: {
-                    create: originalPlayground.templateFiles.map((file: { content: string }) => ({
-                        content: file.content,
-                    })),
-                },
+                templateFiles: firstFile
+                  ? {
+                      create: {
+                        content: firstFile.content as Prisma.InputJsonValue,
+                      },
+                    }
+                  : undefined,
             },
         });
 
@@ -259,5 +267,6 @@ export const duplicateProjectById = async (id: string) => {
         return duplicatedPlayground;
     } catch (error) {
         console.error("Error duplicating project:", error);
+        throw error;
     }
 };
