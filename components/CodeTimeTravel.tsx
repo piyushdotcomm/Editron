@@ -1,5 +1,4 @@
 import * as React from "react";
-// @ts-ignore - lucide-react includes its own types
 import { Clock, GitCommit, Sparkles, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
