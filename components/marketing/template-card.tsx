@@ -123,7 +123,7 @@ function IconWithFallback({ src, alt }: { src?: string; alt?: string }) {
     return (
         <Image
             src={current}
-            alt={alt ?? ""}
+            alt={alt ?? "Template icon"}
             width={28}
             height={28}
             className="object-contain"

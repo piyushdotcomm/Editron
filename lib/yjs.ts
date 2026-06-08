@@ -62,7 +62,21 @@ export function getOrCreateYDoc(roomId: string, token: string) {
         console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
     });
     provider.on('status', (event: unknown) => {
-        console.log(`[Yjs] Room ${roomId} status:`, (event as { status: 'connected' | 'disconnected' | 'connecting' }).status);
+        const status = (event as {
+            status: 'connected' | 'disconnected' | 'connecting'
+        }).status;
+
+        console.log(`[Yjs] Room ${roomId} status:`, status);
+
+        // Attempt recovery after reconnect
+        if (status === "connected") {
+            console.log("[Yjs] Reconnected successfully");
+
+            // Force preview refresh after reconnect
+            window.dispatchEvent(
+                new CustomEvent("yjs-reconnected")
+            );
+        }
     });
 
     return { doc, provider };

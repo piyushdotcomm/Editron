@@ -88,9 +88,9 @@ const features: Feature[] = [
 export function Features() {
     return (
         <ul className="grid grid-cols-1 grid-rows-none gap-4 md:grid-cols-12 md:grid-rows-5 xl:grid-rows-4 xl:gap-6">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
                 <GridItem
-                    key={index}
+                    key={feature.title}
                     area={feature.area}
                     icon={<feature.icon className="h-6 w-6 text-red-600 dark:text-red-500" />}
                     title={feature.title}

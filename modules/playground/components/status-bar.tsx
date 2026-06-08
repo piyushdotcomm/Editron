@@ -2,7 +2,8 @@
 
 import { cn } from "@/lib/utils";
 import { FileIcon } from "./file-icon";
-import { Users } from "lucide-react";
+import { Users, WifiOff } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface StatusBarProps {
     activeFile?: {
@@ -55,6 +56,22 @@ export function StatusBar({
     const language = LANGUAGE_MAP[ext] || "Plain Text";
     const statusCfg = STATUS_CONFIG[containerStatus];
 
+    const [isOffline, setIsOffline] = useState(false);
+
+    useEffect(() => {
+        setIsOffline(!navigator.onLine);
+        const handleOnline = () => setIsOffline(false);
+        const handleOffline = () => setIsOffline(true);
+
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
+        };
+    }, []);
+
     return (
         <footer
             role="status"
@@ -84,6 +101,12 @@ export function StatusBar({
             <div className="flex items-center gap-2">
                 <div className={cn("w-1.5 h-1.5 rounded-full", statusCfg.color)} />
                 <span>{statusCfg.label}</span>
+                {isOffline && (
+                    <span className="flex items-center gap-1 ml-2 text-destructive font-bold bg-destructive/10 px-2 py-0.5 rounded-full">
+                        <WifiOff className="h-3 w-3" />
+                        Offline Mode
+                    </span>
+                )}
             </div>
 
             {/* Right section */}
