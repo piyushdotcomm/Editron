@@ -22,15 +22,14 @@ const escapeHtml = (unsafe: string) => {
 
 const highlight = (text: string) => {
     const escaped = escapeHtml(text);
-    const highlighted = escaped;
 
     // Comments (simple // for now)
-    if (highlighted.includes('//')) {
-        const parts = highlighted.split('//');
+    if (escaped.includes('//')) {
+        const parts = escaped.split('//');
         return <><span dangerouslySetInnerHTML={{ __html: highlightCode(parts[0]) }} /><span className="text-slate-500 italic">{'//' + parts[1]}</span></>;
     }
 
-    return <span dangerouslySetInnerHTML={{ __html: highlightCode(highlighted) }} />;
+    return <span dangerouslySetInnerHTML={{ __html: highlightCode(escaped) }} />;
 };
 
 export const CodeLine = ({ line }: { line: string }) => {
