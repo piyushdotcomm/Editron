@@ -2,8 +2,18 @@
 "use client";
 import React from 'react';
 
+const escapeHtml = (text: string) => {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
 const highlightCode = (code: string) => {
-    return code
+    const escaped = escapeHtml(code);
+    return escaped
         .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
         .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
         .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
@@ -11,12 +21,11 @@ const highlightCode = (code: string) => {
 };
 
 const highlight = (text: string) => {
-    const highlighted = text;
-    if (highlighted.includes('//')) {
-        const parts = highlighted.split('//');
+    if (text.includes('//')) {
+        const parts = text.split('//');
         return <><span dangerouslySetInnerHTML={{ __html: highlightCode(parts[0]) }} /><span className="text-slate-500 italic">{'//' + parts[1]}</span></>;
     }
-    return <span dangerouslySetInnerHTML={{ __html: highlightCode(highlighted) }} />;
+    return <span dangerouslySetInnerHTML={{ __html: highlightCode(text) }} />;
 };
 
 export const CodeLine = ({ line }: { line: string }) => {

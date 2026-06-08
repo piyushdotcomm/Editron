@@ -1,7 +1,7 @@
 "use client";
 
 import { EDITOR_CONFIG } from "@/lib/constants/config";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import {
@@ -253,7 +253,7 @@ const PlaygroundEditor = ({
       );
   };
 
-  const updateEditorLanguage = React.useCallback(() => {
+  const updateEditorLanguage = useCallback(() => {
     if (!activeFile || !monacoRef.current || !editorRef.current) return;
     const model = editorRef.current.getModel();
     if (!model) return;
