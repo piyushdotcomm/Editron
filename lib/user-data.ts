@@ -1,5 +1,18 @@
 import { db } from "@/lib/db";
 
+const logError = (functionName: string, params: Record<string, unknown>, error: unknown) => {
+    console.error(
+        JSON.stringify({
+            timestamp: new Date().toISOString(),
+            level: "error",
+            context: functionName,
+            params,
+            error: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+        })
+    );
+};
+
 export const getUserById = async (id: string) => {
     try {
         const user = await db.user.findUnique({
@@ -9,8 +22,9 @@ export const getUserById = async (id: string) => {
             }
         });
         return user;
-    } catch {
-        return null;
+    } catch (err) {
+        logError("getUserById", { id }, err);
+        throw err;
     }
 };
 
@@ -20,8 +34,9 @@ export const getUserByEmail = async (email: string) => {
             where: { email }
         });
         return user;
-    } catch {
-        return null;
+    } catch (err) {
+        logError("getUserByEmail", { email }, err);
+        throw err;
     }
 };
 
@@ -33,7 +48,8 @@ export const getAccountByUserId = async (userId: string) => {
             }
         });
         return account;
-    } catch {
-        return null;
+    } catch (err) {
+        logError("getAccountByUserId", { userId }, err);
+        throw err;
     }
 };
