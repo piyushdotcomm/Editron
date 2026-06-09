@@ -268,7 +268,7 @@ const PlaygroundEditor = ({
 
   useEffect(() => {
     updateEditorLanguage();
-  }, [activeFile, updateEditorLanguage]);
+  }, [updateEditorLanguage]);
 
   // Bind Yjs to Monaco
   useEffect(() => {

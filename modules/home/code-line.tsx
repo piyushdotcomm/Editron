@@ -25,10 +25,10 @@ const highlightCode = (code: string) => {
 
     // Apply syntax highlighting on raw code first
     let highlighted = code
-        .replace(/import|from|export|default|return|const|new/g, (match) => replaceWithPlaceholder(`<span class="text-red-500 dark:text-red-400 font-semibold">${match}</span>`))
-        .replace(/'[^']*'/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${match}</span>`))
-        .replace(/"[^"]*"/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${match}</span>`))
-        .replace(/Editron|console|editor/g, (match) => replaceWithPlaceholder(`<span class="text-rose-600 dark:text-rose-400">${match}</span>`));
+        .replace(/\b(?:import|from|export|default|return|const|new)\b/g, (match) => replaceWithPlaceholder(`<span class="text-red-500 dark:text-red-400 font-semibold">${escapeHtml(match)}</span>`))
+        .replace(/'[^']*'/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${escapeHtml(match)}</span>`))
+        .replace(/\"[^\"]*\"/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${escapeHtml(match)}</span>`))
+        .replace(/\b(?:Editron|console|editor)\b/g, (match) => replaceWithPlaceholder(`<span class="text-rose-600 dark:text-rose-400">${escapeHtml(match)}</span>`));
 
     // Escape HTML entities in the non-span content
     highlighted = escapeHtml(highlighted);
