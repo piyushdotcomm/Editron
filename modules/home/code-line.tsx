@@ -1,40 +1,61 @@
-
 "use client";
-import React from 'react';
+
+const KEYWORDS = [
+  "import",
+  "from",
+  "export",
+  "default",
+  "return",
+  "const",
+  "new",
+  "function",
+  "true",
+  "false",
+];
 
 export const CodeLine = ({ line }: { line: string }) => {
-    // Basic replacements to simulate syntax highlighting
-    // Note: This is a very simplistic implementation and should be replaced with a proper library like prismjs or shiki in production
+  // Handle comments
+  if (line.trim().startsWith("//")) {
+    return <span className="text-slate-500 italic">{line}</span>;
+  }
 
-    const highlight = (text: string) => {
-        // We use a series of replacements. Order matters to avoid replacing inside already replaced spans.
-        // A better approach for robust highlighting is tokenization.
+  const parts = line.split(/(\s+)/);
 
-        const highlighted = text;
-
-        // Comments (simple // for now)
-        if (highlighted.includes('//')) {
-            const parts = highlighted.split('//');
-            return <><span dangerouslySetInnerHTML={{ __html: highlightCode(parts[0]) }} /><span className="text-slate-500 italic">{'//' + parts[1]}</span></>;
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (KEYWORDS.includes(part)) {
+          return (
+            <span
+              key={index}
+              className="text-red-500 dark:text-red-400 font-semibold"
+            >
+              {part}
+            </span>
+          );
         }
 
-        return <span dangerouslySetInnerHTML={{ __html: highlightCode(highlighted) }} />;
-    };
+        if (
+          (part.startsWith("'") && part.endsWith("'")) ||
+          (part.startsWith('"') && part.endsWith('"'))
+        ) {
+          return (
+            <span key={index} className="text-amber-600 dark:text-amber-400">
+              {part}
+            </span>
+          );
+        }
 
-    const highlightCode = (code: string) => {
-        return code
-            .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
-            .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-            .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-            .replace(/Editron|console|editor/g, '<span class="text-rose-600 dark:text-rose-400">$&</span>');
-    }
+        if (["Editron", "editor", "console"].includes(part)) {
+          return (
+            <span key={index} className="text-rose-600 dark:text-rose-400">
+              {part}
+            </span>
+          );
+        }
 
-    const [highlighted, setHighlighted] = React.useState<React.ReactNode>(line);
-
-    React.useEffect(() => {
-        setHighlighted(highlight(line));
-// eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [line]);
-
-    return highlighted;
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
 };
