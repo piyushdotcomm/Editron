@@ -1,12 +1,27 @@
 import { db } from "@/lib/db";
 
+const SENSITIVE_KEYS = ["email", "phone", "ssn", "password", "token", "secret", "key", "auth", "credential"];
+
+const redactParams = (params: Record<string, unknown>): Record<string, unknown> => {
+    const redacted: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(params)) {
+        const lowerKey = key.toLowerCase();
+        if (SENSITIVE_KEYS.some((sensitive) => lowerKey.includes(sensitive))) {
+            redacted[key] = "[REDACTED]";
+        } else {
+            redacted[key] = value;
+        }
+    }
+    return redacted;
+};
+
 const logError = (functionName: string, params: Record<string, unknown>, error: unknown) => {
     console.error(
         JSON.stringify({
             timestamp: new Date().toISOString(),
             level: "error",
             context: functionName,
-            params,
+            params: redactParams(params),
             error: error instanceof Error ? error.message : "Unknown error",
             stack: error instanceof Error ? error.stack : undefined,
         })
