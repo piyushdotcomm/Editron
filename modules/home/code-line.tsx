@@ -29,11 +29,6 @@ const highlight = (text: string) => {
 };
 
 export const CodeLine = ({ line }: { line: string }) => {
-    const [highlighted, setHighlighted] = React.useState<React.ReactNode>(line);
-
-    React.useEffect(() => {
-        setHighlighted(highlight(line));
-    }, [line]);
-
+    const highlighted = React.useMemo(() => highlight(line), [line]);
     return highlighted;
 };
