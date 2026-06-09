@@ -1,12 +1,12 @@
 "use server"
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
-import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
-import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json";
-import { revalidatePath } from "next/cache";
-import { currentUser } from "@/modules/auth/actions";
-import { templatePaths, TemplateKey } from "@/lib/template";
-import path from "path";
+import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth"
+import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json"
+import { revalidatePath } from "next/cache"
+import { currentUser } from "@/modules/auth/actions"
+import { templatePaths, TemplateKey } from "@/lib/template"
+import path from "path"
 
 
 // Toggle marked status for a problem
@@ -66,7 +66,8 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
-        console.log(error)
+        console.error("Error creating playground:", error);
+        throw error;
     }
 }
 
@@ -92,10 +93,11 @@ export const getAllPlaygroundForUser = async ()=>{
                 }
             }
         })
-      
+     
         return playground;
     } catch (error) {
-        console.log(error)
+        console.error("Error fetching playgrounds:", error);
+        throw error;
     }
 }
 
@@ -205,7 +207,8 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        console.error("Error deleting project:", error);
+        throw error;
     }
 }
 
@@ -219,9 +222,11 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        console.error("Error editing project:", error);
+        throw error;
     }
 }
+
 
 export const duplicateProjectById = async (id: string) => {
     try {
