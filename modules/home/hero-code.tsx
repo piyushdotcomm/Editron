@@ -59,6 +59,7 @@ export function HeroCodeDemo() {
                     </div>
                     <button
                         onClick={onCopy}
+                        aria-label={copied ? "Copied to clipboard" : "Copy code"}
                         className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
