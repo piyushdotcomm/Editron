@@ -174,7 +174,7 @@ export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundD
 
             </SidebarMenu>
           </SidebarGroupContent>
-          <SidebarGroupAction title="Create new playground" className="hover:bg-muted/50 text-muted-foreground hover:text-foreground top-1 right-2 w-6 h-6">
+          <SidebarGroupAction asChild title="Create new playground" className="hover:bg-muted/50 text-muted-foreground hover:text-foreground top-1 right-2 w-6 h-6">
             <Link href="/dashboard">
               <FolderPlus className="h-3.5 w-3.5" />
             </Link>
