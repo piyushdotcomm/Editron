@@ -65,7 +65,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
                 </Button>
 
                 {/* Auth Form Container */}
-                <div className="mx-auto sm:w-sm rounded-3xl border border-border/50 bg-background /80 backdrop-blur-xl p-8 shadow-2xl">
+                <div className="mx-auto sm:w-sm rounded-3xl border border-border/50 bg-background/80 backdrop-blur-xl p-8 shadow-2xl">
                     {/* Mobile Logo */}
                     <div className="flex items-center gap-3 lg:hidden">
                         <div className="relative">

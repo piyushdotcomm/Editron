@@ -22,7 +22,7 @@ export function AuthPage() {
                 <div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
                 <div className="z-10 flex items-center gap-2">
                     <Grid2x2PlusIcon className="size-6" />
-                    <p className="text-xl font-semibold">Asme</p>
+                    <p className="text-xl font-semibold">Editron</p>
                 </div>
                 <div className="z-10 mt-auto">
                     <blockquote className="space-y-2">
