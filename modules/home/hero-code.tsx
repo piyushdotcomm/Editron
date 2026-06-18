@@ -14,7 +14,7 @@ const editor = new Editron({
   mode: 'pro',
   ai: {
     enabled: true,
-    model: 'claude-3-opus'
+    model: 'deepseek-chat'
   },
   theme: 'midnight-monochrome'
 });
