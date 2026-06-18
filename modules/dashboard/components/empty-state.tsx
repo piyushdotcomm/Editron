@@ -7,7 +7,7 @@ const EmptyState = () => {
       <div className="bg-muted/30 p-8 rounded-full mb-6">
         <Image 
           src="/empty-state.svg" 
-          alt="No projects" 
+          alt="" 
           width={192} 
           height={192} 
           className="opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500" 

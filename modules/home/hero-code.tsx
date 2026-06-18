@@ -20,7 +20,6 @@ const editor = new Editron({
 });
 
 export default function startCoding() {
-  console.log("Ready to build something amazing.");
   return editor.launch();
 }`;
 

@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
+
+declare module "jszip" {
+    interface JSZipObject {
+        _data?: {
+            uncompressedSize?: number;
+        };
+    }
+}
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
@@ -43,7 +51,6 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
 
     zip.forEach((relativePath, file) => {
         if (!file.dir) {
-            // @ts-expect-error - access internal JSZip metadata for safety
             const size = file._data?.uncompressedSize;
 
             if (typeof size !== "number") {
@@ -179,7 +186,7 @@ export async function POST(request: NextRequest) {
             id: playground.id,
             title: playground.title,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("ZIP upload error:", error);
 
         if (error instanceof ValidationError) {
@@ -189,8 +196,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const errorMessage = error instanceof Error ? error.message : "Failed to process ZIP file";
+
         return NextResponse.json(
-            { error: error.message || "Failed to process ZIP file" },
+            { error: errorMessage },
             { status: 500 }
         );
     }

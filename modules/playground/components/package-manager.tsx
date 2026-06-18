@@ -147,7 +147,7 @@ export function PackageManager({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 text-xs bg-muted/50 focus-visible:ring-1"
           />
-          <Button type="submit" size="icon" className="h-8 w-8 shrink-0">
+          <Button type="submit" size="icon" className="h-8 w-8 shrink-0" aria-label="Search NPM packages">
             {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </Button>
         </form>
@@ -210,6 +210,7 @@ export function PackageManager({
                       className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => handleRemove(name)}
                       disabled={loadingPkg === name}
+                      aria-label={`Remove dependency ${name}`}
                     >
                       {loadingPkg === name ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3 text-red-500 hover:text-red-600" />}
                     </Button>
@@ -238,6 +239,7 @@ export function PackageManager({
                       className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => handleRemove(name)}
                       disabled={loadingPkg === name}
+                      aria-label={`Remove dev dependency ${name}`}
                     >
                       {loadingPkg === name ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3 text-red-500 hover:text-red-600" />}
                     </Button>
