@@ -1,16 +1,16 @@
 "use client";
 
-import * as React from "react";
 import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { useAI } from "@/modules/playground/hooks/useAI";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePreferences } from "@/modules/playground/hooks/usePreferences";
 import { Palette } from "lucide-react";
 
 export const THEME_OPTIONS = [
@@ -66,27 +66,59 @@ export const THEME_OPTIONS = [
 	{ value: "monoindustrial", label: "monoindustrial" }
 ];
 
-export function ThemeSelector() {
-	const { editorTheme, setEditorTheme } = useAI();
+interface PreferencesDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-	return (
-		<div className="flex items-center gap-2">
-			<Select value={editorTheme} onValueChange={setEditorTheme}>
-				<SelectTrigger className="w-[180px] h-8 text-xs bg-background" aria-label="Select editor theme">
-					<Palette className="w-3 h-3 mr-2 text-muted-foreground" />
-					<SelectValue placeholder="Select Theme" />
-				</SelectTrigger>
-				<SelectContent className="max-h-[300px]">
-					<SelectGroup>
-						<SelectLabel className="text-xs text-muted-foreground">Editor Themes</SelectLabel>
-						{THEME_OPTIONS.map((theme) => (
-							<SelectItem key={theme.value} value={theme.value} className="text-xs">
-								{theme.label}
-							</SelectItem>
-						))}
-					</SelectGroup>
-				</SelectContent>
-			</Select>
-		</div>
-	);
+export default function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps) {
+  const { editorTheme, setEditorTheme, fontLigatures, setFontLigatures } = usePreferences();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editor Preferences</DialogTitle>
+          <DialogDescription>
+            Customize your coding environment. Settings are saved locally.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-6 py-4">
+          <div className="flex flex-col gap-3">
+            <Label>Editor Theme</Label>
+            <Select value={editorTheme} onValueChange={setEditorTheme}>
+              <SelectTrigger className="w-full h-9 bg-background">
+                <Palette className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Select Theme" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground">Themes</SelectLabel>
+                  {THEME_OPTIONS.map((theme) => (
+                    <SelectItem key={theme.value} value={theme.value} className="text-sm">
+                      {theme.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Font Ligatures</Label>
+              <p className="text-xs text-muted-foreground">
+                Enable special font ligatures for symbols (e.g., =&gt; to ⇒)
+              </p>
+            </div>
+            <Switch
+              checked={fontLigatures}
+              onCheckedChange={setFontLigatures}
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }

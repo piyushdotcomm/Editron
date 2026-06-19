@@ -50,7 +50,7 @@ export function Breadcrumbs({ activeFile, templateData }: BreadcrumbsProps) {
                 const ext = isLast ? activeFile.fileExtension : undefined;
 
                 return (
-                    <span key={index} className="flex items-center gap-1 shrink-0">
+                    <span key={segments.slice(0, index + 1).join('/')} className="flex items-center gap-1 shrink-0">
                         {index > 0 && (
                             <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
                         )}

@@ -1,11 +1,22 @@
 "use client";
 
 import { ErrorBoundary } from "@/components/error-boundary";
+import React, { Suspense, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
+import { AlertCircle, FolderOpen } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import PlaygroundSkeleton from "@/modules/playground/components/loader";
 import { AlertCircle, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PlaygroundProvider } from "@/modules/playground/contexts/playground-context";
+import type {
+  EditorPane,
+  SplitDirection,
+} from "@/modules/playground/contexts/playground-context";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAI } from "@/modules/playground/hooks/useAI";
 import AIChatPanel from "@/modules/playground/components/ai-chat-panel";

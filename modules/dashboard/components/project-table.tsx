@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { format } from "date-fns"
 import type { Project } from "../types"
+import type { Playground } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -43,9 +44,9 @@ import { MarkedToggleButton } from "./marked-toggle"
 
 interface ProjectTableProps {
   projects: Project[]
-  onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<any>
-  onDeleteProject?: (id: string) => Promise<any>
-  onDuplicateProject?: (id: string) => Promise<any>
+  onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
+  onDeleteProject?: (id: string) => Promise<void>
+  onDuplicateProject?: (id: string) => Promise<Playground>
 }
 
 interface EditProjectData {

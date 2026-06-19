@@ -1,8 +1,8 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAllPlaygroundForUser } from "@/modules/dashboard/actions";
 import { DashboardSidebar } from "@/modules/dashboard/components/dashboard-sidebar";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { APP_NAME } from "@/lib/constants/config";
+
 
 export default async function DashboardLayout({
     children
@@ -12,37 +12,40 @@ export default async function DashboardLayout({
 
     const playgroundData = await getAllPlaygroundForUser();
     const technologyIconMap: Record<string, string> = {
-    REACT: "Zap",
-    NEXTJS: "Lightbulb",
-    EXPRESS: "Database",
-    VUE: "Compass",
-    HONO: "FlameIcon",
-    ANGULAR: "Terminal",
+        REACT: "Zap",
+        NEXTJS: "Lightbulb",
+        EXPRESS: "Database",
+        VUE: "Compass",
+        HONO: "FlameIcon",
+        ANGULAR: "Terminal",
     }
 
-    const formattedPlaygroundData = playgroundData?.map((item)=>({
-        id:item.id,
-        name:item.title,
-        starred:item.Starmark?.[0]?.isMarked || false,
+    const formattedPlaygroundData = playgroundData?.map((item) => ({
+        id: item.id,
+        name: item.title,
+        starred: item.Starmark?.[0]?.isMarked || false,
         icon: technologyIconMap[item.template] || "Code"
     }))
 
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full overflow-x-hidden">
-          {/*Dashboard Sidebar */}
-          <DashboardSidebar
-            initialPlaygroundData={formattedPlaygroundData || []}
-          />
-          <main className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 border-b p-3 md:hidden">
-              <SidebarTrigger />
-
-              <h1 className="text-lg font-semibold">{APP_NAME}</h1>
+        <SidebarProvider>
+            <div className="flex min-h-screen w-full overflow-x-hidden">
+                {/* Dashboard Sidebar */}
+                <DashboardSidebar initialPlaygroundData={formattedPlaygroundData || []} />
+                
+                <main className="min-w-0 flex-1">
+                    {/* Mobile Header (from main branch) */}
+                    <div className="flex items-center gap-2 border-b p-3 md:hidden">
+                        <SidebarTrigger />
+                        <h1 className="text-lg font-semibold">{APP_NAME}</h1>
+                    </div>
+                    
+                    {children}
+                    
+                    {/* Toaster Notification Context (from feature branch) */}
+                    
+                </main>
             </div>
-            {children}
-          </main>
-        </div>
-      </SidebarProvider>
+        </SidebarProvider>
     );
 }
