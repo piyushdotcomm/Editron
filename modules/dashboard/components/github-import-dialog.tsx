@@ -68,7 +68,18 @@ const GithubImportDialog = ({ children }: { children: React.ReactNode }) => {
                 body: JSON.stringify(body),
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            let data: { error?: string; needsSubdir?: boolean; subdirs?: string[]; playgroundId?: string } = {};
+
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch {
+                throw new Error(
+                    responseText.includes("<!DOCTYPE")
+                        ? "GitHub import endpoint is unavailable right now."
+                        : "Failed to import repository"
+                );
+            }
 
             if (!response.ok) {
                 throw new Error(data.error || "Failed to import repository");
