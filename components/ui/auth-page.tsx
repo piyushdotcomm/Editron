@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Input } from './input';
 
+
 export function AuthPage() {
     return (
         <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
@@ -48,11 +49,15 @@ export function AuthPage() {
                     <div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 [translate:5%_-50%] rounded-full" />
                     <div className="bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] absolute top-0 right-0 h-320 w-60 -translate-y-87.5 rounded-full" />
                 </div>
-                <Button variant="ghost" className="absolute top-7 left-5" asChild>
-                    <a href="#">
+                <Button
+                    variant="secondary"
+                    className="absolute top-7 left-5 border border-border/60 bg-background/80 backdrop-blur-sm hover:bg-background"
+                    asChild
+                >
+                    <Link href="/">
                         <ChevronLeftIcon className='size-4 me-2' />
                         Home
-                    </a>
+                    </Link>
                 </Button>
                 <div className="mx-auto space-y-4 sm:w-sm">
                     <div className="flex items-center gap-2 lg:hidden">

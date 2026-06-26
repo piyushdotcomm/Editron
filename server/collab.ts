@@ -18,7 +18,11 @@ const server = http.createServer((request, response) => {
 });
 
 const wss = new WebSocketServer({ noServer: true });
-
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL is not set. Please provide the DATABASE_URL environment variable or configuration."
+  );
+}
 // Setup MongoDB persistence
 const _mdb = new MongodbPersistence(process.env.DATABASE_URL as string, {
     collectionName: 'yjs-transactions',
@@ -47,7 +51,6 @@ async function gracefulShutdown(signal: string) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log(`[collab] Received ${signal}. Starting graceful shutdown...`);
 
     const forceExit = setTimeout(() => {
     console.error('[collab] Forced shutdown after timeout');
@@ -67,21 +70,18 @@ wss.clients.forEach((client) => {
 // Stop accepting new connections
 await new Promise<void>((resolve) => {
     wss.close(() => {
-        console.log('[collab] WebSocket server closed');
         resolve();
     });
 });
 
         
         // Persistence cleanup handled by writeState()
-        console.log('[collab] Waiting for persistence cleanup');
 
         // Close HTTP server
         await new Promise<void>((resolve, reject) => {
             server.close((err) => {
                 if (err) reject(err);
 
-                console.log('[collab] HTTP server closed');
                 resolve();
             });
         });
@@ -147,7 +147,6 @@ server.on('upgrade', async (request, socket, head) => {
         }
 
         wss.handleUpgrade(request, socket, head, (ws) => {
-            console.log('WebSocket successfully upgraded!');
             wss.emit('connection', ws, request);
         });
     } catch (error) {
@@ -158,7 +157,6 @@ server.on('upgrade', async (request, socket, head) => {
 });
 
 server.listen(port, () => {
-    console.log(`Collaboration server running on port ${port}`);
 });
 
 process.on('SIGTERM', () => {

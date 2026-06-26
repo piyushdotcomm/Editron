@@ -27,7 +27,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setIsLoading(false);
-    }, 3200);
+    }, 1800);
 
     return () => {
       window.clearTimeout(timer);
@@ -38,7 +38,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
     <>
       <div
         className={cn(
-          "fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-700 ease-in-out",
+          "fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-500 ease-in-out",
           isLoading ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
@@ -58,7 +58,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
               "relative z-10 w-full flex flex-col items-center text-center space-y-8 fill-mode-both",
               isLoading
                 ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out",
+                : "animate-in fade-in slide-in-from-bottom-6 duration-500 ease-out",
             )}
           >
             <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-sm text-red-500 backdrop-blur-md hover:bg-red-500/20 transition-colors cursor-default">
@@ -107,7 +107,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
               "w-full relative z-10 fill-mode-both",
               isLoading
                 ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out",
+                : "animate-in fade-in slide-in-from-bottom-6 duration-500 delay-100 ease-out",
             )}
           >
             <HeroCodeDemo />
@@ -118,7 +118,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
               "w-full relative z-10 fill-mode-both",
               isLoading
                 ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 ease-out",
+                : "animate-in fade-in slide-in-from-bottom-6 duration-500 delay-200 ease-out",
             )}
           >
             <div className="mb-8 flex items-center justify-between">
@@ -133,21 +133,49 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {popularTemplates.map((template) => (
-                <TemplateCard key={template.id} template={template} />
-              ))}
+            {/* Accessible marquee carousel with proper ARIA labels and keyboard navigation handling */}
+            <div
+              role="region"
+              aria-label="Popular templates carousel"
+              className="overflow-hidden relative py-2"
+            >
+              <div className="marquee">
+                <div className="marquee-track flex gap-6">
+                  {/* Primary set - keyboard accessible and screen reader visible */}
+                  {popularTemplates.map((template) => (
+                    <div
+                      key={`${template.id}-primary`}
+                      className="flex-none min-w-[18rem] max-w-[18rem] sm:min-w-[22rem] sm:max-w-[22rem]"
+                      role="presentation"
+                    >
+                      <TemplateCard template={template} />
+                    </div>
+                  ))}
+
+                  {/* Duplicated set for infinite scroll animation - hidden from assistive technology */}
+                  <div
+                    aria-hidden="true"
+                    inert={true}
+                    className="contents"
+                  >
+                    {popularTemplates.map((template) => (
+                      <div
+                        key={`${template.id}-duplicate`}
+                        className="flex-none min-w-[18rem] max-w-[18rem] sm:min-w-[22rem] sm:max-w-[22rem]"
+                        role="presentation"
+                      >
+                        <TemplateCard template={template} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
           <section
             id="features"
-            className={cn(
-              "w-full relative fill-mode-both",
-              isLoading
-                ? "opacity-0"
-                : "animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 ease-out",
-            )}
+            className="w-full relative"
           >
             <div className="mb-16 text-center space-y-4">
               <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">

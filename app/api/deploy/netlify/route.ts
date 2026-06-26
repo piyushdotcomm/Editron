@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import JSZip from "jszip";
 import { rateLimit } from "@/lib/api-utils";
+import { NETLIFY_API } from "@/lib/constants/config";
+
+interface DeployFile {
+    path: string;
+    content: string;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -44,7 +50,7 @@ export async function POST(req: NextRequest) {
         // For Netlify, the easiest way to deploy raw files is to zip them and POST to the API.
         const zip = new JSZip();
 
-        files.forEach((f: any) => {
+        files.forEach((f: DeployFile) => {
             // Netlify requires files to be in a flat structure inside the zip or root
             zip.file(f.path, f.content);
         });
@@ -55,7 +61,7 @@ export async function POST(req: NextRequest) {
         // For simplicity, we create a new site for this playground if no site ID is tracked.
         // In a real production app, you might want to create the site once and store the Site ID in MongoDB.
 
-        const siteResponse = await fetch("https://api.netlify.com/api/v1/sites", {
+        const siteResponse = await fetch(NETLIFY_API.SITES, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -74,7 +80,7 @@ export async function POST(req: NextRequest) {
         const siteId = siteData.id;
 
         // Step 2: Deploy the Zip file (requires passing the buffer)
-        const deployResponse = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/deploys`, {
+        const deployResponse = await fetch(NETLIFY_API.SITE_DEPLOYS(siteId), {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

@@ -66,7 +66,7 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -95,7 +95,7 @@ export const getAllPlaygroundForUser = async ()=>{
       
         return playground;
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -161,6 +161,14 @@ export const getPlaygroundById = async (id: string) => {
 }
 
 
+/**
+ * Normalizes an object to be JSON-safe by stripping undefined values.
+ * Useful for Prisma JSON fields which don't support undefined.
+ */
+function normalizeJson<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export const SaveUpdatedCode = async (
   playgroundId: string,
   data: TemplateFolder
@@ -168,22 +176,22 @@ export const SaveUpdatedCode = async (
   await assertPlaygroundOwnership(playgroundId);
 
   try {
+    const normalizedData = normalizeJson(data);
     const updatedPlayground = await db.templateFile.upsert({
       where: {
         playgroundId,
       },
       update: {
-        content: data as Prisma.InputJsonValue,
+        content: normalizedData as Prisma.InputJsonValue,
       },
       create: {
         playgroundId,
-        content: data as Prisma.InputJsonValue,
+        content: normalizedData as Prisma.InputJsonValue,
       },
     });
 
     return updatedPlayground;
   } catch (error) {
-    console.log("SaveUpdatedCode error:", error);
     throw error;
   }
 };
@@ -196,7 +204,7 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -210,7 +218,7 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
-        console.log(error)
+        throw error;
     }
 }
 
@@ -237,9 +245,8 @@ export const duplicateProjectById = async (id: string) => {
                 template: originalPlayground.template,
                 userId,
                 templateFiles: {
-                  // @ts-ignore
                     create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content,
+                        content: file.content as Prisma.InputJsonValue,
                     })),
                 },
             },

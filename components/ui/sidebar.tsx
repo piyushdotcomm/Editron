@@ -196,13 +196,16 @@ function Sidebar({
           side={side}
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+            <SheetTitle>Mobile Navigation</SheetTitle>
+            <SheetDescription>
+              Dashboard sidebar navigation menu
+            </SheetDescription>
           </SheetHeader>
+
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
       </Sheet>
-    )
+    );
   }
 
   return (
