@@ -43,15 +43,6 @@ interface ExtendedMessage {
     id?: string;
 }
 
-interface OpenFile {
-    id: string;
-    filename: string;
-    fileExtension?: string;
-    content: string;
-    originalContent: string;
-    hasUnsavedChanges?: boolean;
-}
-
 interface UseAIToolsProps {
     messages: unknown[];
     templateData: TemplateFolder | null;
@@ -74,6 +65,20 @@ interface UseAIToolsProps {
     }>) => void;
     saveTemplateData: (data: TemplateFolder) => Promise<void>;
     addToolResult: (result: { toolCallId: string; tool: string; output: string }) => void;
+}
+
+/**
+ * Helper function to normalize and compare file paths
+ * Ensures accurate path matching across different directory structures
+ */
+function normalizePath(path: string): string {
+    return path.replace(/\\/g, "/").replace(/^\/+/, "").toLowerCase();
+}
+
+function isPathMatch(path1: string, path2: string): boolean {
+    const normalized1 = normalizePath(path1);
+    const normalized2 = normalizePath(path2);
+    return normalized1 === normalized2;
 }
 
 export function useAITools({
@@ -141,114 +146,148 @@ export function useAITools({
 
             let result: string;
 
-            try {
-                if (toolName === "read_file") {
-                    const { path } = args as { path?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
-                    } else {
-                        const file = findFileByPath(templateData?.items || [], path);
-                        result = (file && "content" in file && file.content !== undefined) 
-                            ? file.content 
-                            : `Error: File "${path}" not found`;
-                    }
-                } else if (toolName === "edit_file") {
-                    const { path, content } = args as { path?: string; content?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: edit_file requires a "path" argument (e.g. "README.md")`;
-                    } else if (content === undefined || content === null) {
-                        result = `Error: edit_file requires a "content" argument with the full file contents`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
-                    } else {
-                        const updatedItems = addOrUpdateFile(templateData.items, path, content as string);
-                        const updatedTemplate = { ...templateData, items: updatedItems };
-                        setTemplateData(updatedTemplate);
-
-                        const updatedOpenFiles = openFiles.map((f) => {
-                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                            const fullName = `${f.filename}${ext}`;
-                            if (path.endsWith(fullName)) {
-                                return { 
-                                    ...f, 
-                                    content: content as string, 
-                                    hasUnsavedChanges: true 
-                                };
-                            }
-                            return f;
-                        });
-
-                        setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI updated ${path}`);
-                        result = `Successfully updated ${path}`;
-                    }
-                } else if (toolName === "edit_multiple_files") {
-                    const { changes } = args as { changes?: { path: string; content: string }[] };
-                    if (!changes || !Array.isArray(changes) || changes.length === 0) {
-                        result = `Error: edit_multiple_files requires a "changes" array with at least one {path, content} entry`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
-                    } else {
-                        let currentItems = templateData.items;
-                        let currentOpenFiles = [...openFiles];
-
-                        for (const change of changes) {
-                            currentItems = addOrUpdateFile(currentItems, change.path, change.content);
-                            currentOpenFiles = currentOpenFiles.map((f) => {
-                                const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                                const fullName = `${f.filename}${ext}`;
-                                if (change.path.endsWith(fullName)) {
-                                    return { ...f, content: change.content, hasUnsavedChanges: true };
-                                }
-                                return f;
-                            });
+            // Use an IIFE (Immediately Invoked Function Expression) to handle async operations
+            (async () => {
+                try {
+                    if (toolName === "read_file") {
+                        const { path } = args as { path?: string };
+                        if (!path || typeof path !== "string") {
+                            result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
+                        } else {
+                            const file = findFileByPath(templateData?.items || [], path);
+                            result = (file && "content" in file && file.content !== undefined) 
+                                ? file.content 
+                                : `Error: File "${path}" not found`;
                         }
+                    } else if (toolName === "edit_file") {
+                        const { path, content } = args as { path?: string; content?: string };
+                        if (!path || typeof path !== "string") {
+                            result = `Error: edit_file requires a "path" argument (e.g. "README.md")`;
+                        } else if (content === undefined || content === null) {
+                            result = `Error: edit_file requires a "content" argument with the full file contents`;
+                        } else if (!templateData) {
+                            result = `Error: Template data not loaded`;
+                        } else {
+                            try {
+                                const updatedItems = addOrUpdateFile(templateData.items, path, content as string);
+                                const updatedTemplate = { ...templateData, items: updatedItems };
+                                setTemplateData(updatedTemplate);
 
-                        const updatedTemplate = { ...templateData, items: currentItems };
-                        setTemplateData(updatedTemplate);
-                        setOpenFiles(currentOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI scaffolded ${changes.length} files`);
-                        result = `Successfully updated ${changes.length} files`;
-                    }
-                } else if (toolName === "delete_file") {
-                    const { path } = args as { path?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: delete_file requires a "path" argument`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
+                                // Use normalized path comparison instead of endsWith
+                                const normalizedEditPath = normalizePath(path);
+                                const updatedOpenFiles = openFiles.map((f) => {
+                                    const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                                    const fullName = `${f.filename}${ext}`;
+                                    const normalizedFullName = normalizePath(fullName);
+                                    if (isPathMatch(normalizedEditPath, normalizedFullName)) {
+                                        return { 
+                                            ...f, 
+                                            content: content as string, 
+                                            hasUnsavedChanges: true 
+                                        };
+                                    }
+                                    return f;
+                                });
+
+                                setOpenFiles(updatedOpenFiles);
+                                await saveTemplateData(updatedTemplate);
+                                toast.success(`AI updated ${path}`);
+                                result = `Successfully updated ${path}`;
+                            } catch (saveError) {
+                                console.error("Failed to save template data:", saveError);
+                                toast.error(`Failed to save changes to ${path}`);
+                                result = `Error: Failed to save changes to ${path}`;
+                            }
+                        }
+                    } else if (toolName === "edit_multiple_files") {
+                        const { changes } = args as { changes?: { path: string; content: string }[] };
+                        if (!changes || !Array.isArray(changes) || changes.length === 0) {
+                            result = `Error: edit_multiple_files requires a "changes" array with at least one {path, content} entry`;
+                        } else if (!templateData) {
+                            result = `Error: Template data not loaded`;
+                        } else {
+                            try {
+                                let currentItems = templateData.items;
+                                let currentOpenFiles = [...openFiles];
+
+                                // Build a map of normalized paths for efficient comparison
+                                const normalizedChanges = changes.map(change => ({
+                                    ...change,
+                                    normalizedPath: normalizePath(change.path)
+                                }));
+
+                                for (const change of normalizedChanges) {
+                                    currentItems = addOrUpdateFile(currentItems, change.path, change.content);
+                                    currentOpenFiles = currentOpenFiles.map((f) => {
+                                        const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                                        const fullName = `${f.filename}${ext}`;
+                                        const normalizedFullName = normalizePath(fullName);
+                                        if (isPathMatch(change.normalizedPath, normalizedFullName)) {
+                                            return { ...f, content: change.content, hasUnsavedChanges: true };
+                                        }
+                                        return f;
+                                    });
+                                }
+
+                                const updatedTemplate = { ...templateData, items: currentItems };
+                                setTemplateData(updatedTemplate);
+                                setOpenFiles(currentOpenFiles);
+                                await saveTemplateData(updatedTemplate);
+                                toast.success(`AI scaffolded ${changes.length} files`);
+                                result = `Successfully updated ${changes.length} files`;
+                            } catch (saveError) {
+                                console.error("Failed to save template data:", saveError);
+                                toast.error(`Failed to save changes`);
+                                result = `Error: Failed to save changes`;
+                            }
+                        }
+                    } else if (toolName === "delete_file") {
+                        const { path } = args as { path?: string };
+                        if (!path || typeof path !== "string") {
+                            result = `Error: delete_file requires a "path" argument`;
+                        } else if (!templateData) {
+                            result = `Error: Template data not loaded`;
+                        } else {
+                            try {
+                                const updatedItems = deleteFileByPath(templateData.items, path);
+                                const updatedTemplate = { ...templateData, items: updatedItems };
+                                setTemplateData(updatedTemplate);
+
+                                // Use normalized path comparison for deletion
+                                const normalizedDeletePath = normalizePath(path);
+                                const updatedOpenFiles = openFiles.filter((f) => {
+                                    const ext = f.fileExtension ? `.${f.fileExtension}` : "";
+                                    const fullName = `${f.filename}${ext}`;
+                                    const normalizedFullName = normalizePath(fullName);
+                                    return !isPathMatch(normalizedDeletePath, normalizedFullName);
+                                });
+
+                                setOpenFiles(updatedOpenFiles);
+                                await saveTemplateData(updatedTemplate);
+                                toast.success(`AI deleted ${path}`);
+                                result = `Successfully deleted ${path}`;
+                            } catch (saveError) {
+                                console.error("Failed to save template data:", saveError);
+                                toast.error(`Failed to delete ${path}`);
+                                result = `Error: Failed to delete ${path}`;
+                            }
+                        }
                     } else {
-                        const updatedItems = deleteFileByPath(templateData.items, path);
-                        const updatedTemplate = { ...templateData, items: updatedItems };
-                        setTemplateData(updatedTemplate);
-
-                        const updatedOpenFiles = openFiles.filter((f) => {
-                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                            const fullName = `${f.filename}${ext}`;
-                            return !path.endsWith(fullName);
-                        });
-
-                        setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI deleted ${path}`);
-                        result = `Successfully deleted ${path}`;
+                        result = `Error: Unknown tool ${toolName}`;
                     }
-                } else {
-                    result = `Error: Unknown tool ${toolName}`;
+                } catch (err: unknown) {
+                    result = `Error: ${err instanceof Error ? err.message : String(err)}`;
                 }
-            } catch (err: unknown) {
-                result = `Error: ${err instanceof Error ? err.message : String(err)}`;
-            }
 
-            // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
-            processedToolCallIds.current.add(toolCallId);
+                // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
+                processedToolCallIds.current.add(toolCallId);
 
-            addToolResult({
-                toolCallId,
-                tool: toolName,
-                output: result,
-            });
+                addToolResult({
+                    toolCallId,
+                    tool: toolName,
+                    output: result,
+                });
+            })();
         }
     }, [messages, templateData, openFiles, setTemplateData, setOpenFiles, saveTemplateData, addToolResult]);
 

@@ -81,13 +81,15 @@ export function ChatMessage({ message, isLoading }: ChatMessageProps) {
                                 {textContent}
                             </div>
                         )}
-                        {toolParts.map((ti) => {
+                        {toolParts.map((ti, idx) => {
                             const tiName = (ti.toolName as string | undefined) ?? 
                                           (ti.type as string)?.split("-").slice(1).join("-") ?? "tool";
                             const tiPath = (ti.input as Record<string, unknown> | undefined)?.path as string | undefined;
                             const tiDone = ti.state === "output-available" || ti.state === "result";
+                            // Add index fallback for undefined toolCallId to fix React key issue
+                            const key = ti.toolCallId ?? `tool-${idx}`;
                             return (
-                                <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border rounded-xl bg-muted/30 shadow-sm max-w-[90%]">
+                                <div key={key} className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border rounded-xl bg-muted/30 shadow-sm max-w-[90%]">
                                     <div className="h-5 w-5 rounded-full bg-background flex items-center justify-center shrink-0 border shadow-sm">
                                         <Wrench className="h-2.5 w-2.5" />
                                     </div>
@@ -100,12 +102,7 @@ export function ChatMessage({ message, isLoading }: ChatMessageProps) {
                     </div>
                 </div>
             )}
-            {isLoading && message.role !== "assistant" && (
-                <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Thinking...</span>
-                </div>
-            )}
+            {/* REMOVED: Duplicate "Thinking..." indicator - AIChatPanel handles this at list level */}
         </div>
     );
 }

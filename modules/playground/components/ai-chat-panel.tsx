@@ -34,7 +34,6 @@ import {
     Trash2,
     Loader2,
     Sparkles,
-    User,
     ChevronDown,
     Zap,
     Code2,
