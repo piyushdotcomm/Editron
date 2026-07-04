@@ -475,6 +475,7 @@ const
               size="sm"
               onClick={() => setShowSearch(!showSearch)}
               className="h-6 w-6 p-0"
+              aria-label={showSearch ? "Hide search" : "Show search"}
             >
               <Search className="h-3 w-3" />
             </Button>
@@ -484,6 +485,7 @@ const
               size="sm"
               onClick={copyTerminalContent}
               className="h-6 w-6 p-0"
+              aria-label="Copy terminal output"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -493,6 +495,7 @@ const
               size="sm"
               onClick={downloadTerminalLog}
               className="h-6 w-6 p-0"
+              aria-label="Download terminal log"
             >
               <Download className="h-3 w-3" />
             </Button>
@@ -502,6 +505,7 @@ const
               size="sm"
               onClick={clearTerminal}
               className="h-6 w-6 p-0"
+              aria-label="Clear terminal"
             >
               <Trash2 className="h-3 w-3" />
             </Button>
