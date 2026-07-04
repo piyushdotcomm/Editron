@@ -325,7 +325,6 @@ const
       writePrompt();
 
       return terminal;
-// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [theme, handleTerminalInput, writePrompt]);
 
     const connectToWebContainer = useCallback(async () => {
@@ -420,7 +419,6 @@ const
           currentProcess.current.kill();
         }
         if (shellProcess.current) {
-// eslint-disable-next-line react-hooks/exhaustive-deps
           shellProcess.current.kill();
         }
         if (term.current) {

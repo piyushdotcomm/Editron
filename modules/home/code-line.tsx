@@ -1,40 +1,62 @@
-
 "use client";
 import React from 'react';
 
-export const CodeLine = ({ line }: { line: string }) => {
-    // Basic replacements to simulate syntax highlighting
-    // Note: This is a very simplistic implementation and should be replaced with a proper library like prismjs or shiki in production
+const escapeHtml = (text: string) => {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
 
-    const highlight = (text: string) => {
-        // We use a series of replacements. Order matters to avoid replacing inside already replaced spans.
-        // A better approach for robust highlighting is tokenization.
+const highlightCode = (code: string) => {
+    // Use placeholders for span tags to preserve them during escaping
+    const placeholderPrefix = "__SPAN_";
+    const placeholderSuffix = "__";
+    let placeholderIndex = 0;
+    const placeholders: string[] = [];
 
-        const highlighted = text;
-
-        // Comments (simple // for now)
-        if (highlighted.includes('//')) {
-            const parts = highlighted.split('//');
-            return <><span dangerouslySetInnerHTML={{ __html: highlightCode(parts[0]) }} /><span className="text-slate-500 italic">{'//' + parts[1]}</span></>;
-        }
-
-        return <span dangerouslySetInnerHTML={{ __html: highlightCode(highlighted) }} />;
+    const replaceWithPlaceholder = (match: string) => {
+        const placeholder = `${placeholderPrefix}${placeholderIndex++}${placeholderSuffix}`;
+        placeholders.push(match);
+        return placeholder;
     };
 
-    const highlightCode = (code: string) => {
-        return code
-            .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
-            .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-            .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
-            .replace(/Editron|console|editor/g, '<span class="text-rose-600 dark:text-rose-400">$&</span>');
+    // Apply syntax highlighting on raw code first
+    let highlighted = code
+        .replace(/\b(?:import|from|export|default|return|const|new)\b/g, (match) => replaceWithPlaceholder(`<span class="text-red-500 dark:text-red-400 font-semibold">${escapeHtml(match)}</span>`))
+        .replace(/'[^']*'/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${escapeHtml(match)}</span>`))
+        .replace(/\"[^\"]*\"/g, (match) => replaceWithPlaceholder(`<span class="text-amber-600 dark:text-amber-400">${escapeHtml(match)}</span>`))
+        .replace(/\b(?:Editron|console|editor)\b/g, (match) => replaceWithPlaceholder(`<span class="text-rose-600 dark:text-rose-400">${escapeHtml(match)}</span>`));
+
+    // Escape HTML entities in the non-span content
+    highlighted = escapeHtml(highlighted);
+
+    // Restore the span tags from placeholders
+    placeholders.forEach((span, index) => {
+        highlighted = highlighted.replace(`${placeholderPrefix}${index}${placeholderSuffix}`, span);
+    });
+
+    return highlighted;
+};
+
+const highlight = (text: string) => {
+    if (text.includes('//')) {
+        const commentStart = text.indexOf('//');
+        const codePart = text.slice(0, commentStart);
+        const commentPart = text.slice(commentStart);
+        return (
+            <>
+                <span dangerouslySetInnerHTML={{ __html: highlightCode(codePart) }} />
+                <span className="text-slate-500 italic">{commentPart}</span>
+            </>
+        );
     }
+    return <span dangerouslySetInnerHTML={{ __html: highlightCode(text) }} />;
+};
 
-    const [highlighted, setHighlighted] = React.useState<React.ReactNode>(line);
-
-    React.useEffect(() => {
-        setHighlighted(highlight(line));
-// eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [line]);
-
+export const CodeLine = ({ line }: { line: string }) => {
+    const highlighted = React.useMemo(() => highlight(line), [line]);
     return highlighted;
 };
