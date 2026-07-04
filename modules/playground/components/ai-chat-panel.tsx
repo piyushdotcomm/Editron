@@ -1,3 +1,21 @@
+/**
+ * @fileoverview AI Chat Panel - Main chat interface component for AI-assisted coding.
+ * @module components/ai-chat-panel
+ * @description Provides a sheet-based chat interface that allows users to interact with AI assistants
+ * (Gemini, Groq, Mistral) for code generation, file editing, and project scaffolding.
+ * Features include:
+ * - Multi-provider AI support
+ * - Real-time chat with streaming responses
+ * - File system operations (read, edit, delete, multiple edits)
+ * - Project context awareness using file tree
+ * - Tool call execution for file operations
+ * @requires useAI - AI provider management
+ * @requires useFileExplorer - File system state management
+ * @requires useAITools - Tool execution logic hook
+ * @requires ChatMessage - Message rendering component
+ */
+
+
 "use client";
 
 import { TIMEOUTS } from "@/lib/constants/config";
@@ -16,43 +34,25 @@ import {
     Trash2,
     Loader2,
     Sparkles,
-    User,
-    Wrench,
+    ChevronDown,
     Zap,
     Code2,
-    ChevronDown,
 } from "lucide-react";
 import {
     useAI,
     type AIProvider,
-    addOrUpdateFile,
-    deleteFileByPath,
-    findFileByPath,
     collectFilePaths
 } from "@/modules/playground/hooks/useAI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useChat } from "@ai-sdk/react";
+import { useAITools } from "@/modules/playground/hooks/useAITools";
+import { ChatMessage } from "@/modules/playground/components/chat-message";
 
 interface AIChatPanelProps {
     templateData: TemplateFolder | null;
     saveTemplateData: (data: TemplateFolder) => Promise<void>;
-}
-
-interface MessagePart {
-    type?: string;
-    text?: string;
-    toolCallId?: string;
-    toolName?: string;
-    state?: string;
-    input?: Record<string, unknown>;
-    [key: string]: unknown;
-}
-
-interface ExtendedMessage {
-    parts?: MessagePart[];
-    content?: string;
 }
 
 const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
@@ -60,6 +60,16 @@ const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
     { id: "groq", label: "Groq", icon: <Zap className="h-3.5 w-3.5" /> },
     { id: "mistral", label: "Mistral", icon: <Code2 className="h-3.5 w-3.5" /> },
 ];
+
+// Define the FileItem type that matches what useAITools expects
+interface FileItem {
+    id?: string;
+    filename: string;
+    fileExtension?: string;
+    content?: string;
+    originalContent?: string;
+    hasUnsavedChanges?: boolean;
+}
 
 export default function AIChatPanel({
     templateData,
@@ -75,6 +85,7 @@ export default function AIChatPanel({
 
     const { openFiles, setOpenFiles, setTemplateData } = useFileExplorer();
     const [showProviderPicker, setShowProviderPicker] = useState(false);
+    const [inputValue, setInputValue] = useState("");
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -85,8 +96,6 @@ export default function AIChatPanel({
         () => templateData ? collectFilePaths(templateData.items).join("\n") : "",
         [templateData]
     );
-
-    const [inputValue, setInputValue] = useState("");
 
     const {
         messages,
@@ -104,24 +113,36 @@ export default function AIChatPanel({
     // v3 uses status instead of isLoading
     const isLoading = status === "submitted" || status === "streaming";
 
-    // Prevent the user from sending a message if the MOST RECENT tool hasn't finished, 
-    // to avoid the SDK "Tool result is missing" crash on the active chat stream.
-    // We explicitly only check the last message so older stuck tools don't permanently brick the chat.
-    const lastMessage = messages[messages.length - 1];
-    const parts = lastMessage ? ((lastMessage as unknown) as { parts?: unknown }).parts : undefined;
-    const hasUnresolvedTools = lastMessage?.role === "assistant" && Array.isArray(parts) && parts.some(
-        (rawP: unknown) => {
-            if (!rawP || typeof rawP !== "object") return false;
-            const p = rawP as MessagePart;
-            return (p.type === "tool-invocation" || (typeof p.type === "string" && p.type.startsWith("tool-"))) &&
-                   (!p.state || (p.state !== "result" && p.state !== "output-available")) &&
-                   (p.toolInvocation && typeof p.toolInvocation === "object" && (p.toolInvocation as Record<string, unknown>).state === "call");
-        }
-    );
+    // Convert openFiles to the expected type for useAITools
+    const openFilesForTools: FileItem[] = useMemo(() => {
+        return openFiles.map(f => ({
+            id: f.id,
+            filename: f.filename,
+            fileExtension: f.fileExtension,
+            content: f.content,
+            originalContent: f.originalContent,
+            hasUnsavedChanges: f.hasUnsavedChanges
+        }));
+    }, [openFiles]);
+
+    // Use the extracted tool logic hook
+    const { hasUnresolvedTools } = useAITools({
+        messages,
+        templateData,
+        openFiles: openFilesForTools,
+        setTemplateData: (data: TemplateFolder) => setTemplateData(data),
+        setOpenFiles: (files: FileItem[]) => {
+            // Convert back to the format expected by useFileExplorer
+            // Use type assertion to handle the conversion
+            setOpenFiles(files as any);
+        },
+        saveTemplateData,
+        addToolResult,
+    });
 
     const sendMessage = useCallback(() => {
         const trimmed = inputValue.trim();
-        if (!trimmed || isLoading || hasUnresolvedTools) return;
+        if (!trimmed || isLoading || hasUnresolvedTools()) return;
         chatSendMessage(
             { text: trimmed },
             {
@@ -156,158 +177,6 @@ export default function AIChatPanel({
         if (showProviderPicker) document.addEventListener("mousedown", handleClick);
         return () => document.removeEventListener("mousedown", handleClick);
     }, [showProviderPicker]);
-
-    // Track which tool calls we've already executed to prevent double-execution
-    const processedToolCallIds = useRef(new Set<string>());
-
-    // Handle incoming client-side tool calls
-    // In AI SDK v3, static tool parts use type: "tool-{toolName}" with:
-    //   part.toolCallId, part.toolName, part.input, part.state
-    useEffect(() => {
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage?.role !== "assistant") return;
-
-        const rawParts: unknown[] = (lastMessage as unknown as { parts?: unknown[] }).parts ?? [];
-
-        // Debug: log all parts to see what v3 sends
-        if (rawParts.length > 0) {
-            const toolParts = rawParts.filter((p) => typeof (p as Record<string,unknown>).type === "string" && ((p as Record<string,unknown>).type as string).startsWith("tool-"));
-            if (toolParts.length > 0) {
-                console.log("[AIChatPanel] Tool parts in last message:", JSON.stringify(toolParts, null, 2));
-            }
-        }
-
-        for (const rawPart of rawParts) {
-            const part = rawPart as Record<string, unknown>;
-            const partType = part.type as string | undefined;
-
-            // v3 static tool parts: type starts with "tool-" (e.g. "tool-read_file")
-            if (!partType?.startsWith("tool-")) continue;
-
-            // Guard against re-execution: skip if already processed
-            const toolCallId = part.toolCallId as string | undefined;
-            if (!toolCallId) continue;
-            if (processedToolCallIds.current.has(toolCallId)) continue;
-
-            // Only execute when input is fully available (not still streaming)
-            const state = part.state as string | undefined;
-            // Skip if output already provided, or if input is still streaming in
-            if (state === "output-available" || state === "output-streaming") continue;
-            // Skip if input hasn't arrived yet
-            if (state === "input-streaming") continue;
-            const toolName = (part.toolName as string | undefined) ?? partType.split("-").slice(1).join("-");
-            // In v3, args live in part.input; fall back to part.args for compatibility
-            const args = (part.input as Record<string, unknown> | undefined) ?? (part.args as Record<string, unknown> | undefined) ?? {};
-
-            if (!toolCallId || !toolName) continue;
-
-            let result: string;
-
-            try {
-                if (toolName === "read_file") {
-                    const { path } = args as { path?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: read_file requires a "path" argument (e.g. "src/App.tsx")`;
-                    } else {
-                        const file = findFileByPath(templateData?.items || [], path);
-                        result = (file && "content" in file && file.content !== undefined) ? file.content : `Error: File "${path}" not found`;
-                    }
-                } else if (toolName === "edit_file") {
-                    const { path, content } = args as { path?: string; content?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: edit_file requires a "path" argument (e.g. "README.md")`;
-                    } else if (content === undefined || content === null) {
-                        result = `Error: edit_file requires a "content" argument with the full file contents`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
-                    } else {
-                        const updatedItems = addOrUpdateFile(templateData.items, path, content as string);
-                        const updatedTemplate = { ...templateData, items: updatedItems };
-                        setTemplateData(updatedTemplate);
-
-                        const updatedOpenFiles = openFiles.map((f) => {
-                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                            const fullName = `${f.filename}${ext}`;
-                            if (path.endsWith(fullName)) {
-                                return { ...f, content: content as string, hasUnsavedChanges: true };
-                            }
-                            return f;
-                        });
-
-                        setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI updated ${path}`);
-                        result = `Successfully updated ${path}`;
-                    }
-                } else if (toolName === "edit_multiple_files") {
-                    const { changes } = args as { changes?: { path: string; content: string }[] };
-                    if (!changes || !Array.isArray(changes) || changes.length === 0) {
-                        result = `Error: edit_multiple_files requires a "changes" array with at least one {path, content} entry`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
-                    } else {
-                        let currentItems = templateData.items;
-                        let currentOpenFiles = [...openFiles];
-
-                        for (const change of changes) {
-                            currentItems = addOrUpdateFile(currentItems, change.path, change.content);
-                            currentOpenFiles = currentOpenFiles.map((f) => {
-                                const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                                const fullName = `${f.filename}${ext}`;
-                                if (change.path.endsWith(fullName)) {
-                                    return { ...f, content: change.content, hasUnsavedChanges: true };
-                                }
-                                return f;
-                            });
-                        }
-
-                        const updatedTemplate = { ...templateData, items: currentItems };
-                        setTemplateData(updatedTemplate);
-                        setOpenFiles(currentOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI scaffolded ${changes.length} files`);
-                        result = `Successfully updated ${changes.length} files`;
-                    }
-                } else if (toolName === "delete_file") {
-                    const { path } = args as { path?: string };
-                    if (!path || typeof path !== "string") {
-                        result = `Error: delete_file requires a "path" argument`;
-                    } else if (!templateData) {
-                        result = `Error: Template data not loaded`;
-                    } else {
-                        const updatedItems = deleteFileByPath(templateData.items, path);
-                        const updatedTemplate = { ...templateData, items: updatedItems };
-                        setTemplateData(updatedTemplate);
-
-                        const updatedOpenFiles = openFiles.filter((f) => {
-                            const ext = f.fileExtension ? `.${f.fileExtension}` : "";
-                            const fullName = `${f.filename}${ext}`;
-                            return !path.endsWith(fullName);
-                        });
-
-                        setOpenFiles(updatedOpenFiles);
-                        saveTemplateData(updatedTemplate).catch(console.error);
-                        toast.success(`AI deleted ${path}`);
-                        result = `Successfully deleted ${path}`;
-                    }
-                } else {
-                    result = `Error: Unknown tool ${toolName}`;
-                }
-            } catch (err: unknown) {
-                result = `Error: ${err instanceof Error ? err.message : String(err)}`;
-            }
-
-            // Mark as processed BEFORE calling addToolResult to prevent re-execution on re-render
-            processedToolCallIds.current.add(toolCallId);
-            console.log(`[AIChatPanel] Executed tool ${toolName} (${toolCallId}), result:`, result.slice(0, 100));
-
-            addToolResult({
-                toolCallId,
-                tool: toolName,
-                output: result,
-            } as Parameters<typeof addToolResult>[0]);
-        }
-    }, [messages, templateData, openFiles, setTemplateData, setOpenFiles, saveTemplateData, addToolResult]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -356,73 +225,13 @@ export default function AIChatPanel({
                         </div>
                     )}
 
-                    {messages.map((msg) => {
-                        const extended = msg as unknown as ExtendedMessage;
-                        const rawParts: MessagePart[] = extended.parts ?? [];
-
-                        // AI SDK v3 stores user text in parts[].type=="text"
-                        // Only genuine user messages have text parts
-                        const textParts = rawParts.filter((p) => (p.type ?? "") === "text");
-                        const textContent: string = (
-                            textParts.map((p) => p.text ?? "").join("") ||
-                            extended.content ||
-                            ""
-                        );
-
-                        // v3 tool parts have type starting with "tool-" (e.g. "tool-read_file")
-                        const toolParts: MessagePart[] = rawParts.filter(
-                            (p) => (p.type ?? "").startsWith("tool-")
-                        );
-
-                        // Skip SDK-injected synthetic messages (no real text parts, no tool parts)
-                        const isGenuineUser = msg.role === "user" && textParts.length > 0;
-
-                        return (
-                        <div key={msg.id} className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-                            {isGenuineUser && (
-                                <div className="flex gap-2 justify-end mb-4">
-                                    <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap">
-                                        {textContent}
-                                    </div>
-                                    <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                                        <User className="h-3.5 w-3.5 text-primary" />
-                                    </div>
-                                </div>
-                            )}
-                            {msg.role === "assistant" && (
-                                <div className="flex gap-3 mb-6">
-                                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                                        <Bot className="h-3.5 w-3.5 text-white" />
-                                    </div>
-                                    <div className="flex-1 space-y-2 min-w-0">
-                                        {textContent && (
-                                            <div className="bg-muted/50 border rounded-2xl rounded-tl-sm px-4 py-3 max-w-[95%] text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground shadow-sm">
-                                                {textContent}
-                                            </div>
-                                        )}
-                                        {toolParts.map((ti) => {
-                                            // In v3, tool name comes from the type suffix or toolName property
-                                            const tiName = (ti.toolName as string | undefined) ?? (ti.type as string)?.split("-").slice(1).join("-") ?? "tool";
-                                            // Path arg lives in ti.input.path in v3
-                                            const tiPath = (ti.input as Record<string,unknown> | undefined)?.path as string | undefined;
-                                            const tiDone = ti.state === "output-available" || ti.state === "result";
-                                            return (
-                                            <div key={ti.toolCallId} className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground border rounded-xl bg-muted/30 shadow-sm max-w-[90%]">
-                                                <div className="h-5 w-5 rounded-full bg-background flex items-center justify-center shrink-0 border shadow-sm">
-                                                    <Wrench className="h-2.5 w-2.5" />
-                                                </div>
-                                                <span className="font-mono truncate tracking-tight">
-                                                    {tiName}({tiPath ? tiPath.split("/").pop() : ""}) {tiDone ? "✓" : <Loader2 className="h-3 w-3 inline animate-spin ml-1" />}
-                                                </span>
-                                            </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        );
-                    })}
+                    {messages.map((msg) => (
+                        <ChatMessage 
+                            key={msg.id} 
+                            message={msg as any} 
+                            isLoading={isLoading && messages.length > 0 && messages[messages.length - 1].role !== "assistant"}
+                        />
+                    ))}
 
                     {isLoading && messages.length > 0 && messages[messages.length - 1].role !== "assistant" && (
                         <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
