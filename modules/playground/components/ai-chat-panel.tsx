@@ -1,3 +1,21 @@
+/**
+ * @fileoverview AI Chat Panel - Main chat interface component for AI-assisted coding.
+ * @module components/ai-chat-panel
+ * @description Provides a sheet-based chat interface that allows users to interact with AI assistants
+ * (Gemini, Groq, Mistral) for code generation, file editing, and project scaffolding.
+ * Features include:
+ * - Multi-provider AI support
+ * - Real-time chat with streaming responses
+ * - File system operations (read, edit, delete, multiple edits)
+ * - Project context awareness using file tree
+ * - Tool call execution for file operations
+ * @requires useAI - AI provider management
+ * @requires useFileExplorer - File system state management
+ * @requires useAITools - Tool execution logic hook
+ * @requires ChatMessage - Message rendering component
+ */
+
+
 "use client";
 
 import { TIMEOUTS } from "@/lib/constants/config";
@@ -17,6 +35,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
+ feat/ai-chat-file-mentions-clean
   Bot,
   Send,
   Trash2,
@@ -36,17 +55,35 @@ import {
   deleteFileByPath,
   findFileByPath,
   collectFilePaths,
+=======
+    Bot,
+    Send,
+    Trash2,
+    Loader2,
+    Sparkles,
+    ChevronDown,
+    Zap,
+    Code2,
+} from "lucide-react";
+import {
+    useAI,
+    type AIProvider,
+    collectFilePaths
+main
 } from "@/modules/playground/hooks/useAI";
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { toast } from "sonner";
 import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { useChat } from "@ai-sdk/react";
+import { useAITools } from "@/modules/playground/hooks/useAITools";
+import { ChatMessage } from "@/modules/playground/components/chat-message";
 
 interface AIChatPanelProps {
   templateData: TemplateFolder | null;
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
+ feat/ai-chat-file-mentions-clean
 interface MessagePart {
   type?: string;
   text?: string;
@@ -62,6 +99,7 @@ interface ExtendedMessage {
   content?: string;
 }
 
+main
 const PROVIDERS: { id: AIProvider; label: string; icon: React.ReactNode }[] = [
   { id: "gemini", label: "Gemini", icon: <Sparkles className="h-3.5 w-3.5" /> },
   { id: "groq", label: "Groq", icon: <Zap className="h-3.5 w-3.5" /> },

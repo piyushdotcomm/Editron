@@ -21,7 +21,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
     return (
         <main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2">
             {/* Left Side - Branding & Testimonial */}
-            <div className="bg-muted/60 relative hidden h-full flex-col border-r p-10 lg:flex">
+            <div className="bg-background relative hidden h-full flex-col border-r p-10 lg:flex">
                 <div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
                 <div className="z-10 flex items-center gap-3">
                     <Image src="/logo.svg" alt="Editron Logo" width={32} height={32} className="w-8 h-8" />
@@ -45,7 +45,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
             </div>
 
             {/* Right Side - Auth Form */}
-            <div className="relative flex min-h-screen flex-col justify-center p-4">
+            <div className="relative flex min-h-screen flex-col justify-center bg-background p-4">
                 {/* Background Gradients with Red Accent */}
                 <div
                     aria-hidden
@@ -57,7 +57,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
                 </div>
 
                 {/* Back to Home Button */}
-                <Button variant="ghost" className="absolute top-7 left-5" asChild>
+                <Button variant="secondary" className="absolute top-7 left-5" asChild>
                     <Link href="/">
                         <ChevronLeftIcon className='size-4 me-2' />
                         Home
@@ -65,7 +65,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
                 </Button>
 
                 {/* Auth Form Container */}
-                <div className="mx-auto space-y-6 sm:w-sm">
+                <div className="mx-auto sm:w-sm rounded-3xl border border-border/50 bg-background/80 backdrop-blur-xl p-8 shadow-2xl">
                     {/* Mobile Logo */}
                     <div className="flex items-center gap-3 lg:hidden">
                         <div className="relative">
@@ -77,11 +77,11 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
 
                     {/* Header */}
                     <div className="flex flex-col space-y-3">
-                        <h1 className="font-heading text-3xl md:text-4xl font-black tracking-tight">
+                        <h1 className="font-heading text-3xl md:text-4xl font-black tracking-tight leading-tight">
                             Welcome to <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-amber-500">Editron</span>
                         </h1>
                         <p className="text-muted-foreground text-base">
-                            Sign in to start coding with intelligence
+                            Start building faster with AI-powered development
                         </p>
 
                         {/* Status Badge */}
@@ -100,7 +100,7 @@ export function EditronAuthPage({ onGoogleSignIn, onGithubSignIn }: EditronAuthP
                             <Button
                                 type="submit"
                                 size="lg"
-                                className="w-full h-12 rounded-xl bg-white dark:bg-white text-gray-900 dark:text-gray-900 hover:bg-red-50 dark:hover:bg-red-50 border border-gray-200 dark:border-gray-200 hover:border-red-500/50 transition-all duration-300 group relative z-10 shadow-sm"
+                                className="w-full h-12 rounded-xl bg-white dark:bg-white text-gray-900 hover:bg-red-50 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group relative z-10 shadow-sm"
                             >
                                 <Chrome className='size-5 me-2 group-hover:text-red-500 transition-colors' />
                                 <span className="font-semibold">Continue with Google</span>

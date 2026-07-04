@@ -22,7 +22,7 @@ export function AuthPage() {
                 <div className="from-background absolute inset-0 z-10 bg-gradient-to-t to-transparent" />
                 <div className="z-10 flex items-center gap-2">
                     <Grid2x2PlusIcon className="size-6" />
-                    <p className="text-xl font-semibold">Asme</p>
+                    <p className="text-xl font-semibold">Editron</p>
                 </div>
                 <div className="z-10 mt-auto">
                     <blockquote className="space-y-2">
@@ -40,7 +40,7 @@ export function AuthPage() {
                     <FloatingPaths position={-1} />
                 </div>
             </div>
-            <div className="relative flex min-h-screen flex-col justify-center p-4">
+            <div className="relative flex min-h-screen flex-col justify-center bg-background p-4">
                 <div
                     aria-hidden
                     className="absolute inset-0 isolate contain-strict -z-10 opacity-60"
@@ -60,9 +60,10 @@ export function AuthPage() {
                     </Link>
                 </Button>
                 <div className="mx-auto space-y-4 sm:w-sm">
+                    
                     <div className="flex items-center gap-2 lg:hidden">
                         <Grid2x2PlusIcon className="size-6" />
-                        <p className="text-xl font-semibold">Asme</p>
+                        <p className="text-xl font-semibold">Editron</p>
                     </div>
                     <div className="flex flex-col space-y-1">
                         <h1 className="font-heading text-2xl font-bold tracking-wide">
@@ -138,7 +139,7 @@ function FloatingPaths({ position }: { position: number }) {
             } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${152 - i * 5 * position
             } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${684 - i * 5 * position
             } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-        color: `rgba(15,23,42,${0.1 + i * 0.03})`,
+        color: `currentcolor`,
         width: 0.5 + i * 0.03,
     }));
 
