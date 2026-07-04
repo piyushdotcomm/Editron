@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/providers/theme-providers";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { CommandPalette } from "@/components/command-palette";
 import { Toaster } from "@/components/ui/sonner";
+import ScrollToTopButton from "@/modules/dashboard/components/scroll-to-top-button";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -88,6 +89,7 @@ export default async function RootLayout({
               </div>
 
               <CommandPalette />
+              <ScrollToTopButton />
             </ThemeProvider>
           </QueryProvider>
         </body>
