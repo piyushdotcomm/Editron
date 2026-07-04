@@ -94,7 +94,7 @@ export function HomePageClient({ popularTemplates }: HomePageClientProps) {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="rounded-full px-8 h-12 text-base font-medium border-border/60 hover:bg-secondary/50 w-full sm:w-auto"
+                  className="rounded-full px-8 h-12 text-base font-medium border-border/60 w-full sm:w-auto transition-all duration-300 ease-out hover:scale-110 hover:bg-secondary hover:border-primary hover:text-primary hover:shadow-lg"
                 >
                   Explore Features
                 </Button>
