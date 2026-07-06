@@ -88,13 +88,18 @@ The current Prisma schema centers around:
 - MongoDB instance, local or hosted
 - OAuth applications for GitHub and Google if you want full sign-in support
 
+```markdown
 ### Install
 
 ```bash
-git clone https://github.com/piyushdotcomm/Editron.git
+git clone [https://github.com/piyushdotcomm/Editron.git](https://github.com/piyushdotcomm/Editron.git)
 cd Editron
 npm install
+
+# On macOS and Linux:
 cp .env.example .env
+# On Windows (Command Prompt):
+copy .env.example .env
 ```
 
 ### Environment variables
