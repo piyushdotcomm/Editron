@@ -1,20 +1,8 @@
 import { TemplateFolder, TemplateItem } from "@/modules/playground/lib/path-to-json";
-import type { FileSystemTree } from "@webcontainer/api";
-
-interface WebContainerFile {
-  file: {
-    contents: string;
-  };
-}
-
-interface WebContainerDirectory {
-  directory: {
-    [key: string]: WebContainerFile | WebContainerDirectory;
-  };
-}
+import type { DirectoryNode, FileNode, FileSystemTree } from "@webcontainer/api";
 
 export function transformToWebContainerFormat(template: TemplateFolder): FileSystemTree {
-  function processItem(item: TemplateItem): WebContainerFile | WebContainerDirectory {
+  function processItem(item: TemplateItem): FileNode | DirectoryNode {
     if ('folderName' in item) {
       // This is a directory
       const directoryContents: FileSystemTree = {};
