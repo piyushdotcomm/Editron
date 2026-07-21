@@ -329,6 +329,9 @@ const PlaygroundEditor = ({
               .padEnd(6, "0")
           : "#30bced";
 
+        const sanitizeForCss = (value: string) =>
+          value.replace(/[^a-zA-Z0-9 _\-#.]/g, "");
+
         provider.awareness.setLocalStateField("user", {
           name: session?.user?.name || "Anonymous",
           color: userColor,
@@ -350,8 +353,8 @@ const PlaygroundEditor = ({
 
           for (const [clientId, state] of states) {
             if (state.user) {
-              const color = state.user.color || "orange";
-              const name = state.user.name || "Anonymous";
+              const color = sanitizeForCss(state.user.color || "orange");
+              const name = sanitizeForCss(state.user.name || "Anonymous");
 
               css += `
                 .yRemoteSelection-${clientId} {
@@ -388,7 +391,7 @@ const PlaygroundEditor = ({
               `;
             }
           }
-          styleEl.innerHTML = css;
+          styleEl.textContent = css;
         };
 
         provider.awareness.on("update", handleAwarenessUpdate);
