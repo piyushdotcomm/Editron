@@ -1,7 +1,7 @@
 "use client";
 
 import { EDITOR_CONFIG } from "@/lib/constants/config";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import type { editor as MonacoEditor } from "monaco-editor";
 import {
@@ -249,7 +249,7 @@ const PlaygroundEditor = ({
             }
           },
 
-          freeInlineCompletions: () => {},
+          freeInlineCompletions: () => { },
         },
       );
   };
@@ -288,7 +288,7 @@ const PlaygroundEditor = ({
     if (!model) return;
 
     let disposed = false;
-    let awarenessCleanup = () => {};
+    let awarenessCleanup = () => { };
 
     void (async () => {
       try {
@@ -323,11 +323,11 @@ const PlaygroundEditor = ({
 
         const userColor = session?.user?.email
           ? "#" +
-            Math.floor(
-              Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215),
-            )
-              .toString(16)
-              .padEnd(6, "0")
+          Math.floor(
+            Math.abs(Math.sin(session.user.email.charCodeAt(0)) * 16777215),
+          )
+            .toString(16)
+            .padEnd(6, "0")
           : "#30bced";
 
         provider.awareness.setLocalStateField("user", {
@@ -492,4 +492,4 @@ const PlaygroundEditor = ({
   );
 };
 
-export default PlaygroundEditor;
+export default memo(PlaygroundEditor);
