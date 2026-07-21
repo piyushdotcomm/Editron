@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
@@ -49,6 +50,7 @@ export const PlaygroundHeader = ({
     const hasUnsavedChanges = openFiles.some((f) => f.hasUnsavedChanges);
     const openFilesLength = openFiles.length;
     const toggleAIChat = () => useAI.getState().toggleChat();
+    const router = useRouter();
 
     return (
         <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b px-3 bg-background/80 backdrop-blur-md sticky top-0 z-20">
@@ -61,7 +63,7 @@ export const PlaygroundHeader = ({
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => window.location.href = '/dashboard'}
+                            onClick={() => router.push('/dashboard')}
                             aria-label="Back to Dashboard"
                         >
                             <ArrowLeft className="h-4 w-4" />
