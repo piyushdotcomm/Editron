@@ -19,22 +19,14 @@ export const toggleStarMarked = async (
 
   try {
     if (isChecked) {
-      await db.starMark.create({
-        data: {
-          userId: userId!,
-          playgroundId,
-          isMarked: isChecked,
-        },
+      await db.starMark.upsert({
+        where: { userId_playgroundId: { userId, playgroundId } },
+        update: { isMarked: true },
+        create: { userId, playgroundId, isMarked: true },
       });
     } else {
-      await db.starMark.delete({
-        where: {
-          userId_playgroundId: {
-            userId,
-            playgroundId: playgroundId,
-
-          },
-        },
+      await db.starMark.deleteMany({
+        where: { userId, playgroundId },
       });
     }
 
