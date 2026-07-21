@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
-
-declare module "jszip" {
-    interface JSZipObject {
-        _data?: {
-            uncompressedSize?: number;
-        };
-    }
-}
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import type { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
 
 class ValidationError extends Error {
-    constructor(message: string, public status: number = 400) {
-        super(message);
-        this.name = "ValidationError";
-    }
+   constructor(message: string, public status: number = 400) {
+       super(message);
+       this.name = "ValidationError";
+   }
 }
 
 // Binary / large file extensions to skip
@@ -42,30 +34,41 @@ function isTemplateFolder(item: TemplateFile | TemplateFolder): item is Template
     return "folderName" in item;
 }
 
+interface FileInfo {
+    relativePath: string;
+    arrayBufferPromise: Promise<ArrayBuffer>;
+}
+
 async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
     const root: TemplateFolder = { folderName: "Root", items: [] };
 
     // Collect all file paths and validate sizes before extraction
-    const filePaths: string[] = [];
+    const fileInfos: FileInfo[] = [];
     let totalUncompressedSize = 0;
+    const validFilePaths: string[] = [];
 
-    zip.forEach((relativePath, file) => {
+    zip.forEach((relativePath: string, file: JSZip.JSZipObject): void => {
         if (!file.dir) {
-            const size = file._data?.uncompressedSize;
-
-            if (typeof size !== "number") {
-                throw new ValidationError(`Cannot determine uncompressed size for file: ${relativePath}`, 400);
-            }
-
-            if (size > MAX_SINGLE_FILE_SIZE) {
-                console.warn(`Skipping oversized file: ${relativePath} (${size} bytes)`);
-                return;
-            }
-
-            totalUncompressedSize += size;
-            filePaths.push(relativePath);
+            // Use async("arraybuffer") to reliably get uncompressed size
+            // instead of accessing internal JSZip _data property
+            const arrayBufferPromise = file.async("arraybuffer");
+            fileInfos.push({ relativePath, arrayBufferPromise });
         }
     });
+
+    // Process all files to validate sizes
+    for (const { relativePath, arrayBufferPromise } of fileInfos) {
+        const arrayBuffer = await arrayBufferPromise;
+        const size = arrayBuffer.byteLength;
+
+        if (size > MAX_SINGLE_FILE_SIZE) {
+            console.warn(`Skipping oversized file: ${relativePath} (${size} bytes)`);
+            continue;
+        }
+
+        totalUncompressedSize += size;
+        validFilePaths.push(relativePath);
+    }
 
     if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
         throw new ValidationError(`Total uncompressed size exceeds 10MB limit (${totalUncompressedSize} bytes)`, 413);
@@ -73,17 +76,17 @@ async function zipToTemplateFolder(zip: JSZip): Promise<TemplateFolder> {
 
     // Detect common root folder (e.g. "my-project/src/..." -> strip "my-project/")
     let commonPrefix = "";
-    if (filePaths.length > 0) {
-        const firstSlash = filePaths[0].indexOf("/");
+    if (validFilePaths.length > 0) {
+        const firstSlash = validFilePaths[0].indexOf("/");
         if (firstSlash > 0) {
-            const candidate = filePaths[0].substring(0, firstSlash + 1);
-            if (filePaths.every((p) => p.startsWith(candidate))) {
+            const candidate = validFilePaths[0].substring(0, firstSlash + 1);
+            if (validFilePaths.every((p) => p.startsWith(candidate))) {
                 commonPrefix = candidate;
             }
         }
     }
 
-    for (const filePath of filePaths) {
+    for (const filePath of validFilePaths) {
         const cleanPath = commonPrefix ? filePath.slice(commonPrefix.length) : filePath;
         if (!cleanPath) continue;
 
@@ -196,10 +199,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const errorMessage = error instanceof Error ? error.message : "Failed to process ZIP file";
-
         return NextResponse.json(
-            { error: errorMessage },
+            { error: error instanceof Error ? error.message : "Failed to process ZIP file" },
             { status: 500 }
         );
     }

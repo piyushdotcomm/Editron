@@ -1,12 +1,12 @@
 "use server"
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
-import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth";
-import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json";
-import { revalidatePath } from "next/cache";
-import { currentUser } from "@/modules/auth/actions";
-import { templatePaths, TemplateKey } from "@/lib/template";
-import path from "path";
+import { assertPlaygroundOwnership, requireCurrentUserId } from "@/lib/playground-auth"
+import { TemplateFolder, scanTemplateDirectory } from "../lib/path-to-json"
+import { revalidatePath } from "next/cache"
+import { currentUser } from "@/modules/auth/actions"
+import { templatePaths, TemplateKey } from "@/lib/template"
+import path from "path"
 
 
 // Toggle marked status for a problem
@@ -66,6 +66,7 @@ export const createPlayground = async (data:{
 
         return playground;
     } catch (error) {
+        console.error("Error creating playground:", error);
         throw error;
     }
 }
@@ -92,9 +93,10 @@ export const getAllPlaygroundForUser = async ()=>{
                 }
             }
         })
-      
+     
         return playground;
     } catch (error) {
+        console.error("Error fetching playgrounds:", error);
         throw error;
     }
 }
@@ -192,6 +194,7 @@ export const SaveUpdatedCode = async (
 
     return updatedPlayground;
   } catch (error) {
+    console.log("SaveUpdatedCode error:", error);
     throw error;
   }
 };
@@ -204,6 +207,7 @@ export const deleteProjectById = async (id:string)=>{
         })
         revalidatePath("/dashboard")
     } catch (error) {
+        console.error("Error deleting project:", error);
         throw error;
     }
 }
@@ -218,9 +222,11 @@ export const editProjectById = async (id:string,data:{title:string , description
         })
         revalidatePath("/dashboard")
     } catch (error) {
+        console.error("Error editing project:", error);
         throw error;
     }
 }
+
 
 export const duplicateProjectById = async (id: string) => {
     try {
@@ -237,6 +243,12 @@ export const duplicateProjectById = async (id: string) => {
             throw new Error("Original playground not found");
         }
 
+        // TemplateFile has a unique constraint on playgroundId, so each playground
+        // can have at most one TemplateFile record. If the original playground was
+        // never edited by the user, templateFiles will be empty and the duplicate
+        // will load its starter files on-demand from disk via /api/template/[id].
+        const firstFile = originalPlayground.templateFiles[0];
+
         // Create a new playground with the same data but a new ID
         const duplicatedPlayground = await db.playground.create({
             data: {
@@ -244,11 +256,13 @@ export const duplicateProjectById = async (id: string) => {
                 description: originalPlayground.description,
                 template: originalPlayground.template,
                 userId,
-                templateFiles: {
-                    create: originalPlayground.templateFiles.map((file) => ({
-                        content: file.content as Prisma.InputJsonValue,
-                    })),
-                },
+                templateFiles: firstFile
+                  ? {
+                      create: {
+                        content: firstFile.content as Prisma.InputJsonValue,
+                      },
+                    }
+                  : undefined,
             },
         });
 
@@ -258,5 +272,6 @@ export const duplicateProjectById = async (id: string) => {
         return duplicatedPlayground;
     } catch (error) {
         console.error("Error duplicating project:", error);
+        throw error;
     }
 };
