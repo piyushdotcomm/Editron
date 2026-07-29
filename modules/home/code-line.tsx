@@ -21,8 +21,15 @@ export const CodeLine = ({ line }: { line: string }) => {
         return <span dangerouslySetInnerHTML={{ __html: highlightCode(highlighted) }} />;
     };
 
+    const escapeHtml = (code: string): string =>
+        code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
     const highlightCode = (code: string) => {
-        return code
+        const safe = escapeHtml(code);
+        return safe
             .replace(/import|from|export|default|return|const|new/g, '<span class="text-red-500 dark:text-red-400 font-semibold">$&</span>')
             .replace(/'[^']*'/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
             .replace(/"[^"]*"/g, '<span class="text-amber-600 dark:text-amber-400">$&</span>')
