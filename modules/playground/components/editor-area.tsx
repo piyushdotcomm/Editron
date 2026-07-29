@@ -78,6 +78,16 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
   const activeFile = openFiles.find((file) => file.id === activeFileId);
   const collaboratorCount = useCollaboratorCount(id);
 
+  const fileContent = activeFile?.content || "";
+
+  const lineCount = fileContent
+    ? fileContent.split("\n").length
+    : 0;
+
+  const wordCount = fileContent.trim()
+    ? fileContent.trim().split(/\s+/).length
+    : 0;
+
   // Auto-open default file when preview is shown if no file is open
   useEffect(() => {
     if (isPreviewVisible && !activeFileId && templateData) {
@@ -188,7 +198,7 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
                         <WebContainerPreview
                           templateData={templateData}
                           instance={instance}
-                          writeFileSync={writeFileSync || (async () => {})}
+                          writeFileSync={writeFileSync || (async () => { })}
 
                           error={containerError}
                           serverUrl={serverUrl || ""}
@@ -227,6 +237,8 @@ export const EditorArea: React.FC<EditorAreaProps> = ({
         containerStatus={containerStatus}
         collaboratorCount={collaboratorCount}
         openFileCount={openFiles.length}
+        lineCount={lineCount}
+        wordCount={wordCount}
       />
     </div>
   );
