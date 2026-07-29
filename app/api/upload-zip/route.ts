@@ -196,10 +196,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const errorMessage = error instanceof Error ? error.message : "Failed to process ZIP file";
-
+        const message = error instanceof Error ? error.message : "Failed to process ZIP file";
         return NextResponse.json(
-            { error: errorMessage },
+            { error: message },
             { status: 500 }
         );
     }

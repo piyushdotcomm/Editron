@@ -10,7 +10,7 @@ export const getUserById = async (id: string) => {
         });
         return user;
     } catch (error) {
-        console.error(error);
+        console.error("[user-data] Error in getUserById:", error);
         return null;
     }
 };
@@ -22,7 +22,7 @@ export const getUserByEmail = async (email: string) => {
         });
         return user;
     } catch (error) {
-        console.error(error);
+        console.error("[user-data] Error in getUserByEmail:", error);
         return null;
     }
 };
@@ -36,7 +36,7 @@ export const getAccountByUserId = async (userId: string) => {
         });
         return account;
     } catch (error) {
-        console.error(error);
+        console.error("[user-data] Error in getAccountByUserId:", error);
         return null;
     }
 };
