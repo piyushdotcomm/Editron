@@ -11,7 +11,7 @@ RUN npm install
 # Copy server code
 COPY server/ ./server/
 COPY lib/ ./lib/
-COPY next-auth.d.ts ./
+COPY types/ ./types/
 COPY tsconfig.json ./
 
 # Expose port

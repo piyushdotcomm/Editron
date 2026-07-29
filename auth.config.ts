@@ -1,5 +1,5 @@
 import Google from "next-auth/providers/google"
-import type { NextAuthConfig } from "next-auth"
+import type { AuthConfig } from "@auth/core"
 export default {
     providers: [
         // GitHub({
@@ -12,4 +12,4 @@ export default {
             clientSecret: process.env.AUTH_GOOGLE_SECRET,
         })
     ]
-} satisfies NextAuthConfig
+} satisfies AuthConfig

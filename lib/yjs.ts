@@ -57,14 +57,6 @@ export function getOrCreateYDoc(roomId: string, token: string) {
 
     yDocs.set(roomId, { doc, provider });
 
-    // Optional: Clean up when the connection is closed to prevent memory leaks
-    provider.on('synced', (isSynced: unknown) => {
-        console.log(`[Yjs] Room ${roomId} mapped. Synced:`, isSynced as boolean);
-    });
-    provider.on('status', (event: unknown) => {
-        console.log(`[Yjs] Room ${roomId} status:`, (event as { status: 'connected' | 'disconnected' | 'connecting' }).status);
-    });
-
     return { doc, provider };
 }
 
