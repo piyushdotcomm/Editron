@@ -73,7 +73,7 @@ export const getAllPlaygroundForUser = async () => {
 
     return playground;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 
@@ -140,7 +140,7 @@ export const deleteProjectById = async (id: string) => {
 
     revalidatePath("/dashboard");
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 
@@ -170,7 +170,6 @@ export const editProjectById = async (
 
     revalidatePath("/dashboard");
   } catch (error) {
-    console.error(error);
     throw error;
   }
 };
