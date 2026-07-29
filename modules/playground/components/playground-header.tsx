@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
@@ -48,6 +49,7 @@ export const PlaygroundHeader = ({
     const activeFile = openFiles.find((f) => f.id === activeFileId);
     const hasUnsavedChanges = openFiles.some((f) => f.hasUnsavedChanges);
     const openFilesLength = openFiles.length;
+    const router = useRouter();
     const toggleAIChat = () => useAI.getState().toggleChat();
 
     return (
@@ -61,7 +63,7 @@ export const PlaygroundHeader = ({
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => window.location.href = '/dashboard'}
+                            onClick={() => router.push('/dashboard')}
                             aria-label="Back to Dashboard"
                         >
                             <ArrowLeft className="h-4 w-4" />
