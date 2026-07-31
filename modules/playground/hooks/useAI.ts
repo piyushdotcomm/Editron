@@ -117,12 +117,13 @@ export const useAI = create<AIState>((set, get) => {
                 localStorage.setItem(storageKeys[provider], key);
             } catch { }
 
-            const stateKeys: Record<AIProvider, string> = {
-                gemini: "userGeminiKey",
-                groq: "userGroqKey",
-                mistral: "userMistralKey",
-            };
-            set({ [stateKeys[provider]]: key } as any);
+            if (provider === "gemini") {
+                set({ userGeminiKey: key });
+            } else if (provider === "groq") {
+                set({ userGroqKey: key });
+            } else if (provider === "mistral") {
+                set({ userMistralKey: key });
+            }
         },
 
         getUserApiKey: (provider) => {
