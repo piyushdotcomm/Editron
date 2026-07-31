@@ -42,22 +42,25 @@ export const PlaygroundSidebar = () => {
                     onClick={() => setActiveTab("explorer")}
                     className={`p-2 rounded-lg transition-colors ${activeTab === "explorer" ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
                     title="Explorer"
+                    aria-label="Explorer"
                 >
-                    <FolderOpen className="h-5 w-5" />
+                    <FolderOpen className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <button
                     onClick={() => setActiveTab("packages")}
                     className={`p-2 rounded-lg transition-colors ${activeTab === "packages" ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
                     title="Dependencies"
+                    aria-label="Dependencies"
                 >
-                    <Package className="h-5 w-5" />
+                    <Package className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <button
                     onClick={() => setActiveTab("env")}
                     className={`p-2 rounded-lg transition-colors ${activeTab === "env" ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
                     title="Environment"
+                    aria-label="Environment Variables"
                 >
-                    <Server className="h-5 w-5" />
+                    <Server className="h-5 w-5" aria-hidden="true" />
                 </button>
             </div>
 
