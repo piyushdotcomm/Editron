@@ -40,9 +40,11 @@ const RequestBodySchema = z.object({
 export async function POST(request: NextRequest) {
     try {        
 
-        // Rate limiting: 20 requests per minute per IP
+        // Rate limiting: 20 requests per minute, keyed by user ID (authenticated) or IP (anonymous)
+        const session = await auth();
         const ip = getClientIp(request);
-        const { allowed, remaining } = await rateLimit(ip, 20, 60_000);
+        const rateLimitKey = session?.user?.id ? `chat:user:${session.user.id}` : `chat:ip:${ip}`;
+        const { allowed, remaining } = await rateLimit(rateLimitKey, 20, 60_000);
 
         if (!allowed) {
             return NextResponse.json(
@@ -57,7 +59,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const session = await auth();
         const isAuthenticated = !!session?.user;
         
         const body = await request.json();
