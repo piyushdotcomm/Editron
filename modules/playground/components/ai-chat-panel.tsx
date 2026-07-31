@@ -82,7 +82,7 @@ export default function AIChatPanel({
 
     // Memoize the file tree string to avoid re-computing on every render
     const fileTree = useMemo(
-        () => templateData ? collectFilePaths(templateData.items).join("\n") : "",
+        () => templateData?.items ? collectFilePaths(templateData.items).join("\n") : "",
         [templateData]
     );
 
