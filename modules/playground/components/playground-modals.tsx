@@ -52,7 +52,20 @@ export const PlaygroundModals: React.FC<PlaygroundModalsProps> = ({
   return (
     <>
       {/* AI Chat Panel */}
-      <ErrorBoundary name="AIChatPanel">
+      <ErrorBoundary
+        name="AIChatPanel"
+        fallback={({ reset }) => (
+          <div className="fixed bottom-4 right-4 z-50 max-w-xs rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center shadow-lg">
+            <p className="mb-2 text-sm font-medium text-destructive">AI Chat crashed</p>
+            <button
+              onClick={reset}
+              className="text-xs underline text-muted-foreground hover:text-foreground"
+            >
+              Reload Chat
+            </button>
+          </div>
+        )}
+      >
         <AIChatPanel
           templateData={templateData}
           saveTemplateData={saveTemplateData}
