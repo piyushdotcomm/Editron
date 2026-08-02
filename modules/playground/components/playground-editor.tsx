@@ -79,7 +79,7 @@ const PlaygroundEditor = ({
 
     const languages = ["javascript", "typescript", "html", "css", "json"];
 
-    const disposables = languages.map((lang) =>
+    const disposables = (languages ?? []).map((lang) =>
       monaco.languages.registerDocumentFormattingEditProvider(lang, {
         async provideDocumentFormattingEdits(model, options, _token) {
           const text = model.getValue();
