@@ -149,7 +149,7 @@ const
           return;
         }
 
-        if (command.trim() === "") {
+        if (command.trim().length === 0) {
           writePrompt();
           return;
         }
