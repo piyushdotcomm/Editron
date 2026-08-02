@@ -167,7 +167,7 @@ export function DeployDialog({ open, onOpenChange, templateData, projectName }: 
                                     {!useMasterKey && (
                                         <div className="pl-7 pt-2">
                                             <Input
-                                                placeholder={`${provider.charAt(0).toUpperCase() + provider.slice(1)} API Token`}
+                                                placeholder={`${provider[0].toUpperCase() + provider.slice(1)} API Token`}
                                                 value={userKey}
                                                 onChange={(e) => setUserKey(e.target.value)}
                                                 type="password"

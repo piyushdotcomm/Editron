@@ -54,7 +54,7 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
                                 className="w-8 h-8 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold text-white shadow-sm cursor-default"
                                 style={{ backgroundColor: u.color }}
                             >
-                                {u.name.charAt(0).toUpperCase()}
+                                {u.name[0].toUpperCase()}
                             </div>
                         </TooltipTrigger>
                         <TooltipContent>{u.name}</TooltipContent>

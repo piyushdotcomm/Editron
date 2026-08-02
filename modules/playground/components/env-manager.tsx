@@ -88,7 +88,7 @@ export function EnvManager({
         return dups;
     }, [envVars]);
 
-    const hasEmptyKey = envVars.some(v => v.key.trim() === "");
+    const hasEmptyKey = envVars.some(v => v.key.trim().length === 0);
     const hasInvalidKey = envVars.some(v => v.key.trim() !== "" && !isValidKey(v.key.trim()));
     const hasDuplicate = duplicateKeys.size > 0;
     const hasErrors = hasEmptyKey || hasInvalidKey || hasDuplicate;
