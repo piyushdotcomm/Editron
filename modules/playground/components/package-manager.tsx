@@ -88,7 +88,8 @@ export function PackageManager({
       `${NPM_REGISTRY_SEARCH_URL}?text=${encodeURIComponent(searchQuery)}&size=10`
       );
 
-      const data = await res.json();
+      if (!res.ok) throw new Error("Request failed");
+const data = await res.json();
       setSearchResults(data.objects);
     } catch (_error) {
       toast.error("Failed to search NPM registry");
