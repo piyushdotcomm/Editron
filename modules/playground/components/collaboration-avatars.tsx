@@ -22,7 +22,7 @@ export function CollaborationAvatars({ playgroundId }: { playgroundId: string })
                     const activeUsers = states.filter(s => s.user).map(s => s.user);
 
                     // Deduplicate by name just in case a user has multiple tabs
-                    const uniqueUsers = Array.from(new Map(activeUsers.map(u => [u.name, u])).values());
+                    const uniqueUsers = Array.from(new Map((activeUsers ?? []).map(u => [u.name, u])).values());
                     setUsers(uniqueUsers);
                 };
 
