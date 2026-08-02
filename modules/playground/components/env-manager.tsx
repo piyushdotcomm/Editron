@@ -74,7 +74,7 @@ export function EnvManager({
     }, [templateData]);
 
     const duplicateKeys = useMemo(() => {
-        const keys = envVars.map(v => v.key.trim());
+        const keys = (envVars ?? []).map(v => v.key.trim());
         const seen = new Set<string>();
         const dups = new Set<string>();
         keys.forEach(k => {
