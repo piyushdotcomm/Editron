@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
         const { messages, provider, fileTree, userApiKey } = result.data;
 
-        if (!session?.user?.id && (!userApiKey || userApiKey.trim() === "")) {
+        if (!session?.user?.id && (!userApiKey || userApiKey.trim().length === 0)) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized: Please log in or provide your own API key in settings." },
                 { status: 401 }
