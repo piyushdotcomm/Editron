@@ -169,7 +169,7 @@ export function EnvManager({
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {envVars.map((v, idx) => {
+                        {(envVars ?? []).map((v, idx) => {
                             const keyTrimmed = v.key.trim();
                             const isDup = duplicateKeys.has(keyTrimmed);
                             const isMalformed = keyTrimmed !== "" && !isValidKey(keyTrimmed);
