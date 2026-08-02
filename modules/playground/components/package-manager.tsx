@@ -157,7 +157,7 @@ const data = await res.json();
         {searchResults.length > 0 && (
           <div className="space-y-2 border-b pb-4">
             <p className="text-xs font-medium text-muted-foreground px-1">Results</p>
-            {searchResults.map((result) => (
+            {(searchResults ?? []).map((result) => (
               <div key={result.package.name} className="flex flex-col gap-1.5 p-2 rounded-md bg-muted/30 border text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">{result.package.name}</span>
