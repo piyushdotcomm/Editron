@@ -3,7 +3,7 @@ export function setupCounter(element) {
 
   const setCounter = (count) => {
     counter = count;
-    element.innerHTML = `count is ${counter}`;
+    element.textContent = `count is ${counter}`;
   };
 
   setCounter(0);
