@@ -388,7 +388,7 @@ const PlaygroundEditor = ({
               `;
             }
           }
-          styleEl.innerHTML = css;
+          styleEl.textContent = css;
         };
 
         provider.awareness.on("update", handleAwarenessUpdate);
