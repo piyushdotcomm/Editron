@@ -121,7 +121,7 @@ const PlaygroundEditor = ({
               plugins,
               singleQuote: false,
               tabWidth: options.tabSize || 2,
-              useTabs: options.insertSpaces === false,
+              useTabs: options.insertSpaces !,
             });
 
             return [
