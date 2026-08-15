@@ -15,24 +15,24 @@ export const MAX_BATCH_CHANGES = 50;
  */
 export const schemas = {
     read_file: z.object({
-        path: z.string().describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
+        path: z.string().max(500).describe("The file path relative to the project root, e.g. src/App.tsx or package.json"),
     }),
     edit_file: z.object({
-        path: z.string().describe("The file path relative to the project root"),
+        path: z.string().max(500).describe("The file path relative to the project root"),
         // Prevent overly large content (character limit)
         content: z.string()
             .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
     }),
     edit_multiple_files: z.object({
         changes: z.array(z.object({
-            path: z.string().describe("The file path relative to the project root"),
+            path: z.string().max(500).describe("The file path relative to the project root"),
             // Same protections for batch changes
             content: z.string()
                 .max(MAX_FILE_CONTENT_CHARS, { message: `content exceeds max characters (${MAX_FILE_CONTENT_CHARS})` }),
         })).max(MAX_BATCH_CHANGES, { message: `changes array exceeds max batch size (${MAX_BATCH_CHANGES})` }).describe("An array of file modifications to execute as a batch"),
     }),
     delete_file: z.object({
-        path: z.string().describe("The file path relative to the project root"),
+        path: z.string().max(500).describe("The file path relative to the project root"),
     }),
 };
 
