@@ -11,8 +11,8 @@ vi.mock("@/components/ui/sidebar", () => ({
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, disabled, className, "aria-label": ariaLabel }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; className?: string; "aria-label"?: string }) => (
-    <button onClick={onClick} disabled={disabled} className={className} aria-label={ariaLabel}>
+  Button: ({ children, onClick, disabled, className, title }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; className?: string; title?: string }) => (
+    <button onClick={onClick} disabled={disabled} className={className} title={title}>
       {children}
     </button>
   ),
@@ -76,7 +76,7 @@ describe("EnvManager Component", () => {
       />
     );
 
-    const addButton = screen.getByRole("button", { name: "Add Variable" });
+    const addButton = screen.getByTitle("Add Variable");
     fireEvent.click(addButton);
 
     const keyInput = screen.getByPlaceholderText("API_KEY") as HTMLInputElement;
@@ -102,7 +102,7 @@ describe("EnvManager Component", () => {
     );
 
     // Add first variable
-    const addButton = screen.getByRole("button", { name: "Add Variable" });
+    const addButton = screen.getByTitle("Add Variable");
     fireEvent.click(addButton);
     const inputs = screen.getAllByPlaceholderText("API_KEY");
     fireEvent.change(inputs[0], { target: { value: "PORT" } });
@@ -129,7 +129,7 @@ describe("EnvManager Component", () => {
     );
 
     // Add a variable (will start empty)
-    const addButton = screen.getByRole("button", { name: "Add Variable" });
+    const addButton = screen.getByTitle("Add Variable");
     fireEvent.click(addButton);
 
     expect(screen.getByText("⚠️ All keys must be filled.")).toBeDefined();

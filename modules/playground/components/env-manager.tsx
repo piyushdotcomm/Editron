@@ -154,7 +154,7 @@ export function EnvManager({
                     <KeyRound className="h-3.5 w-3.5" />
                     Environment Variables
                 </div>
-                <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleAddVar} aria-label="Add Variable">
+                <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleAddVar} title="Add Variable">
                     <Plus className="h-3.5 w-3.5" />
                 </Button>
             </SidebarGroupLabel>
@@ -216,7 +216,6 @@ export function EnvManager({
                                         variant="ghost"
                                         className="h-8 w-8 text-muted-foreground hover:text-red-500 shrink-0"
                                         onClick={() => handleRemoveVar(idx)}
-                                        aria-label={`Remove variable ${idx + 1}`}
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
