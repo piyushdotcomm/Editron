@@ -2,7 +2,7 @@ import { useCallback, useEffect } from "react";
 import { WebContainer } from "@webcontainer/api";
 import { create } from "zustand";
 
-// ─── Path Sanitizer ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Path Sanitizer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function sanitizeRelativePath(filePath: string): string {
   if (filePath.startsWith("/") || filePath.includes("\\")) {
     throw new Error("Invalid path: absolute paths not allowed");
@@ -17,7 +17,7 @@ function sanitizeRelativePath(filePath: string): string {
   return result;
 }
 
-// ─── Zustand Store ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Zustand Store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface WebContainerState {
   instance: WebContainer | null;
   bootPromise: Promise<WebContainer> | null;
@@ -63,7 +63,7 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
     // Fresh boot
     set({ isLoading: true, error: null });
     try {
-      const promise = WebContainer.boot();
+      const promise = WebContainer.boot({ coep: "credentialless" });
       set({ bootPromise: promise });
       const newInstance = await promise;
       set({ instance: newInstance, isLoading: false });
@@ -101,7 +101,7 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
   },
 }));
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface UseWebContainerReturn {
   serverUrl: string | null;
   isLoading: boolean;
@@ -155,6 +155,6 @@ useEffect(() => {
     error,
     instance,
     writeFileSync,
-    destroy: reset, // also fixes the typo: destory → destroy
+    destroy: reset, // also fixes the typo: destory â†’ destroy
   };
 };
