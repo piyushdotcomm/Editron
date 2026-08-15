@@ -124,3 +124,33 @@ export function getClientIp(request: Request): string {
     if (forwarded) return forwarded.split(",")[0].trim();
     return "unknown";
 }
+
+export class AppError extends Error {
+  constructor(
+    public message: string,
+    public statusCode: number = 500,
+    public code?: string
+  ) {
+    super(message);
+  }
+}
+
+export function withErrorHandler(handler: Function) {
+  return async (req: Request, ...args: any[]) => {
+    try {
+      return await handler(req, ...args);
+    } catch (error) {
+      console.error("API Error:", error);
+      if (error instanceof AppError) {
+        return Response.json(
+          { error: error.message, code: error.code },
+          { status: error.statusCode }
+        );
+      }
+      return Response.json(
+        { error: "Internal Server Error" },
+        { status: 500 }
+      );
+    }
+  };
+}

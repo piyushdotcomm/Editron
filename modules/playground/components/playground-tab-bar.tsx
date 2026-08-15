@@ -45,7 +45,7 @@ export const PlaygroundTabBar = ({
                                     >
                                         <div className="flex items-center gap-2 w-full">
                                             <FileIcon extension={file.fileExtension} className={`h-3.5 w-3.5 shrink-0 ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`} />
-                                            <span className="truncate flex-1 text-left">
+                                            <span className="truncate flex-1 text-left" title={`${file.filename}.${file.fileExtension}`}>
                                                 {file.filename}.{file.fileExtension}
                                             </span>
 
