@@ -19,7 +19,7 @@ Editron is a browser-based development environment built with Next.js, WebContai
 
 - Runs full-stack starter projects in the browser with the WebContainer API.
 - Supports a large starter catalog across frontend, backend, full-stack, and tooling-focused templates.
-- Provides Monaco-based file editing, xterm.js terminal access, live preview, theme switching, and resizable workspace panels.
+- Provides Monaco-based file editing (with automatic Prettier formatting), terminal access, live preview, theme switching (including Dark Mode toggle), resizable workspace panels, and full project ZIP export.
 - Includes an AI chat/completion layer with provider switching for Gemini, Groq, and Mistral.
 - Supports authentication with NextAuth and persistence through Prisma with MongoDB.
 - Ships a standalone Yjs collaboration server for real-time collaborative editing.
@@ -223,7 +223,7 @@ We use **Element (Matrix)** for real-time communication and contributor support.
 - **GitHub Discussions:** For non-urgent questions and architectural ideas.
 - **Issues:** For bug reports and feature requests.
 
-## ðŸ¤ Contributors
+## ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â Contributors
 
 Thanks to everyone who has contributed to Editron!
 
@@ -270,7 +270,7 @@ Thanks to everyone who has contributed to Editron!
 <!-- CONTRIBUTORS_END -->
 </div>
 
-## ðŸ§‘â€ðŸ« Mentors
+## ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚Â§ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â« Mentors
 
 Thanks to our amazing mentors for guiding the contributors!
 
