@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 // --- Rate Limiter ---
@@ -26,7 +26,7 @@ function getRedisRatelimit(maxRequests: number, windowMs: number): Ratelimit | n
             new Ratelimit({
                 redis: Redis.fromEnv(),
                 // @upstash/ratelimit allows durations like "10 s", "60000 ms"
-                limiter: Ratelimit.slidingWindow(maxRequests, `${windowMs} ms` as any),
+                limiter: Ratelimit.slidingWindow(maxRequests, `${windowMs} ms` as Duration),
             })
         );
     }
