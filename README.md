@@ -223,7 +223,7 @@ We use **Element (Matrix)** for real-time communication and contributor support.
 - **GitHub Discussions:** For non-urgent questions and architectural ideas.
 - **Issues:** For bug reports and feature requests.
 
-## ðŸ¤ Contributors
+## Ã°Å¸Â¤Â Contributors
 
 Thanks to everyone who has contributed to Editron!
 
@@ -270,7 +270,7 @@ Thanks to everyone who has contributed to Editron!
 <!-- CONTRIBUTORS_END -->
 </div>
 
-## ðŸ§‘â€ðŸ« Mentors
+## Ã°Å¸Â§â€˜Ã¢â‚¬ÂÃ°Å¸ÂÂ« Mentors
 
 Thanks to our amazing mentors for guiding the contributors!
 
