@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { animate } from "motion/react";
+import { animate, useReducedMotion } from "motion/react";
 
 interface GlowingEffectProps {
     blur?: number;
@@ -33,6 +33,7 @@ const GlowingEffect = memo(
         const lastPosition = useRef({ x: 0, y: 0 });
         const animationFrameRef = useRef<number>(0);
         const [isVisible, setIsVisible] = useState(false);
+        const prefersReducedMotion = useReducedMotion();
 
         const handleMove = useCallback(
             (e?: MouseEvent | { x: number; y: number }) => {
@@ -114,7 +115,7 @@ const GlowingEffect = memo(
         }, []);
 
         useEffect(() => {
-            if (disabled || !isVisible) return;
+        if (disabled || !isVisible || prefersReducedMotion) return;
 
             const handleScroll = () => handleMove();
             const handlePointerMove = (e: PointerEvent) => handleMove(e);
