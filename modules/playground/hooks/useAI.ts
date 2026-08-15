@@ -141,7 +141,9 @@ export function collectFilePaths(items: FileSystemItem[], prefix = ""): string[]
             paths.push(...collectFilePaths(item.items, fp));
         } else {
             const ext = item.fileExtension ? `.${item.fileExtension}` : "";
-            paths.push(prefix ? `${prefix}/${item.filename}${ext}` : `${item.filename}${ext}`);
+            const fileName = `${item.filename}${ext}`;
+            if (fileName.includes(".test.") || fileName.includes(".spec.")) continue;
+            paths.push(prefix ? `${prefix}/${fileName}` : fileName);
         }
     }
     return paths;
