@@ -47,8 +47,14 @@ const PlaygroundEditor = ({
   const monacoRef = useRef<Monaco | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bindingRef = useRef<{ destroy: () => void } | null>(null);
+  const contentRef = useRef(content);
   const { data: session } = useSession();
   const [isMounted, setIsMounted] = useState(false);
+
+  // Keep contentRef in sync without triggering the Yjs binding effect
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
 
   const handleEditorDidMount = (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;
@@ -306,8 +312,8 @@ const PlaygroundEditor = ({
         const yText = doc.getText(fileKey);
 
         // Initial content population if empty
-        if (yText.length === 0 && content) {
-          yText.insert(0, content);
+        if (yText.length === 0 && contentRef.current) {
+          yText.insert(0, contentRef.current);
         }
 
         if (bindingRef.current) {
@@ -411,7 +417,8 @@ const PlaygroundEditor = ({
         bindingRef.current = null;
       }
     };
-  }, [activeFile, playgroundId, isMounted, content, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFile, playgroundId, isMounted, session]);
 
   // Cleanup on unmount
   useEffect(() => {
