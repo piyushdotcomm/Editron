@@ -9,6 +9,9 @@ beforeEach<TestContext>(async ({ setup, webcontainer }) => {
 });
 
 test('user can build project', async ({ webcontainer }) => {
+  await webcontainer.writeFile('public/manifest.webmanifest', '{}');
+  await webcontainer.writeFile('src/assets/logo.txt', 'Angular asset');
+
   await webcontainer.runCommand('npm', ['run', 'build']);
 
   await expect(webcontainer.readdir('dist')).resolves.toMatchInlineSnapshot(`
@@ -29,12 +32,37 @@ test('user can build project', async ({ webcontainer }) => {
   await expect(webcontainer.readdir('dist/demo/browser')).resolves
     .toMatchInlineSnapshot(`
         [
+          "assets",
           "index.html",
           "main.js",
+          "manifest.webmanifest",
           "polyfills.js",
           "styles.css",
         ]
       `);
+
+  await expect(
+    webcontainer.readFile('dist/demo/browser/manifest.webmanifest')
+  ).resolves.toBe('{}');
+  await expect(
+    webcontainer.readFile('dist/demo/browser/assets/logo.txt')
+  ).resolves.toBe('Angular asset');
+});
+
+test('starter config includes default asset mappings', async ({
+  webcontainer,
+}) => {
+  const angularJson = JSON.parse(await webcontainer.readFile('angular.json'));
+
+  expect(
+    angularJson.projects.demo.architect.build.options.assets
+  ).toStrictEqual([
+    {
+      glob: '**/*',
+      input: 'public',
+    },
+    'src/assets',
+  ]);
 });
 
 test('user can start project and see changes in preview', async ({
