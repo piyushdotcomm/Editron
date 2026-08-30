@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
@@ -29,13 +30,16 @@ interface PlaygroundHeaderProps {
     handleSave: () => void;
     handleSaveAll: () => void;
     handleDownloadZip: () => void;
+    confirmNavigation?: () => boolean;
 }
 
 export const PlaygroundHeader = ({
     handleSave,
     handleSaveAll,
     handleDownloadZip,
+    confirmNavigation,
 }: PlaygroundHeaderProps) => {
+    const router = useRouter();
     const { id, playgroundData } = usePlaygroundContext();
     const {
         isPreviewVisible,
@@ -61,7 +65,10 @@ export const PlaygroundHeader = ({
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => window.location.href = '/dashboard'}
+                            onClick={() => {
+                                if (confirmNavigation?.() === false) return;
+                                router.push('/dashboard');
+                            }}
                             aria-label="Back to Dashboard"
                         >
                             <ArrowLeft className="h-4 w-4" />
