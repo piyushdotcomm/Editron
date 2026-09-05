@@ -240,14 +240,41 @@
     @apply font-heading;
   }
 
-  /* Hide scrollbars on decorative/editor containers only — NOT globally */
-  .hide-scrollbar {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  /* Hide scrollbars completely while keeping full scroll capability */
+  .hide-scrollbar,
+  .no-scrollbar,
+  html.hide-scrollbar,
+  body.hide-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
+  .hide-scrollbar::-webkit-scrollbar,
+  .no-scrollbar::-webkit-scrollbar,
+  html.hide-scrollbar::-webkit-scrollbar,
+  body.hide-scrollbar::-webkit-scrollbar,
+  .hide-scrollbar *::-webkit-scrollbar,
+  .no-scrollbar *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar-thumb,
+  .no-scrollbar::-webkit-scrollbar-thumb,
+  .hide-scrollbar::-webkit-scrollbar-track,
+  .no-scrollbar::-webkit-scrollbar-track,
+  .hide-scrollbar *::-webkit-scrollbar-thumb,
+  .no-scrollbar *::-webkit-scrollbar-thumb,
+  .hide-scrollbar *::-webkit-scrollbar-track,
+  .no-scrollbar *::-webkit-scrollbar-track {
+    display: none !important;
+  }
+
+  .hide-scrollbar *,
+  .no-scrollbar * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 }
 

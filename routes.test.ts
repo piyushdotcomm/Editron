@@ -5,5 +5,6 @@ import { publicRoutes } from "./routes";
 describe("publicRoutes", () => {
   it("keeps the templates catalog public for logged-out users", () => {
     expect(publicRoutes).toContain("/templates");
+    expect(publicRoutes).toContain("/docs");
   });
 });
