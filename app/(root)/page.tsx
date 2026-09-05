@@ -1,18 +1,9 @@
-import fs from "fs";
-import path from "path";
 import "@/public/assets/dala/styles.css";
+import { DALA_CONTENT_HTML } from "@/components/marketing/dala-content-html";
 import { DalaBrain } from "@/components/canvas/dala-brain";
 import { DalaInteractive } from "@/components/marketing/dala-interactive";
 
 export default function Home() {
-  const contentPath = path.join(process.cwd(), "public", "assets", "dala", "content.html");
-  let content = "";
-  try {
-    content = fs.readFileSync(contentPath, "utf-8");
-  } catch (err) {
-    console.error("Error reading Dala content:", err);
-  }
-
   return (
     <div className="relative w-full min-h-screen bg-black text-white overflow-x-hidden hide-scrollbar">
 
@@ -240,7 +231,7 @@ export default function Home() {
       {/* Dala Landing Content */}
       <div
         className="dala-content-root"
-        dangerouslySetInnerHTML={{ __html: content }}
+        dangerouslySetInnerHTML={{ __html: DALA_CONTENT_HTML }}
       />
 
       {/* Client interactions: nav scrolling, team carousel, hover effects */}
