@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import "@/public/assets/dala/styles.css";
 import { DalaBrain } from "@/components/canvas/dala-brain";
 import { DalaInteractive } from "@/components/marketing/dala-interactive";
 
@@ -14,8 +15,6 @@ export default function Home() {
 
   return (
     <div className="relative w-full min-h-screen bg-black text-white overflow-x-hidden hide-scrollbar">
-      {/* Load Dala Stylesheet */}
-      <link rel="stylesheet" href="/assets/dala/styles.css" />
 
       {/* Global & Scrollbar styles: hides all scrollbars while scrolling works */}
       <style

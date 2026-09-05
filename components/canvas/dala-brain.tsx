@@ -85,7 +85,13 @@ export function DalaBrain() {
       u_progress: { value: 0 },
       u_mobileRotation: { value: isDesktop ? 0.0 : Math.PI },
     };
-    (window as any).__dala = { uniforms, targetRot, targetPos, currentRot, currentPos };
+    (window as Window & { __dala?: unknown }).__dala = {
+      uniforms,
+      targetRot,
+      targetPos,
+      currentRot,
+      currentPos,
+    };
 
     const frontFrustum = calcFrustumSize(camera, 9.9);
     const frontUniforms = {

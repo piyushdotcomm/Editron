@@ -135,10 +135,12 @@ export class AppError extends Error {
   }
 }
 
-export function withErrorHandler(handler: Function) {
-  return async (req: Request, ...args: any[]) => {
+export function withErrorHandler<T extends (...args: unknown[]) => unknown>(
+  handler: T
+) {
+  return async (req: Request, ...args: unknown[]) => {
     try {
-      return await handler(req, ...args);
+      return await (handler as (...args: unknown[]) => unknown)(req, ...args);
     } catch (error) {
       console.error("API Error:", error);
       if (error instanceof AppError) {
