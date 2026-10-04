@@ -18,6 +18,10 @@ __Please note:__ the presence of a starter template in this repository does not 
 
 <img width="872" alt="Screenshot of the list of starter templates on stackblitz.com" src="https://user-images.githubusercontent.com/1511906/223094313-879ff9ca-9825-4335-87f6-b32d94939945.png">
 
+## Angular assets
+
+The Angular starter includes default asset mappings for `public/` and `src/assets/` in `angular.json`. Files placed in `public/` are copied to the build output root, while files placed in `src/assets/` are copied under `assets/`.
+
 ## License
 
 The contents of this repository are made available under the terms of the [MIT License](./LICENSE).
