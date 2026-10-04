@@ -13,6 +13,8 @@ interface StatusBarProps {
     containerStatus: "idle" | "building" | "running" | "error";
     collaboratorCount: number;
     openFileCount: number;
+    lineCount: number;
+    wordCount: number;
 }
 
 const LANGUAGE_MAP: Record<string, string> = {
@@ -50,6 +52,8 @@ export function StatusBar({
     containerStatus,
     collaboratorCount,
     openFileCount,
+    lineCount,
+    wordCount,
 }: StatusBarProps) {
     const ext = activeFile?.fileExtension?.toLowerCase() || "";
     const language = LANGUAGE_MAP[ext] || "Plain Text";
@@ -72,6 +76,17 @@ export function StatusBar({
                         <span className="opacity-30">│</span>
                         <span>
                             Ln {cursorPosition.line}, Col {cursorPosition.col}
+                        </span>
+                        <span className="opacity-30">│</span>
+
+                        <span>
+                            {lineCount} Lines
+                        </span>
+
+                        <span className="opacity-30">│</span>
+
+                        <span>
+                            {wordCount} Words
                         </span>
                     </>
                 )}
