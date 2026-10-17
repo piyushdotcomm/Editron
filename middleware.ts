@@ -52,7 +52,8 @@ export const config = {
      * - /icon (Next.js generated favicon)
      * - /favicon.ico
      * - /assets/*
+     * - /dala/* (landing page runtime: css, scripts, fonts, images)
      */
-    "/((?!_next|assets|images|icon|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|glb|gltf|exr|bin|hdr|json)$).*)",
+    "/((?!_next|assets|images|dala|icon|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|glb|gltf|exr|bin|hdr|json)$).*)",
   ],
 };
