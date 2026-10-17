@@ -1,15 +1,15 @@
 {
-    "name": "Dala",
-    "short_name": "Dala",
-    "description": "Your workoplace has the answer. Just ask Dala for it.",
+    "name": "Editron",
+    "short_name": "Editron",
+    "description": "Code without limits. Launch Editron in seconds.",
     "icons": [
         {
-            "src": "/images/favicons/android-chrome-192x192.png",
+            "src": "/dala/images/favicons/android-chrome-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/images/favicons/android-chrome-256x256.png",
+            "src": "/dala/images/favicons/android-chrome-256x256.png",
             "sizes": "256x256",
             "type": "image/png"
         }

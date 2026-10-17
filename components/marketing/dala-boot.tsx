@@ -1,24 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 /**
  * DalaBoot keeps the transplanted Dala landing runtime alive in a React app.
  *
  * The landing markup in `DALA_CONTENT_HTML` ends with three classic scripts
  * (manifest -> vendor -> theme). On a full page load the browser parser runs
- * them while the document is parsed: the inline flag right before the first
- * script marks that, and the theme boots on the native `DOMContentLoaded`
- * event - so the first mount here does nothing.
+ * them while the document is parsed: an inline flag script right before the
+ * first script marks itself with `data-dala-ran="1"`, and the patched theme
+ * boots the moment it executes - so the first mount here does nothing.
  *
  * When the landing is rendered client-side (navigated to from another route)
  * or re-entered after leaving, an HTML parser never executes scripts inserted
  * through innerHTML. This component therefore appends the same three scripts
- * in order and replays `DOMContentLoaded` once the last one has executed.
+ * in order; the patched theme boots itself (it no longer waits for a
+ * DOMContentLoaded that already fired), so no synthetic event is replayed and
+ * stale listeners from earlier executions can never stack up.
  *
- * If the runtime still has not booted (`<div class="asscrollbar">` missing)
- * ~9 seconds later, one guarded `location.reload()` is issued (the session
- * storage timestamp prevents reload loops).
+ * If a script fails to load, the full-screen `.js-site-loader` is dismissed so
+ * the static landing stays readable. If the runtime still has not booted
+ * (`<div class="asscrollbar">` missing) ~9 seconds later, one guarded
+ * `location.reload()` is issued (the session storage timestamp prevents
+ * reload loops).
  */
 
 const DALA_SCRIPTS = [
@@ -31,15 +35,14 @@ const BOOT_MARKER = ".asscrollbar";
 const BOOT_GRACE_MS = 9000;
 const RELOAD_GUARD_MS = 20000;
 const RELOAD_KEY = "__dala_reload_at";
+const RUNTIME_FLAG = 'script[data-dala-ran="1"]';
+const STYLESHEET_SELECTOR = 'link[data-dala-style="1"]';
+const EMBED_SELECTOR = "[data-dala-embed]";
+const STYLE_WAIT_MS = 3000;
 
-declare global {
-  interface Window {
-    __dalaScriptsRequested?: boolean;
-  }
-}
-
-let effectRuns = 0;
-let lastEffectAt = 0;
+// `useLayoutEffect` warns during SSR; fall back to `useEffect` on the server.
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function scheduleReloadGuard(): number {
   return window.setTimeout(() => {
@@ -55,48 +58,82 @@ function scheduleReloadGuard(): number {
   }, BOOT_GRACE_MS);
 }
 
+/** Static fallback: drop the full-screen loader when the runtime cannot boot. */
+function revealStaticLanding(): void {
+  const loader = document.querySelector<HTMLElement>(".js-site-loader");
+  if (!loader) return;
+  loader.style.opacity = "0";
+  loader.style.visibility = "hidden";
+  loader.style.pointerEvents = "none";
+}
+
 export function DalaBoot() {
-  useEffect(() => {
-    // Read the flag at mount time: the bundle may evaluate before the parser
-    // reaches the inline flag script, but by the first mount it is reliable.
-    const parseHadScripts = !!window.__dalaScriptsRequested;
+  // On a client-side entry the landing stylesheet still has to load, and the
+  // unstyled markup would flash before it applies. Hide the embed until the
+  // link is ready; layout effect so the hide happens before that first paint.
+  useIsomorphicLayoutEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>(STYLESHEET_SELECTOR);
+    const embed = document.querySelector<HTMLElement>(EMBED_SELECTOR);
+    if (!link || !embed) return;
 
-    // React StrictMode replays effects immediately on mount; treat that as the
-    // same first run, but treat a later remount (leave & re-enter) as re-entry.
-    const now = Date.now();
-    const immediateRerun = now - lastEffectAt < 1000;
-    effectRuns += 1;
-    lastEffectAt = now;
-    const firstRunThisDocument = effectRuns === 1 || immediateRerun;
+    let revealed = false;
+    let timer = 0;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      window.clearTimeout(timer);
+      embed.style.visibility = "";
+    };
 
-    if (parseHadScripts && firstRunThisDocument) {
-      // Full page load: the parser already executed the scripts and the theme
-      // boots on the native DOMContentLoaded event. Nothing to do.
+    if (link.sheet) {
+      // Full page load: the stylesheet is already applied (render-blocking).
       return;
     }
 
-    const appended: HTMLScriptElement[] = [];
+    embed.style.visibility = "hidden";
+    link.addEventListener("load", reveal);
+    link.addEventListener("error", reveal);
+    timer = window.setTimeout(reveal, STYLE_WAIT_MS);
 
-    DALA_SCRIPTS.forEach((src, index) => {
+    return () => {
+      window.clearTimeout(timer);
+      link.removeEventListener("load", reveal);
+      link.removeEventListener("error", reveal);
+      if (!revealed) embed.style.visibility = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    // Full page load: the parser executed the embedded scripts (the inline
+    // flag script marks itself), so the theme already boots on its own.
+    if (document.querySelector(RUNTIME_FLAG)) return;
+
+    let graceTimer = 0;
+    const appended: HTMLScriptElement[] = [];
+    const detachListeners: Array<() => void> = [];
+
+    DALA_SCRIPTS.forEach((src) => {
       const el = document.createElement("script");
       el.src = src;
       el.async = false; // keep manifest -> vendor -> theme execution order
       el.dataset.dalaBoot = "1";
-      if (index === DALA_SCRIPTS.length - 1) {
-        el.addEventListener("load", () => {
-          // theme.js registers its boot listener on DOMContentLoaded; the
-          // native event has long fired by now, so replay it.
-          window.dispatchEvent(new Event("DOMContentLoaded"));
-        });
-      }
+      const onError = () => {
+        // The runtime cannot boot: expose the static landing instead of the
+        // full-screen loader and defuse the reload guard.
+        window.clearTimeout(graceTimer);
+        revealStaticLanding();
+      };
+      el.addEventListener("error", onError);
+      detachListeners.push(() => el.removeEventListener("error", onError));
       document.body.appendChild(el);
       appended.push(el);
     });
 
-    const graceTimer = scheduleReloadGuard();
+    graceTimer = scheduleReloadGuard();
 
     return () => {
       window.clearTimeout(graceTimer);
+      detachListeners.forEach((detach) => detach());
       appended.forEach((el) => el.remove());
       // When the landing is left through client-side navigation, undo the
       // scroll state ASScroll applied to <body> and drop its scrollbar node.

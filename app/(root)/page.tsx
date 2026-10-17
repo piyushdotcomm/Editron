@@ -29,11 +29,19 @@ export default function Home() {
           crossOrigin="anonymous"
         />
       ))}
-      <link rel="stylesheet" href="/dala/css/style.css?id=3a3f3a982e763a689cb5" />
+      {/* data-dala-style marks the landing stylesheet for DalaBoot's
+          load gate; data-dala-embed marks the subtree it manages. */}
+      {/* eslint-disable-next-line @next/next/no-css-tags -- deliberate: the Dala stylesheet must stay a plain route-scoped <link> (see PR #787 review) */}
+      <link
+        rel="stylesheet"
+        data-dala-style="1"
+        href="/dala/css/style.css?id=3a3f3a982e763a689cb5"
+      />
       {/* The Dala runtime owns this subtree and mutates it on boot (split
           text, slider DOM, etc.) before React hydrates - suppress the
           innerHTML hydration mismatch. */}
       <div
+        data-dala-embed
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: DALA_CONTENT_HTML }}
       />

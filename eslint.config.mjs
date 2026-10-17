@@ -19,6 +19,8 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "editron-starters/**",
+      // Vendored/minified Dala runtime bundles served as static assets
+      "public/dala/**",
     ],
   },
   {
