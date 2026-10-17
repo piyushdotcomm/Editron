@@ -65,6 +65,9 @@ export default async function RootLayout({
       <html lang="en" suppressHydrationWarning className={`${inter.variable} ${geistMono.variable}`}>
         <body
           className={`${inter.className} antialiased`}
+          // The Dala landing runtime (ASScroll) sets an inline height on
+          // <body> before React hydrates; suppress the attribute mismatch.
+          suppressHydrationWarning
         >
           <QueryProvider>
             <ThemeProvider
