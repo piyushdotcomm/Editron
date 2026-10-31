@@ -15,6 +15,12 @@ Editron is a browser-based development environment built with Next.js, WebContai
 > [!NOTE]
 > Editron is being maintained as an open-source project. Contributor-friendly docs, issue templates, PR templates, and repository checks are included so first-time and returning contributors can work with a predictable workflow.
 
+## Screenshots
+
+![Editron template catalog with 35+ production-ready starters](./assets/screenshots/templates.png)
+
+![Editron documentation with quick start and core feature guides](./assets/screenshots/docs.png)
+
 ## What Editron Does
 
 - Runs full-stack starter projects in the browser with the WebContainer API.
@@ -223,7 +229,7 @@ We use **Element (Matrix)** for real-time communication and contributor support.
 - **GitHub Discussions:** For non-urgent questions and architectural ideas.
 - **Issues:** For bug reports and feature requests.
 
-## ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â Contributors
+## Contributors
 
 Thanks to everyone who has contributed to Editron!
 
@@ -270,7 +276,7 @@ Thanks to everyone who has contributed to Editron!
 <!-- CONTRIBUTORS_END -->
 </div>
 
-## ÃƒÂ°Ã…Â¸Ã‚Â§Ã¢â‚¬ËœÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â« Mentors
+## Mentors
 
 Thanks to our amazing mentors for guiding the contributors!
 
