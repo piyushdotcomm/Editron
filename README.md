@@ -15,9 +15,7 @@ Editron is a browser-based development environment built with Next.js, WebContai
 > [!NOTE]
 > Editron is being maintained as an open-source project. Contributor-friendly docs, issue templates, PR templates, and repository checks are included so first-time and returning contributors can work with a predictable workflow.
 
-## Screenshots
 
-![Editron landing page](./assets/screenshots/home.png)
 
 ## What Editron Does
 
