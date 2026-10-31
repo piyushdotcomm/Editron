@@ -17,9 +17,7 @@ Editron is a browser-based development environment built with Next.js, WebContai
 
 ## Screenshots
 
-![Editron template catalog with 35+ production-ready starters](./assets/screenshots/templates.png)
-
-![Editron documentation with quick start and core feature guides](./assets/screenshots/docs.png)
+![Editron landing page](./assets/screenshots/home.png)
 
 ## What Editron Does
 
